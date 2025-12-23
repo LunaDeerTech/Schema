@@ -27,7 +27,6 @@ model Library {
   id          String    @id @default(uuid())
   title       String
   description String?
-  content     String    // 富文本内容（JSON 格式）
   icon        String?
   sortOrder   Int       @default(0)
   isPublic    Boolean   @default(false)

@@ -69,6 +69,11 @@ Key entities (see `docs/Guidelines.md` §3.2 for full Prisma schema):
 - **PageReference**: Bidirectional links (`sourceId` ↔ `targetId`)
 - **PageVersion**: Auto-versioning on edits
 
+## Testing & Verification
+
+- Do not run command in the same terminal as the dev server. Use a separate terminal instance.
+- Write js unit tests into `__tests__` folders alongside code for unit tests.
+
 ## Implementation Guide
 
 Follow milestones in order:
