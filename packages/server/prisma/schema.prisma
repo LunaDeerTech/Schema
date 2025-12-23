@@ -6,7 +6,7 @@ datasource db {
   provider = "sqlite"
 }
 
-// 用户（单用户模式）
+// 用户
 model User {
   id           String    @id @default(uuid())
   email        String    @unique
@@ -27,6 +27,7 @@ model Library {
   id          String    @id @default(uuid())
   title       String
   description String?
+  content     String    // 富文本内容（JSON 格式）
   icon        String?
   sortOrder   Int       @default(0)
   isPublic    Boolean   @default(false)
