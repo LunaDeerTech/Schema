@@ -26,20 +26,24 @@
 </script>
 
 <style scoped lang="scss">
+@use '@/assets/styles/variables' as *;
+
 .not-found-container {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: $ios-background-primary;
   padding: 20px;
 }
 
 .not-found-card {
   width: 100%;
   max-width: 500px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
+  box-shadow: $ios-shadow-2;
+  border-radius: $ios-border-radius-xl;
+  background-color: $ios-background-secondary;
+  border: none;
   padding: 40px 20px;
 }
 </style>

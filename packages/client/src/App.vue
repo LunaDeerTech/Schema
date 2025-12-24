@@ -1,5 +1,5 @@
 <template>
-  <n-config-provider :theme="theme" :locale="zhCN" :date-locale="dateZhCN">
+  <n-config-provider :theme="theme" :theme-overrides="themeOverrides" :locale="zhCN" :date-locale="dateZhCN">
     <n-message-provider>
       <div id="app">
         <router-view />
@@ -10,28 +10,43 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { NConfigProvider, NMessageProvider } from 'naive-ui'
+import { NConfigProvider, NMessageProvider, type GlobalThemeOverrides } from 'naive-ui'
 import { zhCN, dateZhCN } from 'naive-ui'
 
 // Use light theme
 const theme = ref(null)
+
+const themeOverrides: GlobalThemeOverrides = {
+  common: {
+    primaryColor: '#007AFF',
+    primaryColorHover: '#0071E3',
+    primaryColorPressed: '#005BB5',
+    primaryColorSuppl: '#007AFF',
+    borderRadius: '10px',
+    borderRadiusSmall: '6px',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif',
+    bodyColor: '#F2F2F7',
+    cardColor: '#FFFFFF',
+    textColorBase: '#000000',
+    textColor1: '#000000',
+    textColor2: '#8E8E93',
+    textColor3: '#C7C7CC',
+  },
+  Button: {
+    borderRadiusMedium: '10px',
+    fontWeight: '500',
+  },
+  Card: {
+    borderRadius: '12px',
+    borderColor: 'transparent',
+    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
+  },
+  Input: {
+    borderRadius: '10px',
+  }
+}
 </script>
 
 <style lang="scss">
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html, body {
-  height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background-color: #f0f2f5;
-}
-
-#app {
-  height: 100%;
-  min-height: 100vh;
-}
+// Global styles are imported in main.ts via assets/main.scss
 </style>

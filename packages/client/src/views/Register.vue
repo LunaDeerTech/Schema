@@ -131,30 +131,34 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped lang="scss">
+@use '@/assets/styles/variables' as *;
+
 .register-container {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: $ios-background-primary;
   padding: 20px;
 }
 
 .register-card {
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
+  box-shadow: $ios-shadow-2;
+  border-radius: $ios-border-radius-xl;
+  background-color: $ios-background-secondary;
+  border: none;
   
   :deep(.n-card-header) {
     text-align: center;
     font-weight: 600;
-    font-size: 18px;
-    color: #333;
+    font-size: 20px;
+    color: $ios-text-primary;
   }
   
   :deep(.n-card__content) {
-    padding: 24px;
+    padding: 32px 24px;
   }
 }
 </style>

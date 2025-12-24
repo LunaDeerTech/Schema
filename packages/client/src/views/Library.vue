@@ -323,6 +323,8 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
+@use '@/assets/styles/variables' as *;
+
 .library-container {
   height: 100vh;
   overflow: hidden;
@@ -337,14 +339,16 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid $ios-separator-non-opaque;
   font-size: 18px;
-  color: #1A73E8;
+  color: $ios-system-blue;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
 }
 
 .sidebar-actions {
   padding: 12px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid $ios-separator-non-opaque;
 }
 
 .header {
@@ -352,6 +356,9 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 0 20px;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid $ios-separator-non-opaque;
 }
 
 .header-content {
@@ -369,7 +376,7 @@ onMounted(() => {
 
 .content-area {
   padding: 24px;
-  background-color: #fafafa;
+  background-color: $ios-background-primary;
 }
 
 .empty-state {
@@ -383,6 +390,11 @@ onMounted(() => {
 .page-editor {
   max-width: 900px;
   margin: 0 auto;
+  background-color: $ios-background-secondary;
+  padding: 40px;
+  border-radius: $ios-border-radius-m;
+  box-shadow: $ios-shadow-1;
+  min-height: calc(100vh - 120px);
 }
 
 .page-header {
@@ -392,6 +404,11 @@ onMounted(() => {
     font-size: 24px;
     font-weight: 600;
     margin-bottom: 12px;
+    background-color: transparent;
+    
+    :deep(.n-input__input-el) {
+      color: $ios-text-primary;
+    }
   }
 }
 
@@ -410,17 +427,18 @@ onMounted(() => {
 .editor-area {
   .editor-content {
     min-height: 400px;
-    padding: 20px;
+    padding: 20px 0;
     
     h1, h2, h3, h4, h5, h6 {
       margin-top: 20px;
       margin-bottom: 12px;
-      color: #1a1a1a;
+      color: $ios-text-primary;
     }
     
     p {
       line-height: 1.8;
       margin-bottom: 16px;
+      color: $ios-text-primary;
     }
   }
 }

@@ -40,6 +40,12 @@ pnpm --filter server prisma generate      # Regenerate Prisma client
 - Files: `PascalCase.vue`, composables: `useCamelCase.ts`
 - **Never call APIs directly in components**—use `services/api/*.ts`
 
+## Frontend Styling
+- Use iOS-like clean design with Naive UI
+- SCSS variables in `src/assets/styles/variables.scss`
+- Avoid inline styles; prefer class bindings
+- Global styles in `src/assets/styles/global.scss`
+
 ### Backend (NestJS)
 - Module structure: `*.module.ts`, `*.controller.ts`, `*.service.ts`, `dto/`, `entities/`
 - All routes require `JwtAuthGuard` except `/api/v1/public/*`

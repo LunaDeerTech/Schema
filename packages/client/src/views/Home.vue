@@ -209,6 +209,8 @@ const handleSearch = () => {
 </script>
 
 <style scoped lang="scss">
+@use '@/assets/styles/variables' as *;
+
 .home-container {
   height: 100vh;
   overflow: hidden;
@@ -223,9 +225,11 @@ const handleSearch = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid $ios-separator-non-opaque;
   font-size: 18px;
-  color: #1A73E8;
+  color: $ios-system-blue;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
 }
 
 .header {
@@ -233,6 +237,9 @@ const handleSearch = () => {
   display: flex;
   align-items: center;
   padding: 0 20px;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid $ios-separator-non-opaque;
 }
 
 .header-content {
@@ -256,17 +263,17 @@ const handleSearch = () => {
   display: flex;
   align-items: center;
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: $ios-border-radius-s;
   transition: background-color 0.2s;
   
   &:hover {
-    background-color: #f0f2f5;
+    background-color: rgba(0, 0, 0, 0.05);
   }
 }
 
 .content-area {
   padding: 24px;
-  background-color: #fafafa;
+  background-color: $ios-background-primary;
 }
 
 .welcome-section {
@@ -275,22 +282,24 @@ const handleSearch = () => {
   
   h1 {
     margin-bottom: 8px;
-    color: #1a1a1a;
+    color: $ios-text-primary;
   }
   
   p {
-    color: #666;
+    color: $ios-text-secondary;
     margin-bottom: 0;
   }
 }
 
 .n-card {
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border: none;
+  background-color: $ios-background-secondary;
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: $ios-shadow-2;
   }
   
   :deep(.n-card__content) {
