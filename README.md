@@ -36,20 +36,22 @@ schema/
    pnpm install
    ```
 
-2. **Start development servers**:
+2. **Setup database** (first time only):
+   ```bash
+   pnpm --filter server prisma migrate dev
+   pnpm --filter server prisma generate
+   ```
+
+3. **Start development servers**:
    ```bash
    pnpm dev
    ```
 
    This starts:
-   - Frontend: http://localhost:5173
-   - Backend: http://localhost:3000
+   - **Frontend**: http://localhost:5173 (Vite dev server with hot reload)
+   - **Backend**: http://localhost:3000 (NestJS API server)
 
-3. **Setup database** (first time only):
-   ```bash
-   pnpm --filter server prisma migrate dev
-   pnpm --filter server prisma generate
-   ```
+   The frontend proxies API requests to the backend automatically.
 
 ### Build & Production
 
@@ -60,6 +62,12 @@ pnpm build
 # Start production server
 pnpm start
 ```
+
+**Production Access**: After building, the server runs on http://localhost:3000 and serves:
+- **API**: http://localhost:3000/api/v1/*
+- **Frontend**: http://localhost:3000 (serves the built Vue app)
+
+The production server handles both API routes and SPA routing automatically.
 
 ## Environment Variables
 

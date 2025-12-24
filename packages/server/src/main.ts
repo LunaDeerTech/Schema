@@ -36,16 +36,23 @@ async function bootstrap() {
   // Global response interceptor
   app.useGlobalInterceptors(new ResponseInterceptor());
 
-  // SPA fallback - serve index.html for non-API routes
+  // SPA fallback - serve index.html for non-API routes that don't match static files
   app.use((req, res, next) => {
-    if (!req.path.startsWith('/api')) {
-      res.sendFile(join(clientDistPath, 'index.html'));
-    } else {
-      next();
+    // Skip for API routes
+    if (req.path.startsWith('/api')) {
+      return next();
     }
+    
+    // Skip for actual files (has extension)
+    if (req.path.includes('.')) {
+      return next();
+    }
+
+    // Serve index.html for SPA routing
+    res.sendFile(join(clientDistPath, 'index.html'));
   });
 
-  const port = process.env.PORT || 3001;
+  const port = process.env.PORT || 3000;
   await app.listen(port);
   console.log(`🚀 Server running on http://localhost:${port}`);
   console.log(`📊 Health check: http://localhost:${port}/api/v1/health`);
