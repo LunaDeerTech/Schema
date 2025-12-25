@@ -225,6 +225,13 @@ export class DatabaseService implements OnModuleDestroy {
   }
 
   /**
+   * 执行查询并返回所有结果 (别名，与 query 等价)
+   */
+  queryAll(sql: string, params?: any[]): any[] {
+    return this.query(sql, params);
+  }
+
+  /**
    * 执行查询并返回单个结果
    */
   queryOne(sql: string, params?: any[]): any {

@@ -4,6 +4,9 @@ import { HealthModule } from './modules/health/health.module';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
+import { LibraryModule } from './modules/library/library.module';
+import { PageModule } from './modules/page/page.module';
+import { TagModule } from './modules/tag/tag.module';
 
 @Module({
   imports: [
@@ -15,6 +18,9 @@ import { UserModule } from './modules/user/user.module';
     HealthModule,
     UserModule,
     AuthModule,
+    LibraryModule,
+    PageModule,
+    TagModule,
   ],
   controllers: [],
   providers: [],

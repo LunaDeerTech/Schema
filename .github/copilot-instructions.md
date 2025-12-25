@@ -76,7 +76,7 @@ Key entities (see `docs/Guidelines.md` §3.2 for full schema):
 
 ## Testing & Verification
 
-- Do not run command in the same terminal as the dev server. Use a separate terminal instance.
+- Run the server and client daemonly and export logs so the api requests won't interrupt app flow.
 - Write js unit tests into `__tests__` folders alongside code for unit tests.
 
 ## Implementation Guide
