@@ -19,7 +19,7 @@ schema/
 ## Technology Stack
 
 - **Frontend**: Vue 3, TypeScript, Vite, Pinia, Naive UI
-- **Backend**: NestJS, TypeScript, Prisma, SQLite
+- **Backend**: NestJS, TypeScript, SQLite, better-sqlite3
 - **Auth**: JWT + Passport
 - **Editor**: Tiptap (ProseMirror-based)
 
@@ -36,13 +36,7 @@ schema/
    pnpm install
    ```
 
-2. **Setup database** (first time only):
-   ```bash
-   pnpm --filter server prisma migrate dev
-   pnpm --filter server prisma generate
-   ```
-
-3. **Start development servers**:
+2. **Start development servers**:
    ```bash
    pnpm dev
    ```

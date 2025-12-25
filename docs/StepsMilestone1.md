@@ -35,7 +35,7 @@
     -   Initialize `packages/shared` as a simple TypeScript library (types, constants).
 
 3.  **Database Setup**:
-    -   Ensure `packages/server/prisma/dev.db` will be created by Prisma (SQLite).
+    -   Ensure `packages/server/dev.db` will be created by the database module (SQLite).
     -   (Optional) `docker/docker-compose.yml` can be removed or kept empty for now as SQLite doesn't need a container.
 
 **Verification**:
@@ -45,27 +45,31 @@
 
 ## Step 2: Backend Core & Database
 
-**Goal**: Set up NestJS and Prisma.
+**Goal**: Set up NestJS and the database module.
 
 **Instructions**:
 1.  **Initialize NestJS**:
     -   Initialize `packages/server` as a NestJS application.
-    -   Install dependencies: `@nestjs/common`, `@nestjs/core`, `@nestjs/platform-express`, `prisma`, `@prisma/client`.
+    -   Install dependencies: `@nestjs/common`, `@nestjs/core`, `@nestjs/platform-express`, `better-sqlite3`, `@types/better-sqlite3`.
 
-2.  **Prisma Setup**:
-    -   Initialize Prisma in `packages/server/prisma`.
-    -   Define the `User` model in `schema.prisma` (refer to `docs/Guidelines.md` Section 3.2).
-    -   Run migration: `pnpm prisma migrate dev --name init`.
-    -   Generate client: `pnpm prisma generate`.
+2.  **Database Module Setup**:
+    -   Create `packages/server/src/database/` directory with:
+      - `database.module.ts`: NestJS module for database initialization
+      - `database.service.ts`: Better-sqlite3 wrapper with CRUD operations
+      - `init-db.ts`: Standalone initialization script
+      - `migrator.ts`: Migration management system
+    -   Install better-sqlite3: `pnpm add better-sqlite3 @types/better-sqlite3`
+    -   Implement `DatabaseService` with `initTables()` method (refer to `docs/Guidelines.md` Section 3.2 for complete schema)
+    -   Create tables for User, Library, Page, etc. using SQL DDL statements
 
 3.  **Global Configuration**:
     -   Configure `main.ts` to use global prefix `/api/v1`.
-    -   Set up `PrismaService` to connect to the database.
+    -   Set up `DatabaseService` to connect to the SQLite database.
     -   Create a global exception filter and response interceptor to match the API format: `{ code: 0, data: ... }`.
 
 **Verification**:
 -   Server starts on port 3000.
--   Database tables are created.
+-   Database tables are created (check `dev.db` file exists).
 -   `GET /api/v1/health` (create a simple health check) returns 200.
 
 ---
@@ -87,7 +91,7 @@
     -   Implement `JwtStrategy` and `JwtAuthGuard`.
 
 3.  **User Module**:
-    -   Create `UserModule` to handle user data access via Prisma.
+    -   Create `UserModule` to handle user data access via `DatabaseService`.
 
 **Verification**:
 -   Can register a user via Postman/Curl.

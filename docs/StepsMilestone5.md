@@ -13,8 +13,8 @@
 **Goal**: Create APIs to manage public status and serve public content without authentication.
 
 **Instructions**:
-1.  **Prisma Schema Check**:
-    -   Ensure `Page` and `Library` have `isPublic` (Boolean) and `publicSlug` (String, unique).
+1.  **Database Schema Check**:
+    -   Ensure `Page` and `Library` tables have `isPublic` (INTEGER - 0/1) and `publicSlug` (TEXT, UNIQUE) columns.
 2.  **Public Service (`PublicService`)**:
     -   `togglePublic(id, type: 'page' | 'library', status: boolean)`:
         -   If turning ON, generate a random unique `publicSlug` (e.g., using `nanoid` or UUID shortener) if one doesn't exist.

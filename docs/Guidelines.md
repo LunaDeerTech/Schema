@@ -23,7 +23,7 @@ Schema 是一款面向个人的结构化知识管理系统，旨在帮助用户�
 | 富文本编辑 | Tiptap / Milkdown | 基于 ProseMirror 的现代编辑器 |
 | 后端框架 | NestJS | 企业级 Node.js 框架 |
 | 数据库 | SQLite | 轻量级嵌入式数据库 |
-| ORM | Prisma | 类型安全的数据库访问 |
+| ORM | better-sqlite3 | 轻量级 SQLite 访问库 |
 | 认证 | JWT + Passport | 单用户认证方案 |
 | 部署 | Docker | 容器化一体式部署 |
 
@@ -50,7 +50,7 @@ Schema 是一款面向个人的结构化知识管理系统，旨在帮助用户�
 │  │                    └─────────┬─────────┘                 │   │
 │  │                              │                           │   │
 │  │                    ┌─────────┴─────────┐                 │   │
-│  │                    │   Prisma ORM      │                 │   │
+│  │                    │   SQlite Service  │                 │   │
 │  │                    └─────────┬─────────┘                 │   │
 │  └──────────────────────────────┼───────────────────────────┘   │
 │                                 │                               │
@@ -121,13 +121,10 @@ schema/
 │   │   │   │   ├── guards/       # 守卫
 │   │   │   │   ├── interceptors/ # 拦截器
 │   │   │   │   └── pipes/        # 管道
+│   │   │   ├── database/         # 数据库相关
 │   │   │   ├── config/           # 配置管理
-│   │   │   ├── prisma/           # Prisma 客户端
 │   │   │   ├── app.module.ts
 │   │   │   └── main.ts
-│   │   ├── prisma/
-│   │   │   ├── schema.prisma     # 数据库模型
-│   │   │   └── migrations/       # 数据库迁移
 │   │   ├── test/                 # 测试文件
 │   │   ├── nest-cli.json
 │   │   ├── tsconfig.json
@@ -225,189 +222,147 @@ bootstrap();
               └──────────┘               └─────────┘
 ```
 
-### 3.2 Prisma Schema 定义
+### 3.2 数据库表结构定义
 
-```prisma
-// prisma/schema.prisma
+```sql
+-- 用户表（单用户模式）
+CREATE TABLE IF NOT EXISTS User (
+  id TEXT PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  passwordHash TEXT NOT NULL,
+  displayName TEXT,
+  avatar TEXT,
+  settings TEXT DEFAULT '{}',
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
-generator client {
-  provider = "prisma-client-js"
-}
+-- 知识库表
+CREATE TABLE IF NOT EXISTS Library (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  icon TEXT,
+  sortOrder INTEGER DEFAULT 0,
+  isPublic INTEGER DEFAULT 0,
+  publicSlug TEXT UNIQUE,
+  metadata TEXT DEFAULT '{}',
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  userId TEXT NOT NULL,
+  FOREIGN KEY (userId) REFERENCES User(id) ON DELETE CASCADE
+);
 
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-}
+-- 页面表
+CREATE TABLE IF NOT EXISTS Page (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,  -- JSON 格式的富文本内容
+  icon TEXT,
+  coverImage TEXT,
+  isPublic INTEGER DEFAULT 0,
+  publicSlug TEXT UNIQUE,
+  sortOrder INTEGER DEFAULT 0,
+  metadata TEXT DEFAULT '{}',
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  lastViewedAt DATETIME,
+  userId TEXT NOT NULL,
+  libraryId TEXT NOT NULL,
+  parentId TEXT,
+  FOREIGN KEY (userId) REFERENCES User(id) ON DELETE CASCADE,
+  FOREIGN KEY (libraryId) REFERENCES Library(id) ON DELETE CASCADE,
+  FOREIGN KEY (parentId) REFERENCES Page(id) ON DELETE SET NULL
+);
 
-// 用户（单用户模式）
-model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  passwordHash String
-  displayName  String?
-  avatar       String?
-  settings     Json?     @default("{}")
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  
-  libraries    Library[]
-  pages        Page[]
-  templates    Template[]
-}
+-- 页面版本表
+CREATE TABLE IF NOT EXISTS PageVersion (
+  id TEXT PRIMARY KEY,
+  content TEXT NOT NULL,
+  message TEXT,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  pageId TEXT NOT NULL,
+  FOREIGN KEY (pageId) REFERENCES Page(id) ON DELETE CASCADE
+);
 
-// 知识库
-model Library {
-  id          String    @id @default(uuid())
-  title       String
-  description String?
-  icon        String?
-  sortOrder   Int       @default(0)
-  isPublic    Boolean   @default(false)
-  publicSlug  String?   @unique
-  metadata    Json?     @default("{}")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  pages       Page[]
-  
-  @@index([userId])
-}
+-- 页面引用关系表
+CREATE TABLE IF NOT EXISTS PageReference (
+  id TEXT PRIMARY KEY,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  sourceId TEXT NOT NULL,
+  targetId TEXT NOT NULL,
+  FOREIGN KEY (sourceId) REFERENCES Page(id) ON DELETE CASCADE,
+  FOREIGN KEY (targetId) REFERENCES Page(id) ON DELETE CASCADE,
+  UNIQUE(sourceId, targetId)
+);
 
-// 页面
-model Page {
-  id          String    @id @default(uuid())
-  title       String
-  content     Json      // 富文本内容（JSON 格式）
-  icon        String?
-  coverImage  String?
-  isPublic    Boolean   @default(false)
-  publicSlug  String?   @unique
-  sortOrder   Int       @default(0)
-  metadata    Json?     @default("{}")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  lastViewedAt DateTime?
-  
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  libraryId   String
-  library     Library   @relation(fields: [libraryId], references: [id], onDelete: Cascade)
-  
-  parentId    String?
-  parent      Page?     @relation("PageHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
-  children    Page[]    @relation("PageHierarchy")
-  
-  versions    PageVersion[]
-  tasks       Task[]
-  tags        PageTag[]
-  
-  // 页面引用关系
-  outgoingRefs PageReference[] @relation("SourcePage")
-  incomingRefs PageReference[] @relation("TargetPage")
-  
-  @@index([userId])
-  @@index([libraryId])
-  @@index([parentId])
-  @@index([isPublic])
-  @@fulltext([title, content])
-}
+-- 标签表
+CREATE TABLE IF NOT EXISTS Tag (
+  id TEXT PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL,
+  color TEXT,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
-// 页面版本
-model PageVersion {
-  id          String    @id @default(uuid())
-  content     Json
-  message     String?
-  createdAt   DateTime  @default(now())
-  
-  pageId      String
-  page        Page      @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  
-  @@index([pageId])
-}
+-- 页面-标签关联表
+CREATE TABLE IF NOT EXISTS PageTag (
+  pageId TEXT NOT NULL,
+  tagId TEXT NOT NULL,
+  PRIMARY KEY (pageId, tagId),
+  FOREIGN KEY (pageId) REFERENCES Page(id) ON DELETE CASCADE,
+  FOREIGN KEY (tagId) REFERENCES Tag(id) ON DELETE CASCADE
+);
 
-// 页面引用关系
-model PageReference {
-  id          String    @id @default(uuid())
-  createdAt   DateTime  @default(now())
-  
-  sourceId    String
-  source      Page      @relation("SourcePage", fields: [sourceId], references: [id], onDelete: Cascade)
-  
-  targetId    String
-  target      Page      @relation("TargetPage", fields: [targetId], references: [id], onDelete: Cascade)
-  
-  @@unique([sourceId, targetId])
-  @@index([sourceId])
-  @@index([targetId])
-}
+-- 任务表
+CREATE TABLE IF NOT EXISTS Task (
+  id TEXT PRIMARY KEY,
+  content TEXT NOT NULL,
+  isCompleted INTEGER DEFAULT 0,
+  dueDate DATETIME,
+  sortOrder INTEGER DEFAULT 0,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  completedAt DATETIME,
+  pageId TEXT NOT NULL,
+  FOREIGN KEY (pageId) REFERENCES Page(id) ON DELETE CASCADE
+);
 
-// 标签
-model Tag {
-  id          String    @id @default(uuid())
-  name        String    @unique
-  color       String?
-  createdAt   DateTime  @default(now())
-  
-  pages       PageTag[]
-}
+-- 模板表
+CREATE TABLE IF NOT EXISTS Template (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  content TEXT NOT NULL,
+  category TEXT,
+  isBuiltIn INTEGER DEFAULT 0,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  userId TEXT,
+  FOREIGN KEY (userId) REFERENCES User(id) ON DELETE SET NULL
+);
 
-// 页面-标签关联
-model PageTag {
-  pageId      String
-  page        Page      @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  
-  tagId       String
-  tag         Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  
-  @@id([pageId, tagId])
-}
+-- 系统配置表
+CREATE TABLE IF NOT EXISTS SystemConfig (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
-// 任务
-model Task {
-  id          String    @id @default(uuid())
-  content     String
-  isCompleted Boolean   @default(false)
-  dueDate     DateTime?
-  sortOrder   Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  completedAt DateTime?
-  
-  pageId      String
-  page        Page      @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  
-  @@index([pageId])
-  @@index([isCompleted])
-  @@index([dueDate])
-}
-
-// 模板
-model Template {
-  id          String    @id @default(uuid())
-  title       String
-  description String?
-  content     Json
-  category    String?
-  isBuiltIn   Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  userId      String?
-  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
-  
-  @@index([userId])
-  @@index([category])
-}
-
-// 系统配置
-model SystemConfig {
-  key         String    @id
-  value       Json
-  updatedAt   DateTime  @updatedAt
-}
+-- 索引优化
+CREATE INDEX IF NOT EXISTS idx_library_user ON Library(userId);
+CREATE INDEX IF NOT EXISTS idx_page_user ON Page(userId);
+CREATE INDEX IF NOT EXISTS idx_page_library ON Page(libraryId);
+CREATE INDEX IF NOT EXISTS idx_page_parent ON Page(parentId);
+CREATE INDEX IF NOT EXISTS idx_page_public ON Page(isPublic);
+CREATE INDEX IF NOT EXISTS idx_page_last_viewed ON Page(lastViewedAt);
+CREATE INDEX IF NOT EXISTS idx_version_page ON PageVersion(pageId);
+CREATE INDEX IF NOT EXISTS idx_reference_source ON PageReference(sourceId);
+CREATE INDEX IF NOT EXISTS idx_reference_target ON PageReference(targetId);
+CREATE INDEX IF NOT EXISTS idx_task_page ON Task(pageId);
+CREATE INDEX IF NOT EXISTS idx_task_completed ON Task(isCompleted);
+CREATE INDEX IF NOT EXISTS idx_task_due ON Task(dueDate);
+CREATE INDEX IF NOT EXISTS idx_template_user ON Template(userId);
+CREATE INDEX IF NOT EXISTS idx_template_category ON Template(category);
 ```
 
 ---
@@ -806,34 +761,53 @@ export class PageController {
 ```typescript
 // modules/page/page.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common'
-import { PrismaService } from '@/prisma/prisma.service'
+import { DatabaseService } from '@/database/database.service'
 import { CreatePageDto, UpdatePageDto, PageQueryDto } from './dto'
 
 @Injectable()
 export class PageService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly database: DatabaseService) {}
 
   async findAll(userId: string, query: PageQueryDto) {
     const { libraryId, parentId, page = 1, pageSize = 20 } = query
 
-    const where = {
-      userId,
-      ...(libraryId && { libraryId }),
-      ...(parentId !== undefined && { parentId }),
+    const offset = (page - 1) * pageSize
+
+    // 构建查询条件
+    const conditions = ['userId = ?']
+    const params: any[] = [userId]
+
+    if (libraryId) {
+      conditions.push('libraryId = ?')
+      params.push(libraryId)
     }
 
-    const [items, total] = await Promise.all([
-      this.prisma.page.findMany({
-        where,
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-        orderBy: { sortOrder: 'asc' },
-        include: {
-          tags: { include: { tag: true } },
-        },
-      }),
-      this.prisma.page.count({ where }),
-    ])
+    if (parentId !== undefined) {
+      if (parentId === null) {
+        conditions.push('parentId IS NULL')
+      } else {
+        conditions.push('parentId = ?')
+        params.push(parentId)
+      }
+    }
+
+    const whereClause = conditions.join(' AND ')
+
+    // 获取总数
+    const totalResult = this.database
+      .prepare(`SELECT COUNT(*) as count FROM Page WHERE ${whereClause}`)
+      .get(params)
+    const total = totalResult.count
+
+    // 获取分页数据
+    const items = this.database
+      .prepare(`
+        SELECT * FROM Page 
+        WHERE ${whereClause} 
+        ORDER BY sortOrder ASC 
+        LIMIT ? OFFSET ?
+      `)
+      .all([...params, pageSize, offset])
 
     return {
       items,
@@ -845,66 +819,138 @@ export class PageService {
   }
 
   async findOne(userId: string, id: string) {
-    const page = await this.prisma.page.findFirst({
-      where: { id, userId },
-      include: {
-        library: true,
-        parent: true,
-        children: { orderBy: { sortOrder: 'asc' } },
-        tags: { include: { tag: true } },
-        outgoingRefs: { include: { target: true } },
-        incomingRefs: { include: { source: true } },
-      },
-    })
+    const page = this.database
+      .prepare('SELECT * FROM Page WHERE id = ? AND userId = ?')
+      .get(id, userId)
 
     if (!page) {
       throw new NotFoundException('页面不存在')
     }
 
-    // 更新最后访问时间
-    await this.prisma.page.update({
-      where: { id },
-      data: { lastViewedAt: new Date() },
-    })
+    // 获取关联数据
+    const library = this.database
+      .prepare('SELECT * FROM Library WHERE id = ?')
+      .get(page.libraryId)
 
-    return page
+    const parent = page.parentId
+      ? this.database.prepare('SELECT * FROM Page WHERE id = ?').get(page.parentId)
+      : null
+
+    const children = this.database
+      .prepare('SELECT * FROM Page WHERE parentId = ? ORDER BY sortOrder ASC')
+      .all(page.id)
+
+    // 更新最后访问时间
+    this.database
+      .prepare('UPDATE Page SET lastViewedAt = ?, updatedAt = ? WHERE id = ?')
+      .run(new Date().toISOString(), new Date().toISOString(), id)
+
+    return {
+      ...page,
+      library,
+      parent,
+      children,
+    }
   }
 
   async create(userId: string, dto: CreatePageDto) {
-    return this.prisma.page.create({
-      data: {
-        ...dto,
+    const id = this.database
+      .prepare('SELECT hex(randomblob(16)) as id')
+      .get().id
+
+    const now = new Date().toISOString()
+    const content = dto.content ?? { type: 'doc', content: [] }
+
+    this.database
+      .prepare(`
+        INSERT INTO Page (id, title, content, libraryId, parentId, userId, icon, isPublic, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `)
+      .run(
+        id,
+        dto.title,
+        JSON.stringify(content),
+        dto.libraryId,
+        dto.parentId || null,
         userId,
-        content: dto.content ?? { type: 'doc', content: [] },
-      },
-    })
+        dto.icon || null,
+        dto.isPublic ? 1 : 0,
+        now,
+        now
+      )
+
+    return this.findOne(userId, id)
   }
 
   async update(userId: string, id: string, dto: UpdatePageDto) {
-    const page = await this.prisma.page.findFirst({
-      where: { id, userId },
-    })
+    const page = this.database
+      .prepare('SELECT * FROM Page WHERE id = ? AND userId = ?')
+      .get(id, userId)
 
     if (!page) {
       throw new NotFoundException('页面不存在')
     }
 
-    return this.prisma.page.update({
-      where: { id },
-      data: dto,
-    })
+    const now = new Date().toISOString()
+    const updates: string[] = []
+    const params: any[] = []
+
+    if (dto.title !== undefined) {
+      updates.push('title = ?')
+      params.push(dto.title)
+    }
+
+    if (dto.content !== undefined) {
+      updates.push('content = ?')
+      params.push(JSON.stringify(dto.content))
+    }
+
+    if (dto.libraryId !== undefined) {
+      updates.push('libraryId = ?')
+      params.push(dto.libraryId)
+    }
+
+    if (dto.parentId !== undefined) {
+      updates.push('parentId = ?')
+      params.push(dto.parentId || null)
+    }
+
+    if (dto.icon !== undefined) {
+      updates.push('icon = ?')
+      params.push(dto.icon || null)
+    }
+
+    if (dto.isPublic !== undefined) {
+      updates.push('isPublic = ?')
+      params.push(dto.isPublic ? 1 : 0)
+    }
+
+    updates.push('updatedAt = ?')
+    params.push(now)
+
+    params.push(id, userId)
+
+    this.database
+      .prepare(`UPDATE Page SET ${updates.join(', ')} WHERE id = ? AND userId = ?`)
+      .run(...params)
+
+    return this.findOne(userId, id)
   }
 
   async remove(userId: string, id: string) {
-    const page = await this.prisma.page.findFirst({
-      where: { id, userId },
-    })
+    const page = this.database
+      .prepare('SELECT * FROM Page WHERE id = ? AND userId = ?')
+      .get(id, userId)
 
     if (!page) {
       throw new NotFoundException('页面不存在')
     }
 
-    return this.prisma.page.delete({ where: { id } })
+    this.database
+      .prepare('DELETE FROM Page WHERE id = ?')
+      .run(id)
+
+    return { success: true }
   }
 }
 ```
@@ -952,7 +998,7 @@ export class CreatePageDto {
 |------|----------|--------|
 | 项目初始化（Monorepo 配置） | 0.5 天 | 项目结构、依赖配置 |
 | 后端基础架构（NestJS） | 1 天 | 模块结构、中间件、守卫 |
-| 数据库设计与 Prisma 配置 | 1 天 | Schema、迁移脚本 |
+| 数据库设计与初始化 | 1 天 | 数据库表结构、初始化脚本 |
 | 认证模块开发 | 2 天 | JWT 认证、用户管理 |
 | 前端基础架构（Vue 3） | 1 天 | 路由、状态管理、布局 |
 | 前后端联调配置 | 0.5 天 | API 代理、类型共享 |
@@ -1083,8 +1129,8 @@ cp .env.example .env
 # 4. 启动数据库（Docker）
 # SQLite 不需要启动额外的数据库容器
 
-# 5. 执行数据库迁移
-pnpm --filter server prisma migrate dev
+# 5. 初始化数据库
+pnpm --filter server db:init
 
 # 6. 启动开发服务器
 pnpm dev
@@ -1104,7 +1150,7 @@ PORT=3000
 APP_URL=http://localhost:3000
 
 # 数据库
-DATABASE_URL="file:./dev.db"
+DB_PATH="./packages/server/dev.db"
 
 # JWT 配置
 JWT_SECRET=your-super-secret-key-change-in-production
@@ -1150,7 +1196,6 @@ RUN pnpm install --frozen-lockfile
 COPY packages/server ./packages/server
 COPY packages/shared ./packages/shared
 RUN pnpm --filter server build
-RUN pnpm --filter server prisma generate
 
 # 生产镜像
 FROM node:20-alpine AS production
@@ -1158,7 +1203,7 @@ WORKDIR /app
 
 COPY --from=server-builder /app/packages/server/dist ./dist
 COPY --from=server-builder /app/packages/server/node_modules ./node_modules
-COPY --from=server-builder /app/packages/server/prisma ./prisma
+
 COPY --from=client-builder /app/packages/client/dist ./public
 
 ENV NODE_ENV=production
@@ -1182,10 +1227,10 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL="file:./prod.db"
+      - DB_PATH="./packages/server/prod.db"
       - JWT_SECRET=${JWT_SECRET}
     volumes:
-      - ./data:/app/packages/server/prisma
+      - ./data:/app/packages/server
     restart: unless-stopped
 ```
 
@@ -1237,7 +1282,6 @@ services:
     "Vue.volar",
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "Prisma.prisma",
     "bradlc.vscode-tailwindcss",
     "ms-azuretools.vscode-docker"
   ]
@@ -1248,7 +1292,6 @@ services:
 
 - [Vue 3 官方文档](https://vuejs.org/)
 - [NestJS 官方文档](https://docs.nestjs.com/)
-- [Prisma 官方文档](https://www.prisma.io/docs/)
 - [Tiptap 编辑器文档](https://tiptap.dev/)
 - [SQLite 全文搜索](https://www.sqlite.org/fts5.html)
 

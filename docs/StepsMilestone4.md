@@ -13,14 +13,14 @@
 **Goal**: Enable saving page history and restoring previous versions.
 
 **Instructions**:
-1.  **Prisma Schema Verification**:
-    -   Ensure `PageVersion` model exists in `prisma/schema.prisma`.
-    -   Fields: `id`, `content` (Json), `message` (String?), `createdAt`, `pageId`.
+1.  **Database Schema Verification**:
+    -   Ensure `PageVersion` table exists in the database schema (refer to `docs/Guidelines.md` Section 3.2).
+    -   Fields: `id` (TEXT), `content` (TEXT - JSON), `message` (TEXT), `createdAt` (DATETIME), `pageId` (TEXT - FOREIGN KEY).
 2.  **Service Implementation (`PageService`)**:
-    -   Implement `createVersion(pageId, content, message)`: Saves a snapshot of the current page content.
+    -   Implement `createVersion(pageId, content, message)`: Saves a snapshot of the current page content to `PageVersion` table.
     -   Implement `getVersions(pageId)`: Returns a list of versions for a page, ordered by `createdAt` desc.
     -   Implement `restoreVersion(pageId, versionId)`:
-        -   Fetch the specific version.
+        -   Fetch the specific version from `PageVersion` table.
         -   Create a *new* version of the *current* state (backup before restore).
         -   Update `Page.content` with the version's content.
 3.  **Controller Implementation**:

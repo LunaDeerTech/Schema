@@ -14,17 +14,17 @@
 **Goal**: Update the database schema to support Libraries, Pages, and Tags.
 
 **Instructions**:
-1.  **Update Prisma Schema**:
-    -   Modify `packages/server/prisma/schema.prisma`.
-    -   Add models: `Library`, `Page`, `Tag`, `PageTag` (refer to `docs/Guidelines.md` Section 3.2).
-    -   Ensure relationships are correctly defined (User -> Libraries, Library -> Pages, Page -> Children, Page -> Tags).
-2.  **Migration**:
-    -   Run `pnpm prisma migrate dev --name add_core_models`.
-    -   Run `pnpm prisma generate`.
+1.  **Update Database Schema**:
+    -   Modify `packages/server/src/database/database.service.ts` to add table creation for `Library`, `Page`, `Tag`, `PageTag`.
+    -   Add `initTables()` methods for new tables (refer to `docs/Guidelines.md` Section 3.2 for complete SQL definitions).
+    -   Ensure relationships are correctly defined with FOREIGN KEY constraints.
+2.  **Apply Changes**:
+    -   Run `pnpm --filter server db:init` to reinitialize database with new tables.
+    -   Or use `DatabaseService` methods to add new tables to existing database.
 
 **Verification**:
--   Database tables `Library`, `Page`, `Tag`, `PageTag` exist.
--   Prisma Client types are updated.
+-   Database tables `Library`, `Page`, `Tag`, `PageTag` exist in `dev.db`.
+-   All relationships (Foreign Keys) are properly established.
 
 ---
 

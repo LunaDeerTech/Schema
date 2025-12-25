@@ -1,4 +1,4 @@
-import { User } from '@prisma/client';
+import { User } from '@/types/database.types';
 
 export class UserResponseDto {
   id: string;
@@ -14,8 +14,8 @@ export class UserResponseDto {
     dto.email = user.email;
     dto.displayName = user.displayName;
     dto.avatar = user.avatar;
-    dto.createdAt = user.createdAt;
-    dto.updatedAt = user.updatedAt;
+    dto.createdAt = new Date(user.createdAt);
+    dto.updatedAt = new Date(user.updatedAt);
     return dto;
   }
 }
