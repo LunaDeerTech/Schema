@@ -7,8 +7,7 @@
     "dev": "nest start --watch",
     "start": "node dist/src/main.js",
     "lint": "eslint . --ext .ts",
-    "db:init": "node scripts/init-db.js",
-    "db:init:ts": "ts-node src/database/init-db.ts",
+    "db:init": "ts-node src/database/init-db.ts",
     "db:migrate": "ts-node -e \"const { DatabaseService } = require('./dist/src/database/database.service'); const { runMigrations } = require('./dist/src/database/migrator'); const db = new DatabaseService(); db.onModuleInit().then(() => { runMigrations(db); db.onModuleDestroy(); });\"",
     "db:test-restructure": "ts-node src/database/test-restructure.ts"
   },

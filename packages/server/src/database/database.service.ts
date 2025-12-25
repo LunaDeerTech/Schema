@@ -189,14 +189,23 @@ export class DatabaseService implements OnModuleDestroy {
       CREATE INDEX IF NOT EXISTS idx_page_library ON Page(libraryId);
       CREATE INDEX IF NOT EXISTS idx_page_parent ON Page(parentId);
       CREATE INDEX IF NOT EXISTS idx_page_public ON Page(isPublic);
-      CREATE INDEX IF NOT EXISTS idx_pageversion_page ON PageVersion(pageId);
-      CREATE INDEX IF NOT EXISTS idx_pagereference_source ON PageReference(sourceId);
-      CREATE INDEX IF NOT EXISTS idx_pagereference_target ON PageReference(targetId);
+      CREATE INDEX IF NOT EXISTS idx_page_last_viewed ON Page(lastViewedAt);
+      CREATE INDEX IF NOT EXISTS idx_version_page ON PageVersion(pageId);
+      CREATE INDEX IF NOT EXISTS idx_reference_source ON PageReference(sourceId);
+      CREATE INDEX IF NOT EXISTS idx_reference_target ON PageReference(targetId);
       CREATE INDEX IF NOT EXISTS idx_task_page ON Task(pageId);
       CREATE INDEX IF NOT EXISTS idx_task_completed ON Task(isCompleted);
-      CREATE INDEX IF NOT EXISTS idx_task_duedate ON Task(dueDate);
+      CREATE INDEX IF NOT EXISTS idx_task_due ON Task(dueDate);
       CREATE INDEX IF NOT EXISTS idx_template_user ON Template(userId);
       CREATE INDEX IF NOT EXISTS idx_template_category ON Template(category);
+    `);
+
+    // 确保唯一约束存在（为已存在的数据表添加唯一索引）
+    this.db.exec(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_user_email ON User(email);
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_library_publicSlug ON Library(publicSlug);
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_page_publicSlug ON Page(publicSlug);
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_tag_name ON Tag(name);
     `);
   }
 
