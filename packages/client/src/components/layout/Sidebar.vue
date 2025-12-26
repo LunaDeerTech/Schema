@@ -211,6 +211,61 @@ const submitCreatePage = async () => {
   }
 }
 
+const allowDrop = (_: { dropPosition: 'before' | 'inside' | 'after', node: TreeOption }) => {
+  return true
+}
+
+const handleDrop = async ({ node, dragNode, dropPosition }: { node: TreeOption, dragNode: TreeOption, dropPosition: 'before' | 'inside' | 'after' }) => {
+  const dragNodeId = dragNode.key as string
+  const dropNodeId = node.key as string
+  
+  // Find the drop node in the pages list to get its parentId
+  const dropPage = pageStore.pages.find(p => p.id === dropNodeId)
+  if (!dropPage) return
+
+  let newParentId: string | null | undefined
+  let sortOrder: number | undefined
+
+  if (dropPosition === 'inside') {
+    newParentId = dropNodeId
+    // When moving inside, we don't specify sortOrder, letting backend append it to the end
+    // Or we could find the max sortOrder of children and add 1
+  } else {
+    // 'before' or 'after'
+    newParentId = dropPage.parentId || null
+    
+    // Calculate new sortOrder
+    // We want to take the spot of the dropPage (for before) or the spot after (for after)
+    // The backend should handle shifting other items
+    if (dropPosition === 'before') {
+      sortOrder = dropPage.sortOrder
+    } else {
+      sortOrder = dropPage.sortOrder + 1
+    }
+  }
+
+  console.log('Moving page:', { dragNodeId, newParentId, sortOrder, dropPosition })
+
+  // Call store action to move page
+  try {
+    await pageStore.movePage(dragNodeId, {
+      newParentId: newParentId,
+      sortOrder: sortOrder
+    })
+    message.success('Page moved successfully')
+    
+    // If dropped inside, expand the target node
+    if (dropPosition === 'inside') {
+      if (!expandedKeys.value.includes(dropNodeId)) {
+        expandedKeys.value.push(dropNodeId)
+      }
+    }
+  } catch (e) {
+    console.error('Move failed', e)
+    message.error('Failed to move page')
+  }
+}
+
 const handleNodeContextMenu = ({ option }: { option: TreeOption }) => {
   return {
     onContextmenu(e: MouseEvent) {
@@ -435,6 +490,9 @@ watch(() => pageStore.currentPage, async (page) => {
             selectable
             expand-on-click
             :node-props="handleNodeContextMenu"
+            draggable
+            @drop="handleDrop"
+            :allow-drop="allowDrop"
           />
         </n-scrollbar>
       </div>

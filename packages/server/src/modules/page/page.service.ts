@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { DatabaseService } from '@/database/database.service';
 import { CreatePageDto } from './dto/create-page.dto';
 import { UpdatePageDto } from './dto/update-page.dto';
+import { MovePageDto } from './dto/move-page.dto';
 import { PageQueryDto } from './dto/page-query.dto';
 import { PageResponseDto } from './dto/page-response.dto';
 
@@ -418,6 +419,180 @@ export class PageService {
       `UPDATE Page SET ${updates.join(', ')} WHERE id = ? AND userId = ?`,
       params
     );
+
+    return this.findOne(userId, id);
+  }
+
+  /**
+   * Move page to another parent or library
+   */
+  async move(userId: string, id: string, movePageDto: MovePageDto): Promise<PageResponseDto> {
+    const page = this.database.queryOne(
+      'SELECT * FROM Page WHERE id = ? AND userId = ?',
+      [id, userId]
+    );
+
+    if (!page) {
+      throw new NotFoundException('Page not found');
+    }
+
+    const updates: string[] = [];
+    const params: any[] = [];
+    const now = new Date().toISOString();
+
+    // Handle parent change
+    if (movePageDto.newParentId !== undefined) {
+      if (movePageDto.newParentId === null) {
+        // Moving to root
+        updates.push('parentId = NULL');
+      } else {
+        // Moving to another page
+        if (movePageDto.newParentId === id) {
+          throw new ConflictException('Cannot move page under itself');
+        }
+
+        const parent = this.database.queryOne(
+          'SELECT id, libraryId, parentId FROM Page WHERE id = ? AND userId = ?',
+          [movePageDto.newParentId, userId]
+        );
+
+        if (!parent) {
+          throw new NotFoundException('Target parent page not found');
+        }
+
+        // Check for circular dependency
+        let current = parent;
+        let depth = 0;
+        while (current && current.parentId && depth < 100) {
+            if (current.parentId === id) {
+                throw new ConflictException('Cannot move page under its own descendant');
+            }
+            const nextParent = this.database.queryOne(
+                'SELECT id, parentId FROM Page WHERE id = ?',
+                [current.parentId]
+            );
+            current = nextParent;
+            depth++;
+        }
+
+        updates.push('parentId = ?');
+        params.push(movePageDto.newParentId);
+
+        // If moving to a parent, we must also move to that parent's library
+        if (page.libraryId !== parent.libraryId) {
+          updates.push('libraryId = ?');
+          params.push(parent.libraryId);
+        }
+      }
+    }
+
+    // Handle library change
+    if (movePageDto.newLibraryId && movePageDto.newLibraryId !== page.libraryId) {
+       if (movePageDto.newParentId === undefined) {
+           const library = this.database.queryOne(
+               'SELECT id FROM Library WHERE id = ? AND userId = ?',
+               [movePageDto.newLibraryId, userId]
+           );
+           if (!library) {
+               throw new NotFoundException('Target library not found');
+           }
+           
+           updates.push('libraryId = ?');
+           params.push(movePageDto.newLibraryId);
+           
+           if (page.parentId) {
+               const parent = this.database.queryOne(
+                   'SELECT libraryId FROM Page WHERE id = ?',
+                   [page.parentId]
+               );
+               if (parent && parent.libraryId !== movePageDto.newLibraryId) {
+                   updates.push('parentId = NULL');
+               }
+           }
+       }
+    }
+
+    // If parent changed but sortOrder not provided, append to end
+    if (movePageDto.newParentId !== undefined && movePageDto.sortOrder === undefined) {
+        const targetParentId = movePageDto.newParentId;
+        let maxSortQuery = 'SELECT COALESCE(MAX(sortOrder), 0) as maxSort FROM Page WHERE parentId = ?';
+        let maxSortParams: any[] = [targetParentId];
+        
+        if (targetParentId === null) {
+             // If moving to root, we need to know which library
+             let libId = page.libraryId;
+             if (movePageDto.newLibraryId) libId = movePageDto.newLibraryId;
+             else if (movePageDto.newParentId !== undefined && movePageDto.newParentId !== null) {
+                 // If moving to a parent, library is parent's library. 
+                 // But here targetParentId is null, so we are at root.
+                 // If we are changing parent to NULL, we stay in same library unless newLibraryId is set.
+             }
+             
+             maxSortQuery = 'SELECT COALESCE(MAX(sortOrder), 0) as maxSort FROM Page WHERE parentId IS NULL AND libraryId = ?';
+             maxSortParams = [libId];
+        }
+        
+        const maxSortResult = this.database.queryOne(maxSortQuery, maxSortParams);
+        const newSortOrder = (maxSortResult.maxSort || 0) + 1;
+        
+        updates.push('sortOrder = ?');
+        params.push(newSortOrder);
+    }
+
+    if (movePageDto.sortOrder !== undefined) {
+      // Determine target parent ID
+      let targetParentId = page.parentId;
+      if (movePageDto.newParentId !== undefined) {
+          targetParentId = movePageDto.newParentId;
+      }
+
+      // Shift existing items to make room
+      const shiftParams: any[] = [movePageDto.sortOrder, id];
+      let parentClause = 'parentId IS NULL';
+      
+      if (targetParentId !== null) {
+          parentClause = 'parentId = ?';
+          shiftParams.unshift(targetParentId);
+      }
+      
+      // Also filter by libraryId to be safe, though parentId should be unique enough (except for root)
+      // For root pages, we MUST filter by libraryId
+      if (targetParentId === null) {
+          // If moving to root, we need to know the target library
+          let targetLibraryId = page.libraryId;
+          if (movePageDto.newLibraryId) {
+              targetLibraryId = movePageDto.newLibraryId;
+          } else if (movePageDto.newParentId !== undefined && movePageDto.newParentId !== null) {
+             // If moving to a parent, library is parent's library (handled above in parent check)
+             // But here targetParentId is null, so we are at root.
+             // If we are changing parent to NULL, we stay in same library unless newLibraryId is set.
+          }
+          
+          parentClause += ' AND libraryId = ?';
+          shiftParams.splice(shiftParams.length - 2, 0, targetLibraryId);
+      }
+
+      this.database.run(
+          `UPDATE Page SET sortOrder = sortOrder + 1 WHERE ${parentClause} AND sortOrder >= ? AND id != ?`,
+          shiftParams
+      );
+
+      updates.push('sortOrder = ?');
+      params.push(movePageDto.sortOrder);
+    }
+
+    if (updates.length > 0) {
+      updates.push('updatedAt = ?');
+      params.push(now);
+      
+      params.push(id);
+      params.push(userId);
+
+      this.database.run(
+        `UPDATE Page SET ${updates.join(', ')} WHERE id = ? AND userId = ?`,
+        params
+      );
+    }
 
     return this.findOne(userId, id);
   }

@@ -28,7 +28,7 @@ export interface PageQueryParams {
 }
 
 export interface MovePageRequest {
-  newParentId?: string
+  newParentId?: string | null
   newLibraryId?: string
   sortOrder?: number
 }

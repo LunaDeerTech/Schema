@@ -79,6 +79,18 @@ export const usePageStore = defineStore('page', () => {
       }
     })
 
+    // Third pass: sort by sortOrder
+    const sortNodes = (nodes: PageTree[]) => {
+      nodes.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+      nodes.forEach(node => {
+        if (node.children && node.children.length > 0) {
+          sortNodes(node.children)
+        }
+      })
+    }
+
+    sortNodes(roots)
+
     return roots
   }
 
@@ -239,7 +251,7 @@ export const usePageStore = defineStore('page', () => {
 
   // Move page
   const movePage = async (id: string, data: {
-    newParentId?: string
+    newParentId?: string | null
     newLibraryId?: string
     sortOrder?: number
   }): Promise<boolean> => {
@@ -249,14 +261,10 @@ export const usePageStore = defineStore('page', () => {
     try {
       const response = await pageApi.movePage(id, data)
       if (response.code === 0) {
-        const updatedPage = response.data
-        const index = pages.value.findIndex(p => p.id === id)
-        if (index !== -1) {
-          pages.value[index] = updatedPage
-        }
-        
-        // Rebuild tree
-        pageTree.value = buildPageTree(pages.value)
+        // Refresh pages to get updated sortOrders for all affected pages
+        // We use the current library ID or the new library ID if it changed
+        const libId = data.newLibraryId || response.data.libraryId
+        await fetchPages(libId)
         
         return true
       } else {

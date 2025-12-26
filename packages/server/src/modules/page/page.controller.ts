@@ -18,6 +18,7 @@ import { CreatePageDto } from './dto/create-page.dto';
 import { UpdatePageDto } from './dto/update-page.dto';
 import { PageQueryDto } from './dto/page-query.dto';
 import { PageTagOperationDto, PageTagsUpdateDto } from './dto/page-tag-operation.dto';
+import { MovePageDto } from './dto/move-page.dto';
 
 @Controller('pages')
 @UseGuards(JwtAuthGuard)
@@ -97,6 +98,15 @@ export class PageController {
     @Body() pageTagDto: PageTagOperationDto,
   ) {
     return this.pageService.detachTag(userId, pageId, pageTagDto.tagId);
+  }
+
+  @Post(':id/move')
+  async move(
+    @CurrentUser('id') userId: string,
+    @Param('id') id: string,
+    @Body() movePageDto: MovePageDto,
+  ) {
+    return this.pageService.move(userId, id, movePageDto);
   }
 
   @Put(':id/tags')
