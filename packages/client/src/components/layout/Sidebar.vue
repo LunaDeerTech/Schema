@@ -21,10 +21,8 @@ import {
 import { 
   AddOutline as AddIcon,
   LibraryOutline as LibraryIcon,
-  DocumentTextOutline as PageIcon,
-  FolderOpenOutline as FolderIcon,
-  SettingsOutline as SettingsIcon,
-  EllipsisHorizontal as MoreIcon
+
+  SettingsOutline as SettingsIcon
 } from '@vicons/ionicons5'
 import { useLibraryStore } from '@/stores/library'
 import { usePageStore } from '@/stores/page'
@@ -111,7 +109,6 @@ const pageTreeOptions = computed(() => {
     return pages.map(page => ({
       label: page.title,
       key: page.id,
-      prefix: () => h(NIcon, null, { default: () => h(page.children?.length ? FolderIcon : PageIcon) }),
       children: page.children && page.children.length > 0 ? mapPages(page.children) : undefined
     }))
   }
@@ -133,8 +130,24 @@ const handleLibraryChange = async (value: string) => {
 
 const handlePageSelect = (keys: string[]) => {
   if (keys.length > 0) {
-    selectedKeys.value = keys
-    router.push(`/page/${keys[0]}`)
+    const selectedKey = keys[0]
+    selectedKeys.value = [selectedKey]
+    router.push(`/page/${selectedKey}`)
+  }
+}
+
+const getNodeProps = (option: TreeOption) => {
+  return {
+    onContextmenu: (e: MouseEvent) => {
+      e.preventDefault()
+      showContextMenu.value = false
+      nextTick().then(() => {
+        showContextMenu.value = true
+        contextMenuX.value = e.clientX
+        contextMenuY.value = e.clientY
+        currentContextNode.value = option
+      })
+    }
   }
 }
 
@@ -263,21 +276,6 @@ const handleDrop = async ({ node, dragNode, dropPosition }: { node: TreeOption, 
   } catch (e) {
     console.error('Move failed', e)
     message.error('Failed to move page')
-  }
-}
-
-const handleNodeContextMenu = ({ option }: { option: TreeOption }) => {
-  return {
-    onContextmenu(e: MouseEvent) {
-      e.preventDefault()
-      showContextMenu.value = false
-      nextTick().then(() => {
-        showContextMenu.value = true
-        contextMenuX.value = e.clientX
-        contextMenuY.value = e.clientY
-        currentContextNode.value = option
-      })
-    }
   }
 }
 
@@ -488,8 +486,7 @@ watch(() => pageStore.currentPage, async (page) => {
             @update:selected-keys="handlePageSelect"
             @update:expanded-keys="(keys) => expandedKeys = keys"
             selectable
-            expand-on-click
-            :node-props="handleNodeContextMenu"
+            :node-props="getNodeProps"
             draggable
             @drop="handleDrop"
             :allow-drop="allowDrop"

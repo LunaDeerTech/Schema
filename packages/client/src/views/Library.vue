@@ -28,18 +28,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { 
-  NLayout, 
-  NLayoutHeader, 
-  NLayoutContent, 
-  NBreadcrumb, 
-  NBreadcrumbItem,
-  NEmpty
-} from 'naive-ui'
+import { NLayout, NLayoutHeader, NLayoutContent, NBreadcrumb, NBreadcrumbItem, NEmpty } from 'naive-ui'
 import { useLibraryStore } from '@/stores/library'
 
-const router = useRouter()
 const libraryStore = useLibraryStore()
 const currentLibrary = computed(() => libraryStore.currentLibrary)
 </script>
