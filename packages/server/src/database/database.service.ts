@@ -62,6 +62,7 @@ export class DatabaseService implements OnModuleDestroy {
       CREATE TABLE IF NOT EXISTS Library (
         id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
+        content TEXT NOT NULL,
         description TEXT,
         icon TEXT,
         sortOrder INTEGER DEFAULT 0,

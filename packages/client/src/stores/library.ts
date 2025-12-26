@@ -67,6 +67,7 @@ export const useLibraryStore = defineStore('library', () => {
   // Create new library
   const createLibrary = async (data: {
     title: string
+    content: any
     description?: string
     icon?: string
     isPublic?: boolean
@@ -95,6 +96,7 @@ export const useLibraryStore = defineStore('library', () => {
   // Update library
   const updateLibrary = async (id: string, data: {
     title?: string
+    content?: any
     description?: string
     icon?: string
     isPublic?: boolean

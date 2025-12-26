@@ -4,6 +4,9 @@ export class CreateLibraryDto {
   @IsString()
   title: string;
 
+  @IsString()
+  content: string;
+
   @IsOptional()
   @IsString()
   description?: string;

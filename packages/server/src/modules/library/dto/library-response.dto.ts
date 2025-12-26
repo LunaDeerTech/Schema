@@ -1,6 +1,7 @@
 export class LibraryResponseDto {
   id: string;
   title: string;
+  content: string;
   description?: string;
   icon?: string;
   sortOrder: number;

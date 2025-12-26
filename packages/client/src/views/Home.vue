@@ -78,6 +78,10 @@ const handleSearch = () => {
 }
 
 const navigateToLibrary = (id: string) => {
+  const lib = libraryStore.libraries.find(l => l.id === id)
+  if (lib) {
+    libraryStore.setCurrentLibrary(lib)
+  }
   router.push(`/library/${id}`)
 }
 

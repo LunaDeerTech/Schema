@@ -3,6 +3,7 @@ import type { Library, ApiResponse } from '@/types'
 
 export interface CreateLibraryRequest {
   title: string
+  content: any
   description?: string
   icon?: string
   isPublic?: boolean
@@ -10,6 +11,7 @@ export interface CreateLibraryRequest {
 
 export interface UpdateLibraryRequest {
   title?: string
+  content?: any
   description?: string
   icon?: string
   isPublic?: boolean

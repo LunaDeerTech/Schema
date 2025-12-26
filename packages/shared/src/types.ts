@@ -49,6 +49,7 @@ export interface PaginatedResponse<T> {
 export interface Library {
   id: string;
   title: string;
+  content: any; // Tiptap JSON
   description?: string;
   icon?: string;
   isPublic: boolean;
@@ -61,8 +62,18 @@ export interface Library {
 
 export interface CreateLibraryRequest {
   title: string;
+  content: any;
   description?: string;
   icon?: string;
+}
+
+export interface UpdateLibraryRequest {
+  title?: string;
+  content?: any;
+  description?: string;
+  icon?: string;
+  isPublic?: boolean;
+  sortOrder?: number;
 }
 
 // Page Types

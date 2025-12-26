@@ -35,14 +35,19 @@ export class LibraryService {
       }
     }
 
+    // Ensure content is provided, default to empty doc if not
+    const content = createLibraryDto.content ?? { type: 'doc', content: [] };
+    const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
+
     this.database.run(`
       INSERT INTO Library (
-        id, title, description, icon, sortOrder, isPublic, publicSlug, 
+        id, title, content, description, icon, sortOrder, isPublic, publicSlug, 
         metadata, createdAt, updatedAt, userId
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       id,
       createLibraryDto.title,
+      contentStr,
       createLibraryDto.description || null,
       createLibraryDto.icon || null,
       createLibraryDto.sortOrder || 0,
@@ -69,7 +74,8 @@ export class LibraryService {
 
     return libraries.map(lib => ({
       ...lib,
-      isPublic: Boolean(lib.isPublic)
+      isPublic: Boolean(lib.isPublic),
+      content: lib.content ? JSON.parse(lib.content) : { type: 'doc', content: [] }
     })) as LibraryResponseDto[];
   }
 
@@ -88,7 +94,8 @@ export class LibraryService {
 
     return {
       ...library,
-      isPublic: Boolean(library.isPublic)
+      isPublic: Boolean(library.isPublic),
+      content: library.content ? JSON.parse(library.content) : { type: 'doc', content: [] }
     } as LibraryResponseDto;
   }
 
@@ -117,6 +124,13 @@ export class LibraryService {
     if (updateLibraryDto.title !== undefined) {
       updates.push('title = ?');
       params.push(updateLibraryDto.title);
+    }
+
+    if (updateLibraryDto.content !== undefined) {
+      updates.push('content = ?');
+      const content = updateLibraryDto.content;
+      const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
+      params.push(contentStr);
     }
 
     if (updateLibraryDto.description !== undefined) {

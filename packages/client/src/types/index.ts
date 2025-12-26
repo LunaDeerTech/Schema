@@ -26,6 +26,7 @@ export interface User {
 export interface Library {
   id: string
   title: string
+  content: any
   description?: string
   icon?: string
   isPublic: boolean

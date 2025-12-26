@@ -12,14 +12,28 @@
               {{ currentLibrary?.title || 'Library' }}
             </n-breadcrumb-item>
           </n-breadcrumb>
+          <div class="header-actions">
+            <n-button 
+              type="primary" 
+              size="small" 
+              :loading="saving"
+              @click="saveLibraryContent"
+            >
+              Save
+            </n-button>
+          </div>
         </div>
       </n-layout-header>
       
       <!-- Content Area -->
       <n-layout-content class="content-area">
-        <div class="empty-state">
-          <n-empty description="Select a page from the sidebar to start editing">
-          </n-empty>
+        <div class="editor-wrapper">
+          <TiptapEditor 
+            v-if="currentLibrary"
+            :content="libraryContent"
+            :editable="true"
+            @update="handleContentUpdate"
+          />
         </div>
       </n-layout-content>
     </n-layout>
@@ -27,12 +41,72 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { NLayout, NLayoutHeader, NLayoutContent, NBreadcrumb, NBreadcrumbItem, NEmpty } from 'naive-ui'
+import { ref, computed, watch, onMounted } from 'vue'
+import { 
+  NLayout, 
+  NLayoutHeader, 
+  NLayoutContent, 
+  NBreadcrumb, 
+  NBreadcrumbItem, 
+  NButton,
+  useMessage 
+} from 'naive-ui'
 import { useLibraryStore } from '@/stores/library'
+import TiptapEditor from '@/components/editor/TiptapEditor.vue'
 
 const libraryStore = useLibraryStore()
+const message = useMessage()
+
 const currentLibrary = computed(() => libraryStore.currentLibrary)
+const libraryContent = ref<any>(null)
+const saving = ref(false)
+
+// Initialize content when library changes
+watch(currentLibrary, (newLib) => {
+  if (newLib) {
+    try {
+      libraryContent.value = typeof newLib.content === 'string' 
+        ? JSON.parse(newLib.content) 
+        : newLib.content
+    } catch (e) {
+      libraryContent.value = newLib.content || { type: 'doc', content: [] }
+    }
+  }
+}, { immediate: true })
+
+// Handle content updates from editor
+const handleContentUpdate = (content: any) => {
+  libraryContent.value = content
+}
+
+// Save library content
+const saveLibraryContent = async () => {
+  if (!currentLibrary.value) return
+  
+  saving.value = true
+  try {
+    const success = await libraryStore.updateLibrary(currentLibrary.value.id, {
+      content: libraryContent.value
+    })
+    
+    if (success) {
+      message.success('Library content saved successfully')
+    } else {
+      message.error('Failed to save library content')
+    }
+  } catch (error) {
+    message.error('Failed to save library content')
+  } finally {
+    saving.value = false
+  }
+}
+
+onMounted(() => {
+  // Ensure we have the current library loaded
+  if (!currentLibrary.value && libraryStore.libraries.length > 0) {
+    libraryStore.setCurrentLibrary(libraryStore.libraries[0])
+  }
+})
 </script>
 
 <style scoped lang="scss">
@@ -61,18 +135,32 @@ const currentLibrary = computed(() => libraryStore.currentLibrary)
 .header-content {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   width: 100%;
 }
 
-.content-area {
-  padding: 24px;
-  height: calc(100% - 56px);
+.header-actions {
+  display: flex;
+  gap: 8px;
 }
 
-.empty-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.content-area {
+  padding: 0;
+  height: calc(100% - 56px);
+  background-color: #fff;
+}
+
+.editor-wrapper {
   height: 100%;
+  overflow-y: auto;
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Ensure the editor takes full height */
+.editor-wrapper :deep(.tiptap) {
+  min-height: calc(100% - 48px);
+  outline: none;
 }
 </style>

@@ -166,6 +166,7 @@ const submitCreateLibrary = async () => {
   try {
     const newLib = await libraryStore.createLibrary({
       title: createLibraryModel.value.title,
+      content: { type: 'doc', content: [] },
       description: createLibraryModel.value.description
     })
     
