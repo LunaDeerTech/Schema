@@ -236,8 +236,8 @@ export class PageService {
         parentId: page.grandparentId,
         isPublic: false,
         sortOrder: 0,
-        createdAt: null,
-        updatedAt: null,
+        createdAt: '',
+        updatedAt: '',
         userId: page.userId,
         libraryId: page.libraryId,
         children: []
@@ -425,7 +425,7 @@ export class PageService {
   /**
    * Delete a page and its children
    */
-  async remove(userId: string, id: string): Promise<{ success: boolean }> {
+  async remove(userId: string, id: string): Promise<{ success: boolean; message: string }> {
     const page = this.database.queryOne(
       'SELECT * FROM Page WHERE id = ? AND userId = ?',
       [id, userId]
@@ -454,7 +454,7 @@ export class PageService {
 
     deleteRecursive(id);
 
-    return { success: true };
+    return { success: true, message: 'Page deleted successfully' };
   }
 
   /**
@@ -491,7 +491,7 @@ export class PageService {
   /**
    * Attach a tag to a page
    */
-  async attachTag(userId: string, pageId: string, tagId: string): Promise<void> {
+  async attachTag(userId: string, pageId: string, tagId: string): Promise<{ success: boolean; message: string }> {
     // Verify page exists and user has access
     const page = this.database.queryOne(
       'SELECT id FROM Page WHERE id = ? AND userId = ?',
@@ -522,12 +522,14 @@ export class PageService {
       'INSERT INTO PageTag (pageId, tagId) VALUES (?, ?)',
       [pageId, tagId]
     );
+
+    return { success: true, message: 'Tag attached successfully' };
   }
 
   /**
    * Detach a tag from a page
    */
-  async detachTag(userId: string, pageId: string, tagId: string): Promise<void> {
+  async detachTag(userId: string, pageId: string, tagId: string): Promise<{ success: boolean; message: string }> {
     // Verify page exists and user has access
     const page = this.database.queryOne(
       'SELECT id FROM Page WHERE id = ? AND userId = ?',
@@ -552,12 +554,14 @@ export class PageService {
       'DELETE FROM PageTag WHERE pageId = ? AND tagId = ?',
       [pageId, tagId]
     );
+
+    return { success: true, message: 'Tag detached successfully' };
   }
 
   /**
    * Update page tags (replace all tags)
    */
-  async updateTags(userId: string, pageId: string, tagIds: string[]): Promise<void> {
+  async updateTags(userId: string, pageId: string, tagIds: string[]): Promise<{ success: boolean; message: string }> {
     // Verify page exists and user has access
     const page = this.database.queryOne(
       'SELECT id FROM Page WHERE id = ? AND userId = ?',
@@ -586,6 +590,8 @@ export class PageService {
         [pageId, tagId]
       );
     }
+
+    return { success: true, message: 'Tags updated successfully' };
   }
 
   /**

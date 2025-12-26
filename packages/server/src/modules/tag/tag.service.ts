@@ -78,7 +78,7 @@ export class TagService {
   /**
    * Attach a tag to a page
    */
-  async attachToPage(pageId: string, tagId: string): Promise<void> {
+  async attachToPage(pageId: string, tagId: string): Promise<{ success: boolean; message: string }> {
     // Verify both exist
     const page = this.database.queryOne('SELECT id FROM Page WHERE id = ?', [pageId]);
     if (!page) {
@@ -104,12 +104,14 @@ export class TagService {
       'INSERT INTO PageTag (pageId, tagId) VALUES (?, ?)',
       [pageId, tagId]
     );
+
+    return { success: true, message: 'Tag attached successfully' };
   }
 
   /**
    * Detach a tag from a page
    */
-  async detachFromPage(pageId: string, tagId: string): Promise<void> {
+  async detachFromPage(pageId: string, tagId: string): Promise<{ success: boolean; message: string }> {
     // Verify the association exists
     const existing = this.database.queryOne(
       'SELECT pageId FROM PageTag WHERE pageId = ? AND tagId = ?',
@@ -124,6 +126,8 @@ export class TagService {
       'DELETE FROM PageTag WHERE pageId = ? AND tagId = ?',
       [pageId, tagId]
     );
+
+    return { success: true, message: 'Tag detached successfully' };
   }
 
   /**
@@ -148,7 +152,7 @@ export class TagService {
   /**
    * Delete a tag (also removes associations)
    */
-  async delete(id: string): Promise<void> {
+  async delete(id: string): Promise<{ success: boolean; message: string }> {
     const tag = this.database.queryOne('SELECT id FROM Tag WHERE id = ?', [id]);
     
     if (!tag) {
@@ -157,5 +161,7 @@ export class TagService {
 
     // Delete will cascade due to foreign key constraint
     this.database.run('DELETE FROM Tag WHERE id = ?', [id]);
+
+    return { success: true, message: 'Tag deleted successfully' };
   }
 }

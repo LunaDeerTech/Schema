@@ -22,21 +22,16 @@ import {
 import { 
   AddOutline as AddIcon,
   SearchOutline as SearchIcon,
-  CalendarOutline as CalendarIcon,
   TimeOutline as TimeIcon,
   LibraryOutline as LibraryIcon,
-  DocumentTextOutline as PageIcon,
-  CheckmarkCircleOutline as CheckIcon,
-  AlertCircleOutline as AlertIcon
+  CheckmarkCircleOutline as CheckIcon
 } from '@vicons/ionicons5'
 import { useUserStore } from '@/stores/user'
 import { useLibraryStore } from '@/stores/library'
-import { usePageStore } from '@/stores/page'
 
 const router = useRouter()
 const userStore = useUserStore()
 const libraryStore = useLibraryStore()
-const pageStore = usePageStore()
 
 // Date
 const currentDate = computed(() => {

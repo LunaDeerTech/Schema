@@ -22,40 +22,31 @@ export class TagController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createTagDto: CreateTagDto) {
-    const tag = await this.tagService.create(createTagDto);
-    return { code: 0, data: tag };
+    return this.tagService.create(createTagDto);
   }
 
   @Get()
   async findAll() {
-    const tags = await this.tagService.findAll();
-    return { code: 0, data: tags };
+    return this.tagService.findAll();
   }
 
   @Get('page/:pageId')
   async getTagsForPage(@Param('pageId') pageId: string) {
-    const tags = await this.tagService.getTagsForPage(pageId);
-    return { code: 0, data: tags };
+    return this.tagService.getTagsForPage(pageId);
   }
 
   @Post('attach')
-  @HttpCode(HttpStatus.OK)
   async attachToPage(@Body() pageTagDto: PageTagDto) {
-    await this.tagService.attachToPage(pageTagDto.pageId, pageTagDto.tagId);
-    return { code: 0, message: 'Tag attached successfully' };
+    return this.tagService.attachToPage(pageTagDto.pageId, pageTagDto.tagId);
   }
 
   @Post('detach')
-  @HttpCode(HttpStatus.OK)
   async detachFromPage(@Body() pageTagDto: PageTagDto) {
-    await this.tagService.detachFromPage(pageTagDto.pageId, pageTagDto.tagId);
-    return { code: 0, message: 'Tag detached successfully' };
+    return this.tagService.detachFromPage(pageTagDto.pageId, pageTagDto.tagId);
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.OK)
   async delete(@Param('id') id: string) {
-    await this.tagService.delete(id);
-    return { code: 0, message: 'Tag deleted successfully' };
+    return this.tagService.delete(id);
   }
 }

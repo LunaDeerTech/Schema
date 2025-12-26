@@ -1,5 +1,5 @@
 import { api } from './http'
-import type { Page, PageVersion, ApiResponse } from '@/types'
+import type { Page, PageVersion, ApiResponse, PaginatedResponse } from '@/types'
 
 export interface CreatePageRequest {
   title: string
@@ -35,7 +35,7 @@ export interface MovePageRequest {
 
 export const pageApi = {
   // Get pages with optional filters
-  getPages: async (params?: PageQueryParams): Promise<ApiResponse<Page[]>> => {
+  getPages: async (params?: PageQueryParams): Promise<ApiResponse<PaginatedResponse<Page>>> => {
     return api.get('/pages', { params })
   },
 

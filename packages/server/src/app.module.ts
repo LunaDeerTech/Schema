@@ -7,6 +7,7 @@ import { UserModule } from './modules/user/user.module';
 import { LibraryModule } from './modules/library/library.module';
 import { PageModule } from './modules/page/page.module';
 import { TagModule } from './modules/tag/tag.module';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { TagModule } from './modules/tag/tag.module';
     LibraryModule,
     PageModule,
     TagModule,
+    SearchModule,
   ],
   controllers: [],
   providers: [],

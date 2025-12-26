@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsUUID, IsBoolean, IsObject } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsObject } from 'class-validator';
 
 export class UpdatePageDto {
   @IsOptional()
@@ -6,11 +6,11 @@ export class UpdatePageDto {
   title?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   libraryId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   parentId?: string | null;
 
   @IsOptional()

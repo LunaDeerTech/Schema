@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
+import { useDebounceFn } from '@vueuse/core'
 import { usePageStore } from '@/stores/page'
 import { useLibraryStore } from '@/stores/library'
 import { tagApi } from '@/api/tag'
@@ -14,9 +15,9 @@ import {
   InformationCircleOutline, TimeOutline, ListOutline, GlobeOutline,
   AddOutline
 } from '@vicons/ionicons5'
+import TiptapEditor from '@/components/editor/TiptapEditor.vue'
 
 const route = useRoute()
-const router = useRouter()
 const pageStore = usePageStore()
 const libraryStore = useLibraryStore()
 const message = useMessage()
@@ -36,7 +37,7 @@ const showPublic = ref(false)
 
 // Load page data
 const loadPage = async () => {
-  if (!pageId.value) return
+  if (!pageId.value || pageId.value === 'undefined') return
   
   loading.value = true
   try {
@@ -166,6 +167,20 @@ const handleRemoveTag = async (tagId: string) => {
   }
 }
 
+// Content update
+const handleContentUpdate = useDebounceFn(async (content: any) => {
+  if (!pageStore.currentPage) return
+  
+  try {
+    // In a real app, we might want to check if content actually changed significantly
+    await pageStore.updatePage(pageStore.currentPage.id, { content })
+    // Optional: show saving indicator
+  } catch (e) {
+    console.error('Failed to save content', e)
+    message.error('Failed to save content')
+  }
+}, 1000)
+
 </script>
 
 <template>
@@ -243,7 +258,11 @@ const handleRemoveTag = async (tagId: string) => {
     
     <!-- Content -->
     <div class="content-area">
-      <pre>{{ JSON.stringify(pageStore.currentPage.content, null, 2) }}</pre>
+      <TiptapEditor 
+        :key="pageStore.currentPage.id"
+        :content="pageStore.currentPage.content" 
+        @update="handleContentUpdate" 
+      />
     </div>
     
     <!-- Drawers/Modals -->

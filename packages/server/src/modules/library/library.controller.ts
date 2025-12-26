@@ -53,11 +53,11 @@ export class LibraryController {
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
+
   async remove(
     @CurrentUser() user: CurrentUserType,
     @Param('id') id: string
-  ): Promise<void> {
+  ) {
     return this.libraryService.remove(user.id, id);
   }
 }

@@ -29,8 +29,7 @@ export class PageController {
     @CurrentUser('id') userId: string,
     @Body() createPageDto: CreatePageDto,
   ) {
-    const page = await this.pageService.create(userId, createPageDto);
-    return { code: 0, data: page };
+    return this.pageService.create(userId, createPageDto);
   }
 
   @Get()
@@ -38,8 +37,7 @@ export class PageController {
     @CurrentUser('id') userId: string,
     @Query() query: PageQueryDto,
   ) {
-    const result = await this.pageService.findAll(userId, query);
-    return { code: 0, data: result };
+    return this.pageService.findAll(userId, query);
   }
 
   @Get('tree/:libraryId')
@@ -47,8 +45,7 @@ export class PageController {
     @CurrentUser('id') userId: string,
     @Param('libraryId') libraryId: string,
   ) {
-    const tree = await this.pageService.getTree(userId, libraryId);
-    return { code: 0, data: tree };
+    return this.pageService.getTree(userId, libraryId);
   }
 
   @Get(':id')
@@ -56,8 +53,7 @@ export class PageController {
     @CurrentUser('id') userId: string,
     @Param('id') id: string,
   ) {
-    const page = await this.pageService.findOne(userId, id);
-    return { code: 0, data: page };
+    return this.pageService.findOne(userId, id);
   }
 
   @Put(':id')
@@ -66,18 +62,15 @@ export class PageController {
     @Param('id') id: string,
     @Body() updatePageDto: UpdatePageDto,
   ) {
-    const page = await this.pageService.update(userId, id, updatePageDto);
-    return { code: 0, data: page };
+    return this.pageService.update(userId, id, updatePageDto);
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.OK)
   async remove(
     @CurrentUser('id') userId: string,
     @Param('id') id: string,
   ) {
-    const result = await this.pageService.remove(userId, id);
-    return { code: 0, data: result };
+    return this.pageService.remove(userId, id);
   }
 
   @Get(':id/tags')
@@ -85,40 +78,33 @@ export class PageController {
     @CurrentUser('id') userId: string,
     @Param('id') pageId: string,
   ) {
-    const tags = await this.pageService.getTags(userId, pageId);
-    return { code: 0, data: tags };
+    return this.pageService.getTags(userId, pageId);
   }
 
   @Post(':id/tags/attach')
-  @HttpCode(HttpStatus.OK)
   async attachTag(
     @CurrentUser('id') userId: string,
     @Param('id') pageId: string,
     @Body() pageTagDto: PageTagOperationDto,
   ) {
-    await this.pageService.attachTag(userId, pageId, pageTagDto.tagId);
-    return { code: 0, message: 'Tag attached successfully' };
+    return this.pageService.attachTag(userId, pageId, pageTagDto.tagId);
   }
 
   @Post(':id/tags/detach')
-  @HttpCode(HttpStatus.OK)
   async detachTag(
     @CurrentUser('id') userId: string,
     @Param('id') pageId: string,
     @Body() pageTagDto: PageTagOperationDto,
   ) {
-    await this.pageService.detachTag(userId, pageId, pageTagDto.tagId);
-    return { code: 0, message: 'Tag detached successfully' };
+    return this.pageService.detachTag(userId, pageId, pageTagDto.tagId);
   }
 
   @Put(':id/tags')
-  @HttpCode(HttpStatus.OK)
   async updateTags(
     @CurrentUser('id') userId: string,
     @Param('id') pageId: string,
     @Body() updateTagsDto: PageTagsUpdateDto,
   ) {
-    await this.pageService.updateTags(userId, pageId, updateTagsDto.tagIds);
-    return { code: 0, message: 'Tags updated successfully' };
+    return this.pageService.updateTags(userId, pageId, updateTagsDto.tagIds);
   }
 }

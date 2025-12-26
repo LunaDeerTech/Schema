@@ -1,14 +1,14 @@
-import { IsString, IsOptional, IsUUID, IsBoolean, IsObject } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsObject } from 'class-validator';
 
 export class CreatePageDto {
   @IsString()
   title: string;
 
-  @IsUUID()
+  @IsString()
   libraryId: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   parentId?: string;
 
   @IsOptional()

@@ -1,13 +1,13 @@
-import { IsOptional, IsUUID, IsNumber, Min } from 'class-validator';
+import { IsOptional, IsNumber, Min, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class PageQueryDto {
   @IsOptional()
-  @IsUUID()
+  @IsString()
   libraryId?: string;
 
   @IsOptional()
-  @IsUUID()
+  @IsString()
   parentId?: string;
 
   @IsOptional()

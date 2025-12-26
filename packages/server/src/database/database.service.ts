@@ -35,6 +35,10 @@ export class DatabaseService implements OnModuleDestroy {
     }
   }
 
+  prepare(sql: string): Database.Statement {
+    return this.db.prepare(sql);
+  }
+
   /**
    * 初始化数据库表结构
    */

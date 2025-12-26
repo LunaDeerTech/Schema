@@ -164,7 +164,7 @@ export class LibraryService {
   /**
    * Delete a library
    */
-  async remove(userId: string, id: string): Promise<void> {
+  async remove(userId: string, id: string): Promise<{ success: boolean; message: string }> {
     const library = this.database.queryOne(
       'SELECT id FROM Library WHERE id = ? AND userId = ?',
       [id, userId]
@@ -178,5 +178,7 @@ export class LibraryService {
       'DELETE FROM Library WHERE id = ? AND userId = ?',
       [id, userId]
     );
+
+    return { success: true, message: 'Library deleted successfully' };
   }
 }

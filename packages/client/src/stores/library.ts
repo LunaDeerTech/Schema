@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { libraryApi } from '@/api/library'
 import type { Library } from '@/types'
-import { useUserStore } from './user'
 
 export interface LibraryState {
   libraries: Library[]

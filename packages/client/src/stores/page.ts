@@ -99,8 +99,8 @@ export const usePageStore = defineStore('page', () => {
 
       const response = await pageApi.getPages({ libraryId: targetLibraryId })
       if (response.code === 0) {
-        setPages(response.data)
-        pageTree.value = buildPageTree(response.data)
+        setPages(response.data.items)
+        pageTree.value = buildPageTree(response.data.items)
       } else {
         setError(response.message || 'Failed to fetch pages')
       }
@@ -157,6 +157,7 @@ export const usePageStore = defineStore('page', () => {
         return null
       }
     } catch (err: any) {
+      console.error('Page creation error:', err)
       setError(err.response?.data?.message || 'Failed to create page')
       return null
     } finally {
