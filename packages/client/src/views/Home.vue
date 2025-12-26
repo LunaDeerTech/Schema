@@ -1,309 +1,307 @@
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { 
+  NGrid, 
+  NGi, 
+  NCard, 
+  NButton, 
+  NIcon, 
+  NList, 
+  NListItem, 
+  NThing, 
+  NTag, 
+  NCheckbox, 
+  NSpace, 
+  NText, 
+  NH1, 
+  NH2,
+  NEllipsis,
+  NSkeleton
+} from 'naive-ui'
+import { 
+  AddOutline as AddIcon,
+  SearchOutline as SearchIcon,
+  CalendarOutline as CalendarIcon,
+  TimeOutline as TimeIcon,
+  LibraryOutline as LibraryIcon,
+  DocumentTextOutline as PageIcon,
+  CheckmarkCircleOutline as CheckIcon,
+  AlertCircleOutline as AlertIcon
+} from '@vicons/ionicons5'
+import { useUserStore } from '@/stores/user'
+import { useLibraryStore } from '@/stores/library'
+import { usePageStore } from '@/stores/page'
+
+const router = useRouter()
+const userStore = useUserStore()
+const libraryStore = useLibraryStore()
+const pageStore = usePageStore()
+
+// Date
+const currentDate = computed(() => {
+  return new Date().toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  })
+})
+
+// Mock Data for Widgets
+const recentPages = ref([
+  { id: '1', title: 'React Hooks Best Practice', time: '10 min ago', library: 'Tech Learning' },
+  { id: '2', title: 'Project Alpha Review', time: '2 hours ago', library: 'Work Library' },
+  { id: '3', title: 'Weekly Summary W51', time: 'Yesterday', library: 'Personal Notes' }
+])
+
+const pendingTasks = ref([
+  { id: '1', content: 'Review React docs', page: 'React Hooks Best Practice', done: false },
+  { id: '2', content: 'Update timeline', page: 'Project Alpha Review', done: false },
+  { id: '3', content: 'Organize notes', page: 'Weekly Summary W51', done: false }
+])
+
+const onThisDay = ref([
+  { id: '1', title: 'Year End Review', year: '2023' },
+  { id: '2', title: 'Project Beta Launch', year: '2022' }
+])
+
+const longUnvisited = ref([
+  { id: '1', title: 'API Design Principles', days: 45 },
+  { id: '2', title: 'Database Optimization', days: 60 }
+])
+
+// Actions
+const handleCreateLibrary = () => {
+  // TODO: Open create library modal
+  console.log('Create Library')
+}
+
+const handleSearch = () => {
+  // Trigger global search (Ctrl+K)
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))
+}
+
+const navigateToLibrary = (id: string) => {
+  router.push(`/library/${id}`)
+}
+
+const navigateToPage = (id: string) => {
+  router.push(`/page/${id}`)
+}
+
+onMounted(async () => {
+  await libraryStore.fetchLibraries()
+})
+</script>
+
 <template>
-  <div class="home-container">
-    <n-layout class="layout" has-sider>
-      <!-- Sidebar -->
-      <n-layout-sider
-        bordered
-        collapse-mode="width"
-        :collapsed-width="48"
-        :width="260"
-        :collapsed="collapsed"
-        @collapse="collapsed = true"
-        @expand="collapsed = false"
-        show-trigger="arrow-circle"
-      >
-        <div class="sidebar-header">
-          <n-text strong v-if="!collapsed">Schema</n-text>
-          <n-text strong v-else>S</n-text>
+  <div class="home-view">
+    <!-- Header -->
+    <div class="header-section">
+      <div class="greeting">
+        <n-h1 style="margin-bottom: 0;">Good Morning, {{ userStore.userName }}</n-h1>
+        <n-text depth="3">{{ currentDate }}</n-text>
+      </div>
+    </div>
+
+    <n-grid :cols="24" :x-gap="24" item-responsive>
+      <!-- Left Column: Libraries -->
+      <n-gi span="24 m:14 l:16">
+        <div class="section-header">
+          <n-h2>Knowledge Libraries</n-h2>
         </div>
         
-        <n-menu
-          v-model:value="activeKey"
-          :collapsed="collapsed"
-          :options="menuOptions"
-          @update:value="handleMenuSelect"
-        />
-      </n-layout-sider>
-      
-      <!-- Main Content -->
-      <n-layout>
-        <!-- Header -->
-        <n-layout-header bordered class="header">
-          <div class="header-content">
-            <div class="header-left">
-              <n-text strong>工作台</n-text>
-            </div>
-            
-            <div class="header-right">
-              <n-button text @click="handleSearch" style="margin-right: 16px;">
-                搜索 (Ctrl+K)
+        <div v-if="libraryStore.loading" class="loading-state">
+          <n-grid :cols="1" :y-gap="16">
+            <n-gi v-for="i in 3" :key="i"><n-skeleton height="100px" width="100%" :sharp="false" /></n-gi>
+          </n-grid>
+        </div>
+
+        <div v-else-if="libraryStore.libraries.length === 0" class="empty-state">
+          <n-card class="empty-card">
+            <n-space vertical align="center">
+              <n-icon size="48" depth="3"><LibraryIcon /></n-icon>
+              <n-text depth="3">No libraries yet</n-text>
+              <n-button type="primary" @click="handleCreateLibrary">
+                Create Your First Library
               </n-button>
-              
-              <n-dropdown :options="userOptions" @select="handleUserSelect">
-                <n-button text class="user-info">
-                  <n-avatar
-                    :size="24"
-                    round
-                    style="margin-right: 8px;"
-                    :style="{ background: userStore.user?.avatar ? 'transparent' : '#1A73E8' }"
-                  >
-                    {{ userStore.user?.avatar || userStore.userName.charAt(0).toUpperCase() }}
-                  </n-avatar>
-                  {{ userStore.userName }}
-                </n-button>
-              </n-dropdown>
-            </div>
-          </div>
-        </n-layout-header>
-        
-        <!-- Content Area -->
-        <n-layout-content class="content-area" :native-scrollbar="false">
-          <div class="welcome-section">
-            <n-h1>欢迎回来，{{ userStore.userName }}</n-h1>
-            <n-p>今天是 {{ currentDate }}，开始记录你的知识吧！</n-p>
-            
-            <n-grid :cols="3" :x-gap="16" :y-gap="16" style="margin-top: 24px;">
-              <n-gi>
-                <n-card hoverable @click="$router.push('/library')">
-                  <n-space vertical>
-                    <n-text strong>📚 我的图书馆</n-text>
-                    <n-text depth="3">浏览和管理你的知识库</n-text>
-                  </n-space>
-                </n-card>
-              </n-gi>
-              
-              <n-gi>
-                <n-card hoverable @click="handleCreateLibrary">
-                  <n-space vertical>
-                    <n-text strong>➕ 创建知识库</n-text>
-                    <n-text depth="3">开始构建新的知识体系</n-text>
-                  </n-space>
-                </n-card>
-              </n-gi>
-              
-              <n-gi>
-                <n-card hoverable @click="handleSearch">
-                  <n-space vertical>
-                    <n-text strong>🔍 全文搜索</n-text>
-                    <n-text depth="3">快速找到需要的内容</n-text>
-                  </n-space>
-                </n-card>
-              </n-gi>
-            </n-grid>
-          </div>
-        </n-layout-content>
-      </n-layout>
-    </n-layout>
+            </n-space>
+          </n-card>
+        </div>
+
+        <n-grid v-else :cols="1" :y-gap="16">
+          <n-gi v-for="lib in libraryStore.libraries" :key="lib.id">
+            <n-card hoverable class="library-card" @click="navigateToLibrary(lib.id)">
+              <template #header>
+                <div class="lib-header">
+                  <n-icon size="24" color="#1A73E8" style="margin-right: 12px">
+                    <LibraryIcon />
+                  </n-icon>
+                  <n-text strong style="font-size: 16px;">{{ lib.title }}</n-text>
+                </div>
+              </template>
+              <template #header-extra>
+                <n-tag size="small" :bordered="false">
+                  {{ Math.floor(Math.random() * 20) }} pages
+                </n-tag>
+              </template>
+              <n-text depth="3" class="lib-desc">
+                {{ lib.description || 'No description' }}
+              </n-text>
+              <template #footer>
+                <n-text depth="3" style="font-size: 12px;">
+                  Last updated: {{ new Date(lib.updatedAt || Date.now()).toLocaleDateString() }}
+                </n-text>
+              </template>
+            </n-card>
+          </n-gi>
+          
+          <n-gi>
+            <n-button dashed block class="new-lib-btn" @click="handleCreateLibrary">
+              <template #icon><n-icon><AddIcon /></n-icon></template>
+              New Library
+            </n-button>
+          </n-gi>
+        </n-grid>
+      </n-gi>
+
+      <!-- Right Column: Widgets -->
+      <n-gi span="24 m:10 l:8">
+        <n-space vertical :size="24">
+          
+          <!-- Quick Actions -->
+          <n-card size="small" title="Quick Actions">
+            <n-space justify="space-between">
+              <n-button secondary circle type="primary" @click="handleCreateLibrary">
+                <template #icon><n-icon><AddIcon /></n-icon></template>
+              </n-button>
+              <n-button secondary circle type="info" @click="handleSearch">
+                <template #icon><n-icon><SearchIcon /></n-icon></template>
+              </n-button>
+              <n-button secondary circle type="success">
+                <template #icon><n-icon><CheckIcon /></n-icon></template>
+              </n-button>
+            </n-space>
+            <n-space justify="space-between" style="margin-top: 8px; padding: 0 4px;">
+              <n-text depth="3" style="font-size: 12px;">New Lib</n-text>
+              <n-text depth="3" style="font-size: 12px;">Search</n-text>
+              <n-text depth="3" style="font-size: 12px;">Tasks</n-text>
+            </n-space>
+          </n-card>
+
+          <!-- Recent Pages -->
+          <n-card size="small" title="Recent Pages">
+            <n-list hoverable clickable>
+              <n-list-item v-for="page in recentPages" :key="page.id" @click="navigateToPage(page.id)">
+                <n-thing>
+                  <template #header>
+                    <n-ellipsis style="max-width: 200px">{{ page.title }}</n-ellipsis>
+                  </template>
+                  <template #description>
+                    <n-space size="small" align="center">
+                      <n-icon size="12" depth="3"><TimeIcon /></n-icon>
+                      <n-text depth="3" style="font-size: 12px;">{{ page.time }}</n-text>
+                    </n-space>
+                  </template>
+                </n-thing>
+              </n-list-item>
+            </n-list>
+          </n-card>
+
+          <!-- Pending Tasks -->
+          <n-card size="small" title="Pending Tasks">
+            <template #header-extra>
+              <n-tag type="warning" round size="small">{{ pendingTasks.length }}</n-tag>
+            </template>
+            <n-list>
+              <n-list-item v-for="task in pendingTasks" :key="task.id">
+                <n-space align="start" :wrap="false">
+                  <n-checkbox v-model:checked="task.done" />
+                  <div>
+                    <n-text :delete="task.done">{{ task.content }}</n-text>
+                    <br/>
+                    <n-text depth="3" style="font-size: 12px;">From: {{ task.page }}</n-text>
+                  </div>
+                </n-space>
+              </n-list-item>
+            </n-list>
+          </n-card>
+
+          <!-- On This Day -->
+          <n-card size="small" title="On This Day">
+            <n-list hoverable clickable>
+              <n-list-item v-for="item in onThisDay" :key="item.id">
+                <n-thing>
+                  <template #avatar>
+                    <n-tag type="info" size="small">{{ item.year }}</n-tag>
+                  </template>
+                  <template #header>{{ item.title }}</template>
+                </n-thing>
+              </n-list-item>
+            </n-list>
+          </n-card>
+
+          <!-- Long Unvisited -->
+          <n-card size="small" title="Long Unvisited">
+            <n-list hoverable clickable>
+              <n-list-item v-for="item in longUnvisited" :key="item.id">
+                <n-space justify="space-between" align="center">
+                  <n-text>{{ item.title }}</n-text>
+                  <n-tag type="error" size="small" :bordered="false">{{ item.days }} days</n-tag>
+                </n-space>
+              </n-list-item>
+            </n-list>
+          </n-card>
+
+        </n-space>
+      </n-gi>
+    </n-grid>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, h } from 'vue'
-import { NIcon, useMessage, useDialog } from 'naive-ui'
-import { useUserStore } from '@/stores/user'
-import { useRouter } from 'vue-router'
-import type { MenuOption } from 'naive-ui'
-import { 
-  BookOutline as BookIcon,
-  AddCircleOutline as AddIcon,
-  SearchOutline as SearchIcon,
-  LogOutOutline as LogoutIcon,
-  HomeOutline as HomeIcon
-} from '@vicons/ionicons5'
-
-const userStore = useUserStore()
-const router = useRouter()
-const message = useMessage()
-const dialog = useDialog()
-
-const collapsed = ref(false)
-const activeKey = ref('home')
-
-// Current date
-const currentDate = computed(() => {
-  const date = new Date()
-  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
-})
-
-// Menu options
-const menuOptions: MenuOption[] = [
-  {
-    label: '工作台',
-    key: 'home',
-    icon: () => h(NIcon, null, { default: () => h(HomeIcon) })
-  },
-  {
-    label: '我的图书馆',
-    key: 'library',
-    icon: () => h(NIcon, null, { default: () => h(BookIcon) })
-  },
-  {
-    label: '新建知识库',
-    key: 'create',
-    icon: () => h(NIcon, null, { default: () => h(AddIcon) })
-  },
-  {
-    label: '搜索',
-    key: 'search',
-    icon: () => h(NIcon, null, { default: () => h(SearchIcon) })
-  }
-]
-
-// User dropdown options
-const userOptions = [
-  {
-    label: '退出登录',
-    key: 'logout',
-    icon: () => h(NIcon, null, { default: () => h(LogoutIcon) })
-  }
-]
-
-// Menu selection handler
-const handleMenuSelect = (key: string) => {
-  switch (key) {
-    case 'home':
-      router.push('/home')
-      break
-    case 'library':
-      router.push('/library')
-      break
-    case 'create':
-      handleCreateLibrary()
-      break
-    case 'search':
-      handleSearch()
-      break
-  }
-}
-
-// User dropdown handler
-const handleUserSelect = (key: string) => {
-  if (key === 'logout') {
-    dialog.warning({
-      title: '确认退出',
-      content: '确定要退出登录吗？',
-      positiveText: '确定',
-      negativeText: '取消',
-      onPositiveClick: () => {
-        userStore.logout()
-        message.success('已退出登录')
-        router.push('/login')
-      }
-    })
-  }
-}
-
-// Create library handler
-const handleCreateLibrary = () => {
-  dialog.info({
-    title: '创建知识库',
-    content: '知识库创建功能将在后续开发中实现',
-    positiveText: '了解'
-  })
-}
-
-// Search handler
-const handleSearch = () => {
-  message.info('搜索功能将在后续开发中实现')
-}
-</script>
-
 <style scoped lang="scss">
-@use '@/assets/styles/variables' as *;
-
-.home-container {
-  height: 100vh;
-  overflow: hidden;
-}
-
-.layout {
-  height: 100%;
-}
-
-.sidebar-header {
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid $ios-separator-non-opaque;
-  font-size: 18px;
-  color: $ios-system-blue;
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
-}
-
-.header {
-  height: 56px;
-  display: flex;
-  align-items: center;
-  padding: 0 20px;
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid $ios-separator-non-opaque;
-}
-
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.header-left {
-  font-size: 16px;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  padding: 6px 12px;
-  border-radius: $ios-border-radius-s;
-  transition: background-color 0.2s;
-  
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-  }
-}
-
-.content-area {
-  padding: 24px;
-  background-color: $ios-background-primary;
-}
-
-.welcome-section {
+.home-view {
   max-width: 1200px;
   margin: 0 auto;
-  
-  h1 {
-    margin-bottom: 8px;
-    color: $ios-text-primary;
-  }
-  
-  p {
-    color: $ios-text-secondary;
-    margin-bottom: 0;
-  }
 }
 
-.n-card {
+.header-section {
+  margin-bottom: 32px;
+}
+
+.section-header {
+  margin-bottom: 16px;
+}
+
+.library-card {
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  border: none;
-  background-color: $ios-background-secondary;
+  transition: transform 0.2s, box-shadow 0.2s;
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: $ios-shadow-2;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
-  
-  :deep(.n-card__content) {
-    padding: 20px;
+
+  .lib-header {
+    display: flex;
+    align-items: center;
   }
+
+  .lib-desc {
+    display: block;
+    margin-top: 8px;
+    margin-bottom: 16px;
+  }
+}
+
+.new-lib-btn {
+  height: 60px;
+  border-style: dashed;
+}
+
+.empty-card {
+  padding: 40px 0;
+  background-color: #f9f9f9;
 }
 </style>

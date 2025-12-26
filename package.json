@@ -7,7 +7,9 @@
     "dev": "concurrently \"pnpm --filter server dev\" \"pnpm --filter client dev\"",
     "build": "pnpm --filter server build && pnpm --filter client build",
     "lint": "pnpm --filter server lint && pnpm --filter client lint",
-    "start": "pnpm --filter server start"
+    "start": "pnpm --filter server start",
+    "dev:server": "pnpm --filter server dev",
+    "dev:client": "pnpm --filter client dev"
   },
   "keywords": [],
   "author": "",

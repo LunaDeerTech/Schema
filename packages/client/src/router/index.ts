@@ -4,10 +4,6 @@ import { useUserStore } from '@/stores/user'
 // Route definitions
 const routes: RouteRecordRaw[] = [
   {
-    path: '/',
-    redirect: '/home'
-  },
-  {
     path: '/login',
     name: 'Login',
     component: () => import('@/views/Login.vue'),
@@ -20,16 +16,30 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresGuest: true }
   },
   {
-    path: '/home',
-    name: 'Home',
-    component: () => import('@/views/Home.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/library/:id?',
-    name: 'Library',
-    component: () => import('@/views/Library.vue'),
-    meta: { requiresAuth: true }
+    path: '/',
+    component: () => import('@/layouts/MainLayout.vue'),
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        redirect: '/home'
+      },
+      {
+        path: 'home',
+        name: 'Home',
+        component: () => import('@/views/Home.vue')
+      },
+      {
+        path: 'library/:id?',
+        name: 'Library',
+        component: () => import('@/views/Library.vue')
+      },
+      {
+        path: 'page/:id',
+        name: 'Page',
+        component: () => import('@/views/page/PageContent.vue')
+      }
+    ]
   },
   {
     path: '/:pathMatch(.*)*',
