@@ -1,14 +1,18 @@
+import { TagResponseDto } from '../../tag/dto/tag-response.dto';
+
 export class LibraryResponseDto {
   id: string;
   title: string;
-  content: string;
+  content: any;
   description?: string;
   icon?: string;
   sortOrder: number;
   isPublic: boolean;
   publicSlug?: string;
-  metadata: string;
+  metadata: any;
   createdAt: string;
   updatedAt: string;
   userId: string;
+  pageCount?: number;
+  tags?: TagResponseDto[];
 }

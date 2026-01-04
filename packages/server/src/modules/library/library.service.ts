@@ -68,35 +68,60 @@ export class LibraryService {
    */
   async findAll(userId: string): Promise<LibraryResponseDto[]> {
     const libraries = this.database.query(`
-      SELECT * FROM Page 
-      WHERE userId = ? AND type = 'library'
-      ORDER BY sortOrder ASC, createdAt ASC
+      SELECT 
+        l.*,
+        (SELECT COUNT(*) FROM Page p WHERE p.libraryId = l.id AND p.type = 'page') as pageCount
+      FROM Page l
+      WHERE l.userId = ? AND l.type = 'library'
+      ORDER BY l.sortOrder ASC, l.createdAt ASC
     `, [userId]);
 
-    return libraries.map(lib => ({
-      ...lib,
-      isPublic: Boolean(lib.isPublic),
-      content: lib.content ? JSON.parse(lib.content) : { type: 'doc', content: [] }
-    })) as LibraryResponseDto[];
+    return libraries.map(lib => {
+      // Get tags for this library
+      const tags = this.database.query(`
+        SELECT t.* FROM Tag t
+        INNER JOIN PageTag pt ON pt.tagId = t.id
+        WHERE pt.pageId = ?
+      `, [lib.id]);
+
+      return {
+        ...lib,
+        isPublic: Boolean(lib.isPublic),
+        content: lib.content ? JSON.parse(lib.content) : { type: 'doc', content: [] },
+        pageCount: lib.pageCount,
+        tags: tags
+      };
+    }) as LibraryResponseDto[];
   }
 
   /**
    * Get a specific library for the current user
    */
   async findOne(userId: string, id: string): Promise<LibraryResponseDto> {
-    const library = this.database.queryOne(
-      "SELECT * FROM Page WHERE id = ? AND userId = ? AND type = 'library'",
-      [id, userId]
-    );
+    const library = this.database.queryOne(`
+      SELECT 
+        l.*,
+        (SELECT COUNT(*) FROM Page p WHERE p.libraryId = l.id AND p.type = 'page') as pageCount
+      FROM Page l
+      WHERE l.id = ? AND l.userId = ? AND l.type = 'library'
+    `, [id, userId]);
 
     if (!library) {
       throw new NotFoundException('Library not found');
     }
 
+    const tags = this.database.query(`
+      SELECT t.* FROM Tag t
+      INNER JOIN PageTag pt ON pt.tagId = t.id
+      WHERE pt.pageId = ?
+    `, [id]);
+
     return {
       ...library,
       isPublic: Boolean(library.isPublic),
-      content: library.content ? JSON.parse(library.content) : { type: 'doc', content: [] }
+      content: library.content ? JSON.parse(library.content) : { type: 'doc', content: [] },
+      pageCount: library.pageCount,
+      tags: tags
     } as LibraryResponseDto;
   }
 

@@ -43,7 +43,10 @@ export interface Page {
   userId?: string
 }
 
-export type Library = Page
+export interface Library extends Page {
+  pageCount?: number
+  tags?: Tag[]
+}
 
 export interface PageVersion {
   id: string

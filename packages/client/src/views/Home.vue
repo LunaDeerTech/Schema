@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, h, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   NGrid, 
@@ -25,14 +25,17 @@ import {
   useMessage,
   NLayout,
   NLayoutContent,
-  NLayoutSider
+  NLayoutSider,
+  NDropdown
 } from 'naive-ui'
 import { 
   AddOutline as AddIcon,
   SearchOutline as SearchIcon,
   TimeOutline as TimeIcon,
   LibraryOutline as LibraryIcon,
-  CheckmarkCircleOutline as CheckIcon
+  CheckmarkCircleOutline as CheckIcon,
+  TrashOutline as TrashIcon,
+  EllipsisHorizontal as MoreIcon
 } from '@vicons/ionicons5'
 import { useUserStore } from '@/stores/user'
 import { useLibraryStore } from '@/stores/library'
@@ -58,6 +61,11 @@ const createLibraryModel = ref({
   description: ''
 })
 const createLibraryLoading = ref(false)
+
+// Delete Library Modal State
+const showDeleteModal = ref(false)
+const libraryToDelete = ref<string | null>(null)
+const deleteLibraryLoading = ref(false)
 
 // Date
 const currentDate = computed(() => {
@@ -122,6 +130,62 @@ const submitCreateLibrary = async () => {
     message.error('Failed to create library')
   } finally {
     createLibraryLoading.value = false
+  }
+}
+
+// Library Menu Options
+const libraryOptions = [
+  {
+    label: 'Delete',
+    key: 'delete',
+    icon: () => h(NIcon, null, { default: () => h(TrashIcon) })
+  }
+]
+
+// Context Menu State
+const showContextMenu = ref(false)
+const contextMenuX = ref(0)
+const contextMenuY = ref(0)
+const contextMenuLibraryId = ref<string | null>(null)
+
+const handleLibraryAction = (key: string, id: string) => {
+  if (key === 'delete') {
+    libraryToDelete.value = id
+    showDeleteModal.value = true
+  }
+  showContextMenu.value = false
+}
+
+const handleContextMenu = (e: MouseEvent, id: string) => {
+  e.preventDefault()
+  showContextMenu.value = false
+  nextTick().then(() => {
+    showContextMenu.value = true
+    contextMenuX.value = e.clientX
+    contextMenuY.value = e.clientY
+    contextMenuLibraryId.value = id
+  })
+}
+
+const onClickoutside = () => {
+  showContextMenu.value = false
+}
+
+const confirmDeleteLibrary = async () => {
+  if (!libraryToDelete.value) return
+  
+  deleteLibraryLoading.value = true
+  try {
+    const success = await libraryStore.deleteLibrary(libraryToDelete.value)
+    if (success) {
+      message.success('Library deleted successfully')
+      showDeleteModal.value = false
+    }
+  } catch (error) {
+    message.error('Failed to delete library')
+  } finally {
+    deleteLibraryLoading.value = false
+    libraryToDelete.value = null
   }
 }
 
@@ -191,7 +255,7 @@ onUnmounted(() => {
         <n-grid v-else :cols="24" :x-gap="16" :y-gap="16" responsive="screen" item-responsive>
           <!-- Responsive columns: 1 on small, 2 on medium, 3 on large -->
           <n-gi span="24 m:12 l:8" v-for="lib in libraryStore.libraries" :key="lib.id">
-            <n-card hoverable class="library-card" @click="navigateToLibrary(lib.id)">
+            <n-card hoverable class="library-card" @click="navigateToLibrary(lib.id)" @contextmenu="(e: MouseEvent) => handleContextMenu(e, lib.id)">
               <template #header>
                 <div class="lib-header">
                   <n-icon size="24" color="#1A73E8" style="margin-right: 12px">
@@ -201,10 +265,24 @@ onUnmounted(() => {
                 </div>
               </template>
               <template #header-extra>
-                <n-tag size="small" :bordered="false">
-                  {{ Math.floor(Math.random() * 20) }} pages
-                </n-tag>
+                <n-space align="center">
+                  <n-tag size="small" :bordered="false">
+                    {{ lib.pageCount || 0 }} pages
+                  </n-tag>
+                  <n-dropdown trigger="click" :options="libraryOptions" @select="(key) => handleLibraryAction(key, lib.id)">
+                    <n-button quaternary circle size="small" @click.stop>
+                      <template #icon><n-icon><MoreIcon /></n-icon></template>
+                    </n-button>
+                  </n-dropdown>
+                </n-space>
               </template>
+              
+              <n-space size="small" style="margin-bottom: 12px;" v-if="lib.tags && lib.tags.length > 0">
+                <n-tag v-for="tag in lib.tags" :key="tag.id" size="tiny" :bordered="false" type="info">
+                  {{ tag.name }}
+                </n-tag>
+              </n-space>
+
               <n-text depth="3" class="lib-desc">
                 {{ lib.description || 'No description' }}
               </n-text>
@@ -332,6 +410,18 @@ onUnmounted(() => {
       </n-layout-sider>
     </n-layout>
 
+    <!-- Context Menu -->
+    <n-dropdown
+      placement="bottom-start"
+      trigger="manual"
+      :x="contextMenuX"
+      :y="contextMenuY"
+      :options="libraryOptions"
+      :show="showContextMenu"
+      :on-clickoutside="onClickoutside"
+      @select="(key) => contextMenuLibraryId && handleLibraryAction(key, contextMenuLibraryId)"
+    />
+
     <!-- Create Library Modal -->
     <n-modal v-model:show="showCreateLibraryModal">
       <n-card
@@ -359,6 +449,28 @@ onUnmounted(() => {
             <n-button @click="showCreateLibraryModal = false">Cancel</n-button>
             <n-button type="primary" :loading="createLibraryLoading" @click="submitCreateLibrary">
               Create
+            </n-button>
+          </n-space>
+        </template>
+      </n-card>
+    </n-modal>
+
+    <!-- Delete Confirmation Modal -->
+    <n-modal v-model:show="showDeleteModal">
+      <n-card
+        style="width: 400px"
+        title="Delete Library"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
+      >
+        <p>Are you sure you want to delete this library? This action cannot be undone and all pages within it will be deleted.</p>
+        <template #footer>
+          <n-space justify="end">
+            <n-button @click="showDeleteModal = false">Cancel</n-button>
+            <n-button type="error" :loading="deleteLibraryLoading" @click="confirmDeleteLibrary">
+              Delete
             </n-button>
           </n-space>
         </template>
@@ -411,7 +523,6 @@ onUnmounted(() => {
 .new-lib-btn {
   height: 100%;
   min-height: 160px;
-  border-style: dashed;
 }
 
 .empty-card {
