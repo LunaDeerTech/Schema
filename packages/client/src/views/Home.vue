@@ -241,22 +241,26 @@ onUnmounted(() => {
             
             <!-- Quick Actions -->
             <n-card size="small" title="Quick Actions">
-              <n-space justify="space-between">
-                <n-button secondary circle type="primary" @click="handleCreateLibrary">
-                  <template #icon><n-icon><AddIcon /></n-icon></template>
-                </n-button>
-                <n-button secondary circle type="info" @click="handleSearch">
-                  <template #icon><n-icon><SearchIcon /></n-icon></template>
-                </n-button>
-                <n-button secondary circle type="success">
-                  <template #icon><n-icon><CheckIcon /></n-icon></template>
-                </n-button>
-              </n-space>
-              <n-space justify="space-between" style="margin-top: 8px; padding: 0 4px;">
-                <n-text depth="3" style="font-size: 12px;">New Lib</n-text>
-                <n-text depth="3" style="font-size: 12px;">Search</n-text>
-                <n-text depth="3" style="font-size: 12px;">Tasks</n-text>
-              </n-space>
+              <div class="quick-actions-container">
+                <div class="action-item" @click="handleCreateLibrary">
+                  <n-button secondary circle type="primary" class="action-btn">
+                    <template #icon><n-icon size="20"><AddIcon /></n-icon></template>
+                  </n-button>
+                  <n-text depth="3" class="action-label">New Lib</n-text>
+                </div>
+                <div class="action-item" @click="handleSearch">
+                  <n-button secondary circle type="info" class="action-btn">
+                    <template #icon><n-icon size="20"><SearchIcon /></n-icon></template>
+                  </n-button>
+                  <n-text depth="3" class="action-label">Search</n-text>
+                </div>
+                <div class="action-item">
+                  <n-button secondary circle type="success" class="action-btn">
+                    <template #icon><n-icon size="20"><CheckIcon /></n-icon></template>
+                  </n-button>
+                  <n-text depth="3" class="action-label">Tasks</n-text>
+                </div>
+              </div>
             </n-card>
 
             <!-- Recent Pages -->
@@ -417,5 +421,42 @@ onUnmounted(() => {
 
 .right-drawer-content {
   padding: 24px;
+}
+
+.quick-actions-container {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+}
+
+.action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 8px;
+  border-radius: 8px;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+    
+    .action-btn {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  .action-btn {
+    width: 48px;
+    height: 48px;
+    transition: all 0.3s ease;
+  }
+
+  .action-label {
+    font-size: 12px;
+    font-weight: 500;
+  }
 }
 </style>

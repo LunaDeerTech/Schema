@@ -10,7 +10,22 @@ interface Migration {
  * 添加新迁移到此数组的末尾
  */
 const migrations: Migration[] = [
-  // Migrations removed as we reset the schema
+  // example migration
+  // {
+  //   name: '000_example_migration',
+  //   up: (dbService: DatabaseService) => {
+  //     const libraryColumns = dbService.getTableColumns('Library');
+  //     const hasContent = libraryColumns.some(col => col.name === 'content');
+  //     if (!hasContent) {
+  //       console.log('Adding content column to Library table...');
+  //       dbService.run("ALTER TABLE Library ADD COLUMN content TEXT NOT NULL DEFAULT ''");
+  //       // Update existing libraries with empty content
+  //       const emptyContent = JSON.stringify({ type: 'doc', content: [] });
+  //       dbService.run("UPDATE Library SET content = ? WHERE content IS NULL OR content = ''", [emptyContent]);
+  //       console.log('Updated existing libraries with default content');
+  //     }
+  //   }
+  // },
 ];
 
 /**
