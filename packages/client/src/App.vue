@@ -1,16 +1,18 @@
 <template>
   <n-config-provider :theme="theme" :theme-overrides="themeOverrides" :locale="zhCN" :date-locale="dateZhCN">
     <n-message-provider>
-      <div id="app">
-        <router-view />
-      </div>
+      <n-dialog-provider>
+        <div id="app">
+          <router-view />
+        </div>
+      </n-dialog-provider>
     </n-message-provider>
   </n-config-provider>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { NConfigProvider, NMessageProvider, type GlobalThemeOverrides } from 'naive-ui'
+import { NConfigProvider, NMessageProvider, NDialogProvider, type GlobalThemeOverrides } from 'naive-ui'
 import { zhCN, dateZhCN } from 'naive-ui'
 
 // Use light theme

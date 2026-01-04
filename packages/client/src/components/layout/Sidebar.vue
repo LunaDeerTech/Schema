@@ -15,6 +15,7 @@ import {
   NInput,
   NDropdown,
   useMessage,
+  useDialog,
   type TreeOption
 } from 'naive-ui'
 import { 
@@ -38,6 +39,7 @@ const route = useRoute()
 const libraryStore = useLibraryStore()
 const pageStore = usePageStore()
 const message = useMessage()
+const dialog = useDialog()
 
 // Create Library Modal State
 const showCreateLibraryModal = ref(false)
@@ -132,7 +134,7 @@ const handlePageSelect = (keys: string[]) => {
   }
 }
 
-const getNodeProps = (option: TreeOption) => {
+const getNodeProps = ({ option }: { option: TreeOption }) => {
   return {
     onContextmenu: (e: MouseEvent) => {
       e.preventDefault()
@@ -287,19 +289,26 @@ const handleContextSelect = async (key: string) => {
   const pageId = currentContextNode.value.key as string
   
   if (key === 'delete') {
-    if (!confirm('Are you sure you want to delete this page?')) return
-    try {
-      await pageStore.deletePage(pageId)
-      message.success('Page deleted')
-      if (libraryStore.currentLibrary) {
-        await pageStore.fetchPages(libraryStore.currentLibrary.id)
+    dialog.warning({
+      title: 'Delete Page',
+      content: 'Are you sure you want to delete this page? This action cannot be undone.',
+      positiveText: 'Delete',
+      negativeText: 'Cancel',
+      onPositiveClick: async () => {
+        try {
+          await pageStore.deletePage(pageId)
+          message.success('Page deleted')
+          if (libraryStore.currentLibrary) {
+            await pageStore.fetchPages(libraryStore.currentLibrary.id)
+          }
+          if (route.params.id === pageId) {
+            router.push(`/library/${libraryStore.currentLibrary?.id}`)
+          }
+        } catch (e) {
+          message.error('Failed to delete page')
+        }
       }
-      if (route.params.id === pageId) {
-        router.push(`/library/${libraryStore.currentLibrary?.id}`)
-      }
-    } catch (e) {
-      message.error('Failed to delete page')
-    }
+    })
   } else if (key === 'rename') {
     renamePageModel.value = { id: pageId, title: currentContextNode.value.label as string }
     showRenamePageModal.value = true
