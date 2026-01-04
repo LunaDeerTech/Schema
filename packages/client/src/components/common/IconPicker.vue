@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { NPopover, NButton, NIcon, NTabs, NTabPane, NScrollbar, NInput } from 'naive-ui'
+import { NPopover, NIcon, NTabs, NTabPane, NScrollbar, NInput } from 'naive-ui'
 import { AddOutline, SearchOutline } from '@vicons/ionicons5'
 
 const props = defineProps<{
