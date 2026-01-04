@@ -67,6 +67,49 @@ const showDeleteModal = ref(false)
 const libraryToDelete = ref<string | null>(null)
 const deleteLibraryLoading = ref(false)
 
+// Greeting Logic
+const greetingPhrase = ref('Good Morning')
+
+const updateGreeting = () => {
+  const hour = new Date().getHours()
+  let timePeriod = ''
+  
+  if (hour >= 5 && hour < 12) timePeriod = 'morning'
+  else if (hour >= 12 && hour < 18) timePeriod = 'afternoon'
+  else if (hour >= 18 && hour < 23) timePeriod = 'evening'
+  else timePeriod = 'night'
+
+  const greetings: Record<string, string[]> = {
+    morning: [
+      'Good Morning',
+      'Rise and shine',
+      'Wonderful morning',
+      'Ready for the day'
+    ],
+    afternoon: [
+      'Good Afternoon',
+      'Hope your day is going well',
+      'Good day',
+      'Keep up the good work'
+    ],
+    evening: [
+      'Good Evening',
+      'Hope you had a great day',
+      'Time to relax',
+      'Good to see you'
+    ],
+    night: [
+      'Good Night',
+      'Burning the midnight oil',
+      'Time to rest',
+      'Late night inspiration'
+    ]
+  }
+
+  const options = greetings[timePeriod]
+  greetingPhrase.value = options[Math.floor(Math.random() * options.length)]
+}
+
 // Date
 const currentDate = computed(() => {
   return new Date().toLocaleDateString('en-US', { 
@@ -207,6 +250,7 @@ const navigateToPage = (id: string) => {
 }
 
 onMounted(async () => {
+  updateGreeting()
   handleResize()
   window.addEventListener('resize', handleResize)
   await libraryStore.fetchLibraries()
@@ -224,7 +268,7 @@ onUnmounted(() => {
         <!-- Header -->
         <div class="header-section">
           <div class="greeting">
-            <n-h1 style="margin-bottom: 0;">Good Morning, {{ userStore.userName }}</n-h1>
+            <n-h1 style="margin-bottom: 0;">{{ greetingPhrase }}, {{ userStore.userName }}</n-h1>
             <n-text depth="3">{{ currentDate }}</n-text>
           </div>
         </div>
