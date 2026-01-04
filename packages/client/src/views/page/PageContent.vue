@@ -16,6 +16,7 @@ import {
   AddOutline
 } from '@vicons/ionicons5'
 import TiptapEditor from '@/components/editor/TiptapEditor.vue'
+import IconPicker from '@/components/common/IconPicker.vue'
 
 const route = useRoute()
 const pageStore = usePageStore()
@@ -137,6 +138,32 @@ const handleTitleSave = async () => {
   }
 }
 
+const handleIconUpdate = async (icon: string | undefined) => {
+  if (!pageStore.currentPage) return
+  
+  try {
+    // If it's a library page, we might need to update library store too if it's loaded there
+    // But pageStore.updatePage should handle the API call
+    await pageStore.updatePage(pageStore.currentPage.id, { icon: icon ?? undefined })
+    
+    // Check if this page corresponds to a library and update it
+    const lib = libraryStore.libraries.find(l => l.id === pageStore.currentPage?.id)
+    if (lib) {
+      // Update the library in the list
+      lib.icon = icon
+      
+      // If it's the currently selected library, update that too to trigger reactivity in Sidebar
+      if (libraryStore.currentLibrary?.id === lib.id) {
+        libraryStore.setCurrentLibrary({ ...lib, icon })
+      }
+    }
+    
+    message.success('Icon updated')
+  } catch (e) {
+    message.error('Failed to update icon')
+  }
+}
+
 // Tag management
 const handleAddTag = async (value: string) => {
   if (!pageStore.currentPage || !value.trim()) return
@@ -212,6 +239,10 @@ const handleContentUpdate = useDebounceFn(async (content: any) => {
       
       <div class="header-main">
         <div class="title-section">
+          <IconPicker 
+            :value="pageStore.currentPage.icon" 
+            @update:value="handleIconUpdate" 
+          />
           <n-input 
             v-model:value="title" 
             type="text" 
@@ -337,6 +368,8 @@ const handleContentUpdate = useDebounceFn(async (content: any) => {
     .title-section {
       flex: 1;
       margin-right: 16px;
+      display: flex;
+      align-items: center;
       
       .title-input {
         font-size: 24px;

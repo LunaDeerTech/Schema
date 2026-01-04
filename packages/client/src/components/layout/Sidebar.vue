@@ -75,7 +75,8 @@ const librarySwitchOptions = computed(() => {
   const options: any[] = libraryStore.libraries.map(lib => ({
     label: lib.title,
     key: lib.id,
-    disabled: lib.id === libraryStore.currentLibrary?.id
+    disabled: lib.id === libraryStore.currentLibrary?.id,
+    icon: lib.icon ? () => h('span', { style: 'font-size: 18px' }, lib.icon) : undefined
   }))
   
   if (options.length > 0) {
@@ -99,6 +100,7 @@ const pageTreeOptions = computed(() => {
     return pages.map(page => ({
       label: page.title,
       key: page.id,
+      prefix: page.icon ? () => h('span', { style: 'font-size: 16px; margin-right: 4px;' }, page.icon) : undefined,
       children: page.children && page.children.length > 0 ? mapPages(page.children) : undefined
     }))
   }
@@ -415,9 +417,14 @@ watch(() => pageStore.currentPage, async (page) => {
             class="current-library-name"
             @click="navigateToCurrentLibrary"
           >
-            <n-text strong style="font-size: 16px; cursor: pointer; display: block; padding: 4px 0;">
-              {{ libraryStore.currentLibrary.title }}
-            </n-text>
+            <div style="display: flex; align-items: center; cursor: pointer; padding: 4px 0;">
+              <span v-if="libraryStore.currentLibrary.icon" style="font-size: 18px; margin-right: 8px; line-height: 1;">
+                {{ libraryStore.currentLibrary.icon }}
+              </span>
+              <n-text strong style="font-size: 16px;">
+                {{ libraryStore.currentLibrary.title }}
+              </n-text>
+            </div>
           </div>
           <div v-else>
              <n-text depth="3">No Library Selected</n-text>
@@ -425,7 +432,8 @@ watch(() => pageStore.currentPage, async (page) => {
         </n-space>
       </div>
       <div class="collapsed-icon" v-else>
-        <n-icon size="24"><LibraryIcon /></n-icon>
+        <span v-if="libraryStore.currentLibrary?.icon" style="font-size: 24px;">{{ libraryStore.currentLibrary.icon }}</span>
+        <n-icon v-else size="24"><LibraryIcon /></n-icon>
       </div>
 
       <!-- Page Tree -->

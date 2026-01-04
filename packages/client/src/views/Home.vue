@@ -258,9 +258,7 @@ onUnmounted(() => {
             <n-card hoverable class="library-card" @click="navigateToLibrary(lib.id)" @contextmenu="(e: MouseEvent) => handleContextMenu(e, lib.id)">
               <template #header>
                 <div class="lib-header">
-                  <n-icon size="24" color="#1A73E8" style="margin-right: 12px">
-                    <LibraryIcon />
-                  </n-icon>
+                  <span v-if="lib.icon" style="font-size: 24px; margin-right: 12px; line-height: 1;">{{ lib.icon }}</span>
                   <n-text strong style="font-size: 16px;">{{ lib.title }}</n-text>
                 </div>
               </template>
