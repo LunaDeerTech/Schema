@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { NPopover, NButton, NIcon, NTabs, NTabPane, NScrollbar } from 'naive-ui'
-import { AddOutline, CloseOutline } from '@vicons/ionicons5'
+import { NPopover, NButton, NIcon, NTabs, NTabPane, NScrollbar, NInput } from 'naive-ui'
+import { AddOutline, SearchOutline } from '@vicons/ionicons5'
 
 const props = defineProps<{
   value?: string
@@ -39,7 +39,23 @@ const handleSelect = (emoji: string) => {
 
 const handleClear = () => {
   emit('update:value', undefined)
-  showPopover.value = false
+}
+
+const handleInput = (val: string | null) => {
+  if (!val) {
+    emit('update:value', undefined)
+    return
+  }
+  
+  // Match any extended pictographic character (emojis)
+  const match = val.match(/\p{Extended_Pictographic}/u)
+  if (match) {
+    emit('update:value', match[0])
+  } else {
+    // If no emoji found, revert to current value (or clear if it was empty)
+    // We emit the current prop value to force the input to revert
+    emit('update:value', props.value)
+  }
 }
 </script>
 
@@ -62,10 +78,18 @@ const handleClear = () => {
     
     <div class="emoji-picker">
       <div class="picker-header">
-        <n-button size="small" block secondary type="error" @click="handleClear" v-if="value">
-          <template #icon><n-icon><CloseOutline /></n-icon></template>
-          Clear Icon
-        </n-button>
+        <n-input
+          :value="value"
+          placeholder="Type or paste an emoji"
+          size="small"
+          clearable
+          @update:value="handleInput"
+          @clear="handleClear"
+        >
+          <template #prefix>
+            <n-icon :component="SearchOutline" />
+          </template>
+        </n-input>
       </div>
       <n-tabs type="line" size="small" animated>
         <n-tab-pane v-for="category in emojiCategories" :key="category.name" :name="category.name" :tab="category.name">

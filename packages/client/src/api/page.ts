@@ -13,9 +13,9 @@ export interface CreatePageRequest {
 export interface UpdatePageRequest {
   title?: string
   content?: any
-  icon?: string
+  icon?: string | null
   isPublic?: boolean
-  parentId?: string
+  parentId?: string | null
   libraryId?: string
   sortOrder?: number
 }
