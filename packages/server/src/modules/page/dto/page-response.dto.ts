@@ -2,6 +2,7 @@ export class PageResponseDto {
   id: string;
   title: string;
   content: string;
+  description?: string;
   icon?: string;
   coverImage?: string;
   isPublic: boolean;

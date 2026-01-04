@@ -119,11 +119,14 @@ const breadcrumbs = computed(() => {
   return crumbs
 })
 
-// Title editing
+// Title and Description editing
 const title = ref('')
+const description = ref('')
+
 watch(() => pageStore.currentPage, (newPage) => {
   if (newPage) {
     title.value = newPage.title
+    description.value = newPage.description || ''
   }
 })
 
@@ -135,6 +138,17 @@ const handleTitleSave = async () => {
     message.success('Title updated')
   } catch (e) {
     message.error('Failed to update title')
+  }
+}
+
+const handleDescriptionSave = async () => {
+  if (!pageStore.currentPage || description.value === (pageStore.currentPage.description || '')) return
+  
+  try {
+    await pageStore.updatePage(pageStore.currentPage.id, { description: description.value })
+    message.success('Description updated')
+  } catch (e) {
+    message.error('Failed to update description')
   }
 }
 
@@ -243,14 +257,25 @@ const handleContentUpdate = useDebounceFn(async (content: any) => {
             :value="pageStore.currentPage.icon" 
             @update:value="handleIconUpdate" 
           />
-          <n-input 
-            v-model:value="title" 
-            type="text" 
-            placeholder="Page Title" 
-            class="title-input"
-            @blur="handleTitleSave"
-            @keyup.enter="handleTitleSave"
-          />
+          <div class="title-wrapper">
+            <n-input 
+              v-model:value="title" 
+              type="text" 
+              placeholder="Page Title" 
+              class="title-input"
+              @blur="handleTitleSave"
+              @keyup.enter="handleTitleSave"
+            />
+            <n-input 
+              v-model:value="description" 
+              type="text" 
+              placeholder="Add description..." 
+              class="description-input"
+              :maxlength="100"
+              @blur="handleDescriptionSave"
+              @keyup.enter="handleDescriptionSave"
+            />
+          </div>
         </div>
         
         <div class="actions">
@@ -369,8 +394,15 @@ const handleContentUpdate = useDebounceFn(async (content: any) => {
       flex: 1;
       margin-right: 16px;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       
+      .title-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
       .title-input {
         font-size: 24px;
         font-weight: bold;
@@ -387,6 +419,27 @@ const handleContentUpdate = useDebounceFn(async (content: any) => {
         }
         
         &:hover {
+          background: rgba(0, 0, 0, 0.02);
+        }
+      }
+
+      .description-input {
+        font-size: 14px;
+        color: var(--n-text-color-3);
+        border: none;
+        background: transparent;
+        padding: 0;
+        
+        :deep(.n-input__input-el) {
+          height: auto;
+          padding: 0;
+        }
+        
+        :deep(.n-input__border), :deep(.n-input__state-border) {
+          display: none;
+        }
+        
+        &:hover, &:focus-within {
           background: rgba(0, 0, 0, 0.02);
         }
       }

@@ -98,4 +98,5 @@ export interface UpdatePageRequest {
   content?: any;
   icon?: string;
   parentId?: string;
+  description?: string;
 }

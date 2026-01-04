@@ -184,6 +184,7 @@ export const usePageStore = defineStore('page', () => {
     icon?: string
     isPublic?: boolean
     parentId?: string
+    description?: string
   }): Promise<boolean> => {
     setLoading(true)
     setError(null)

@@ -142,6 +142,7 @@ export class PageService {
       id: item.id,
       title: item.title,
       content: item.content ? JSON.parse(item.content) : { type: 'doc', content: [] },
+      description: item.description,
       icon: item.icon,
       coverImage: item.coverImage,
       isPublic: !!item.isPublic,
@@ -218,6 +219,7 @@ export class PageService {
       id: page.id,
       title: page.title,
       content: page.content ? JSON.parse(page.content) : { type: 'doc', content: [] },
+      description: page.description,
       icon: page.icon,
       coverImage: page.coverImage,
       isPublic: !!page.isPublic,
@@ -247,6 +249,7 @@ export class PageService {
         id: child.id,
         title: child.title,
         content: child.content ? JSON.parse(child.content) : { type: 'doc', content: [] },
+        description: child.description,
         icon: child.icon,
         coverImage: child.coverImage,
         isPublic: !!child.isPublic,
@@ -384,6 +387,11 @@ export class PageService {
     if (updatePageDto.content !== undefined) {
       updates.push('content = ?');
       params.push(JSON.stringify(updatePageDto.content));
+    }
+
+    if (updatePageDto.description !== undefined) {
+      updates.push('description = ?');
+      params.push(updatePageDto.description);
     }
 
     if (updatePageDto.libraryId !== undefined) {
