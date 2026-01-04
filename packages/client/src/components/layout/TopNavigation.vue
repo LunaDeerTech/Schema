@@ -14,7 +14,8 @@ import {
   NListItem,
   NTag,
   NSpace,
-  NText
+  NText,
+  NA
 } from 'naive-ui'
 import { 
   SearchOutline as SearchIcon,
@@ -40,6 +41,11 @@ const userStore = useUserStore()
 
 const showSearch = ref(false)
 const searchText = ref('')
+const showHelp = ref(false)
+
+const openHelp = () => {
+  showHelp.value = true
+}
 
 // User Menu Options
 const userOptions = [
@@ -131,7 +137,7 @@ const searchResults = [
     </div>
 
     <div class="nav-right">
-      <n-button quaternary circle class="icon-btn">
+      <n-button quaternary circle class="icon-btn" @click="openHelp">
         <template #icon>
           <n-icon :component="HelpIcon" />
         </template>
@@ -214,6 +220,54 @@ const searchResults = [
             </n-list>
           </div>
         </div>
+      </n-card>
+    </n-modal>
+
+    <!-- Help Modal -->
+    <n-modal v-model:show="showHelp">
+      <n-card
+        style="width: 600px; max-width: 90vw;"
+        title="About Schema"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
+      >
+        <n-space vertical size="large">
+          <div>
+            <n-text strong style="font-size: 18px;">Schema</n-text>
+            <p>A personal knowledge management system designed for long-term knowledge accumulation and structured thinking.</p>
+          </div>
+          
+          <div>
+            <n-text strong>Version</n-text>
+            <p>v1.0.0</p>
+          </div>
+
+          <div>
+            <n-text strong>Resources</n-text>
+            <n-list>
+              <n-list-item>
+                <n-a href="https://github.com/LunaDeerTech/Schema" target="_blank">GitHub Repository</n-a>
+              </n-list-item>
+              <n-list-item>
+                <n-a href="https://github.com/LunaDeerTech/Schema" target="_blank">Documentation</n-a>
+              </n-list-item>
+            </n-list>
+          </div>
+
+          <div>
+            <n-text strong>Keyboard Shortcuts</n-text>
+            <n-list>
+              <n-list-item>
+                <n-space justify="space-between">
+                  <span>Global Search</span>
+                  <n-tag size="small">Ctrl + K</n-tag>
+                </n-space>
+              </n-list-item>
+            </n-list>
+          </div>
+        </n-space>
       </n-card>
     </n-modal>
   </n-layout-header>
