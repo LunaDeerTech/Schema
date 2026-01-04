@@ -23,34 +23,27 @@ export interface User {
   updatedAt?: string
 }
 
-export interface Library {
+export interface Page {
   id: string
+  type: 'library' | 'page'
   title: string
   content: any
   description?: string
-  icon?: string
-  isPublic: boolean
-  publicSlug?: string
-  sortOrder: number
-  createdAt: string
-  updatedAt: string
-}
-
-export interface Page {
-  id: string
-  title: string
-  content: any
   icon?: string
   coverImage?: string
   isPublic: boolean
   publicSlug?: string
   sortOrder: number
   parentId?: string
-  libraryId: string
+  libraryId?: string
   createdAt: string
   updatedAt: string
   lastViewedAt?: string
+  metadata?: any
+  userId?: string
 }
+
+export type Library = Page
 
 export interface PageVersion {
   id: string

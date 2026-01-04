@@ -12,6 +12,7 @@ const route = useRoute()
 
 const collapsed = ref(false)
 const showSidebar = computed(() => route.name !== 'Home')
+const isHome = computed(() => route.name === 'Home')
 </script>
 
 <template>
@@ -22,7 +23,12 @@ const showSidebar = computed(() => route.name !== 'Home')
         v-if="showSidebar" 
         v-model:collapsed="collapsed" 
       />
-      <n-layout-content class="main-content">
+      <n-layout-content 
+        class="main-content" 
+        :class="{ 'is-home': isHome }"
+        :native-scrollbar="!isHome"
+        :content-style="isHome ? { height: '100%', padding: 0 } : {}"
+      >
         <router-view />
       </n-layout-content>
     </n-layout>
@@ -48,5 +54,10 @@ const showSidebar = computed(() => route.name !== 'Home')
 .main-content {
   padding: 20px;
   background-color: #fff;
+  
+  &.is-home {
+    padding: 0;
+    height: 100%;
+  }
 }
 </style>

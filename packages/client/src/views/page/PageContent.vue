@@ -71,6 +71,23 @@ watch(() => pageId.value, loadPage)
 const breadcrumbs = computed(() => {
   const crumbs = []
   
+  // Home
+  crumbs.push({
+    label: 'Home',
+    to: { name: 'Home' }
+  })
+
+  if (!pageStore.currentPage) return crumbs
+
+  // If this is a library (root), just show its title
+  if (pageStore.currentPage.type === 'library') {
+    crumbs.push({
+      label: pageStore.currentPage.title,
+      to: undefined // Current page
+    })
+    return crumbs
+  }
+  
   // Library
   if (pageStore.currentPage?.libraryId) {
     const lib = libraryStore.libraries.find(l => l.id === pageStore.currentPage?.libraryId)

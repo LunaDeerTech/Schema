@@ -6,8 +6,7 @@ export class UpdateLibraryDto {
   title?: string;
 
   @IsOptional()
-  @IsString()
-  content?: string;
+  content?: any;
 
   @IsOptional()
   @IsString()

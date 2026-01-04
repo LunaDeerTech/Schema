@@ -11,25 +11,12 @@ export interface User {
   updatedAt: string;
 }
 
-export interface Library {
+export interface Page {
   id: string;
+  type: 'library' | 'page';
   title: string;
   content: string;
   description?: string;
-  icon?: string;
-  sortOrder: number;
-  isPublic: boolean;
-  publicSlug?: string;
-  metadata?: string;
-  createdAt: string;
-  updatedAt: string;
-  userId: string;
-}
-
-export interface Page {
-  id: string;
-  title: string;
-  content: string;
   icon?: string;
   coverImage?: string;
   isPublic: boolean;
@@ -40,9 +27,11 @@ export interface Page {
   updatedAt: string;
   lastViewedAt?: string;
   userId: string;
-  libraryId: string;
+  libraryId?: string;
   parentId?: string;
 }
+
+export type Library = Page;
 
 export interface PageVersion {
   id: string;

@@ -10,24 +10,7 @@ interface Migration {
  * 添加新迁移到此数组的末尾
  */
 const migrations: Migration[] = [
-  {
-    name: '001_add_library_content',
-    up: (dbService: DatabaseService) => {
-      // 检查 Library 表是否已有 content 列
-      const libraryColumns = dbService.getTableColumns('Library');
-      const hasContent = libraryColumns.some(col => col.name === 'content');
-      
-      if (!hasContent) {
-        console.log('Adding content column to Library table...');
-        dbService.run("ALTER TABLE Library ADD COLUMN content TEXT NOT NULL DEFAULT ''");
-        
-        // Update existing libraries with empty content
-        const emptyContent = JSON.stringify({ type: 'doc', content: [] });
-        dbService.run("UPDATE Library SET content = ? WHERE content IS NULL OR content = ''", [emptyContent]);
-        console.log('Updated existing libraries with default content');
-      }
-    }
-  },
+  // Migrations removed as we reset the schema
 ];
 
 /**

@@ -32,7 +32,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'library/:id?',
         name: 'Library',
-        component: () => import('@/views/Library.vue')
+        component: () => import('@/views/page/PageContent.vue')
       },
       {
         path: 'page/:id',

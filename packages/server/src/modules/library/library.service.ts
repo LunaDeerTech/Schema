@@ -26,7 +26,7 @@ export class LibraryService {
     // Check if publicSlug already exists
     if (createLibraryDto.publicSlug) {
       const existing = this.database.queryOne(
-        'SELECT id FROM Library WHERE publicSlug = ?',
+        'SELECT id FROM Page WHERE publicSlug = ?',
         [createLibraryDto.publicSlug]
       );
       
@@ -40,10 +40,10 @@ export class LibraryService {
     const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
 
     this.database.run(`
-      INSERT INTO Library (
-        id, title, content, description, icon, sortOrder, isPublic, publicSlug, 
-        metadata, createdAt, updatedAt, userId
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO Page (
+        id, type, title, content, description, icon, sortOrder, isPublic, publicSlug, 
+        metadata, createdAt, updatedAt, userId, libraryId, parentId
+      ) VALUES (?, 'library', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
     `, [
       id,
       createLibraryDto.title,
@@ -56,7 +56,8 @@ export class LibraryService {
       '{}',
       now,
       now,
-      userId
+      userId,
+      id // libraryId points to self
     ]);
 
     return this.findOne(userId, id);
@@ -67,8 +68,8 @@ export class LibraryService {
    */
   async findAll(userId: string): Promise<LibraryResponseDto[]> {
     const libraries = this.database.query(`
-      SELECT * FROM Library 
-      WHERE userId = ? 
+      SELECT * FROM Page 
+      WHERE userId = ? AND type = 'library'
       ORDER BY sortOrder ASC, createdAt ASC
     `, [userId]);
 
@@ -84,7 +85,7 @@ export class LibraryService {
    */
   async findOne(userId: string, id: string): Promise<LibraryResponseDto> {
     const library = this.database.queryOne(
-      'SELECT * FROM Library WHERE id = ? AND userId = ?',
+      "SELECT * FROM Page WHERE id = ? AND userId = ? AND type = 'library'",
       [id, userId]
     );
 
@@ -109,7 +110,7 @@ export class LibraryService {
     // Check publicSlug uniqueness if being updated
     if (updateLibraryDto.publicSlug) {
       const existing = this.database.queryOne(
-        'SELECT id FROM Library WHERE publicSlug = ? AND id != ?',
+        'SELECT id FROM Page WHERE publicSlug = ? AND id != ?',
         [updateLibraryDto.publicSlug, id]
       );
       
@@ -168,7 +169,7 @@ export class LibraryService {
     params.push(userId);
 
     this.database.run(
-      `UPDATE Library SET ${updates.join(', ')} WHERE id = ? AND userId = ?`,
+      `UPDATE Page SET ${updates.join(', ')} WHERE id = ? AND userId = ?`,
       params
     );
 
@@ -180,7 +181,7 @@ export class LibraryService {
    */
   async remove(userId: string, id: string): Promise<{ success: boolean; message: string }> {
     const library = this.database.queryOne(
-      'SELECT id FROM Library WHERE id = ? AND userId = ?',
+      "SELECT id FROM Page WHERE id = ? AND userId = ? AND type = 'library'",
       [id, userId]
     );
 
@@ -189,7 +190,7 @@ export class LibraryService {
     }
 
     this.database.run(
-      'DELETE FROM Library WHERE id = ? AND userId = ?',
+      'DELETE FROM Page WHERE id = ? AND userId = ?',
       [id, userId]
     );
 

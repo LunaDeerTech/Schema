@@ -3,7 +3,6 @@ import { ref, computed, onMounted, watch, h, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { 
   NLayoutSider, 
-  NSelect, 
   NTree, 
   NButton, 
   NIcon, 
@@ -21,8 +20,7 @@ import {
 import { 
   AddOutline as AddIcon,
   LibraryOutline as LibraryIcon,
-
-  SettingsOutline as SettingsIcon
+  SwapHorizontalOutline as SwapIcon
 } from '@vicons/ionicons5'
 import { useLibraryStore } from '@/stores/library'
 import { usePageStore } from '@/stores/page'
@@ -61,10 +59,6 @@ const showRenamePageModal = ref(false)
 const renamePageModel = ref({ id: '', title: '' })
 const renamePageLoading = ref(false)
 
-// Edit Library Modal State
-const showEditLibraryModal = ref(false)
-const editLibraryModel = ref({ id: '', title: '', description: '' })
-const editLibraryLoading = ref(false)
 
 // Context Menu State
 const showContextMenu = ref(false)
@@ -77,31 +71,27 @@ const contextMenuOptions = [
   { label: 'Delete', key: 'delete' }
 ]
 
-const libraryActionOptions = [
-  { label: 'Edit Library', key: 'edit' },
-  { label: 'Delete Library', key: 'delete' }
-]
-
-// Library Selection
-const libraryOptions = computed(() => {
-  return libraryStore.libraries.map(lib => ({
+const librarySwitchOptions = computed(() => {
+  const options: any[] = libraryStore.libraries.map(lib => ({
     label: lib.title,
-    value: lib.id
+    key: lib.id,
+    disabled: lib.id === libraryStore.currentLibrary?.id
   }))
+  
+  if (options.length > 0) {
+    options.push({ type: 'divider', key: 'd1' })
+  }
+  
+  options.push({
+    label: 'New Library',
+    key: 'create_new_library',
+    icon: () => h(NIcon, null, { default: () => h(AddIcon) })
+  })
+  
+  return options
 })
 
-const currentLibraryId = computed({
-  get: () => libraryStore.currentLibrary?.id || null,
-  set: (val) => {
-    if (val) {
-      const lib = libraryStore.libraries.find(l => l.id === val)
-      if (lib) {
-        libraryStore.setCurrentLibrary(lib)
-        router.push(`/library/${lib.id}`)
-      }
-    }
-  }
-})
+
 
 // Page Tree
 const pageTreeOptions = computed(() => {
@@ -120,6 +110,10 @@ const expandedKeys = ref<string[]>([])
 
 // Actions
 const handleLibraryChange = async (value: string) => {
+  if (value === 'create_new_library') {
+    handleCreateLibrary()
+    return
+  }
   const lib = libraryStore.libraries.find(l => l.id === value)
   if (lib) {
     libraryStore.setCurrentLibrary(lib)
@@ -323,50 +317,17 @@ const submitRenamePage = async () => {
   }
 }
 
-const handleLibraryAction = async (key: string) => {
-  if (!libraryStore.currentLibrary) return
-  
-  if (key === 'delete') {
-    if (!confirm('Are you sure you want to delete this library? All pages in it will be deleted.')) return
-    try {
-      await libraryStore.deleteLibrary(libraryStore.currentLibrary.id)
-      message.success('Library deleted')
-      await libraryStore.fetchLibraries()
-      if (libraryStore.libraries.length > 0) {
-        libraryStore.setCurrentLibrary(libraryStore.libraries[0])
-        router.push(`/library/${libraryStore.libraries[0].id}`)
-      } else {
-        libraryStore.setCurrentLibrary(null)
-        router.push('/home')
-      }
-    } catch (e) {
-      message.error('Failed to delete library')
-    }
-  } else if (key === 'edit') {
-    editLibraryModel.value = { 
-      id: libraryStore.currentLibrary.id,
-      title: libraryStore.currentLibrary.title,
-      description: libraryStore.currentLibrary.description || ''
-    }
-    showEditLibraryModal.value = true
+const handleLibrarySwitch = (key: string) => {
+  if (key === 'create_new_library') {
+    handleCreateLibrary()
+  } else {
+    handleLibraryChange(key)
   }
 }
 
-const submitEditLibrary = async () => {
-  if (!editLibraryModel.value.title) return
-  editLibraryLoading.value = true
-  try {
-    await libraryStore.updateLibrary(editLibraryModel.value.id, {
-      title: editLibraryModel.value.title,
-      description: editLibraryModel.value.description
-    })
-    message.success('Library updated')
-    showEditLibraryModal.value = false
-    await libraryStore.fetchLibraries()
-  } catch (e) {
-    message.error('Failed to update library')
-  } finally {
-    editLibraryLoading.value = false
+const navigateToCurrentLibrary = () => {
+  if (libraryStore.currentLibrary) {
+    router.push(`/library/${libraryStore.currentLibrary.id}`)
   }
 }
 
@@ -440,27 +401,27 @@ watch(() => pageStore.currentPage, async (page) => {
         <n-space vertical :size="12">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <n-text depth="3" class="section-label">LIBRARY</n-text>
-            <n-dropdown :options="libraryActionOptions" @select="handleLibraryAction" v-if="libraryStore.currentLibrary">
+            <n-dropdown :options="librarySwitchOptions" @select="handleLibrarySwitch" trigger="click">
               <n-button text size="tiny">
                 <template #icon>
-                  <n-icon><SettingsIcon /></n-icon>
+                  <n-icon><SwapIcon /></n-icon>
                 </template>
               </n-button>
             </n-dropdown>
           </div>
-          <n-select
-            v-model:value="currentLibraryId"
-            :options="libraryOptions"
-            placeholder="Select Library"
-            @update:value="handleLibraryChange"
-            size="small"
-          />
-          <n-button block dashed size="small" @click="handleCreateLibrary">
-            <template #icon>
-              <n-icon><AddIcon /></n-icon>
-            </template>
-            New Library
-          </n-button>
+          
+          <div 
+            v-if="libraryStore.currentLibrary" 
+            class="current-library-name"
+            @click="navigateToCurrentLibrary"
+          >
+            <n-text strong style="font-size: 16px; cursor: pointer; display: block; padding: 4px 0;">
+              {{ libraryStore.currentLibrary.title }}
+            </n-text>
+          </div>
+          <div v-else>
+             <n-text depth="3">No Library Selected</n-text>
+          </div>
         </n-space>
       </div>
       <div class="collapsed-icon" v-else>
@@ -593,38 +554,7 @@ watch(() => pageStore.currentPage, async (page) => {
       </n-card>
     </n-modal>
 
-    <!-- Edit Library Modal -->
-    <n-modal v-model:show="showEditLibraryModal">
-      <n-card
-        style="width: 600px"
-        title="Edit Library"
-        :bordered="false"
-        size="huge"
-        role="dialog"
-        aria-modal="true"
-      >
-        <n-form>
-          <n-form-item label="Title">
-            <n-input v-model:value="editLibraryModel.title" placeholder="Library Title" />
-          </n-form-item>
-          <n-form-item label="Description">
-            <n-input
-              v-model:value="editLibraryModel.description"
-              type="textarea"
-              placeholder="Description (Optional)"
-            />
-          </n-form-item>
-        </n-form>
-        <template #footer>
-          <n-space justify="end">
-            <n-button @click="showEditLibraryModal = false">Cancel</n-button>
-            <n-button type="primary" :loading="editLibraryLoading" @click="submitEditLibrary">
-              Save
-            </n-button>
-          </n-space>
-        </template>
-      </n-card>
-    </n-modal>
+
   </n-layout-sider>
 </template>
 

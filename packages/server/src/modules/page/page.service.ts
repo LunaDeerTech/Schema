@@ -27,7 +27,7 @@ export class PageService {
     
     // Validate library exists and user has access
     const library = this.database.queryOne(
-      'SELECT id FROM Library WHERE id = ? AND userId = ?',
+      "SELECT id FROM Page WHERE id = ? AND userId = ? AND type = 'library'",
       [createPageDto.libraryId, userId]
     );
     
@@ -67,9 +67,9 @@ export class PageService {
 
     this.database.run(`
       INSERT INTO Page (
-        id, title, content, icon, isPublic, sortOrder, metadata, 
+        id, type, title, content, icon, isPublic, sortOrder, metadata, 
         createdAt, updatedAt, userId, libraryId, parentId, coverImage
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, 'page', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       id,
       createPageDto.title,
@@ -97,7 +97,7 @@ export class PageService {
     const offset = (page - 1) * pageSize;
 
     // Build conditions
-    const conditions = ['p.userId = ?'];
+    const conditions = ['p.userId = ?', "p.type = 'page'"];
     const params: any[] = [userId];
 
     if (libraryId) {
@@ -131,7 +131,7 @@ export class PageService {
              l.title as libraryTitle,
              parent.title as parentTitle
       FROM Page p
-      LEFT JOIN Library l ON p.libraryId = l.id
+      LEFT JOIN Page l ON p.libraryId = l.id
       LEFT JOIN Page parent ON p.parentId = parent.id
       WHERE ${whereClause}
       ORDER BY p.sortOrder ASC
@@ -189,7 +189,7 @@ export class PageService {
              parent.content as parentContent,
              parent.parentId as grandparentId
       FROM Page p
-      LEFT JOIN Library l ON p.libraryId = l.id
+      LEFT JOIN Page l ON p.libraryId = l.id
       LEFT JOIN Page parent ON p.parentId = parent.id
       WHERE p.id = ? AND p.userId = ?
     `, [id, userId]);
@@ -201,7 +201,7 @@ export class PageService {
     // Get immediate children
     const children = this.database.query(`
       SELECT * FROM Page 
-      WHERE parentId = ? AND userId = ? 
+      WHERE parentId = ? AND userId = ? AND type = 'page'
       ORDER BY sortOrder ASC
     `, [id, userId]);
 
@@ -276,7 +276,7 @@ export class PageService {
   async getTree(userId: string, libraryId: string): Promise<PageResponseDto[]> {
     // Validate library access
     const library = this.database.queryOne(
-      'SELECT id FROM Library WHERE id = ? AND userId = ?',
+      "SELECT id FROM Page WHERE id = ? AND userId = ? AND type = 'library'",
       [libraryId, userId]
     );
     
@@ -287,7 +287,7 @@ export class PageService {
     // Get all pages for the library
     const pages = this.database.query(`
       SELECT * FROM Page 
-      WHERE libraryId = ? AND userId = ? 
+      WHERE libraryId = ? AND userId = ? AND type = 'page'
       ORDER BY sortOrder ASC
     `, [libraryId, userId]);
 
@@ -334,7 +334,7 @@ export class PageService {
     // Validate library exists if changing
     if (updatePageDto.libraryId && updatePageDto.libraryId !== page.libraryId) {
       const library = this.database.queryOne(
-        'SELECT id FROM Library WHERE id = ? AND userId = ?',
+        "SELECT id FROM Page WHERE id = ? AND userId = ? AND type = 'library'",
         [updatePageDto.libraryId, userId]
       );
       
@@ -490,7 +490,7 @@ export class PageService {
     if (movePageDto.newLibraryId && movePageDto.newLibraryId !== page.libraryId) {
        if (movePageDto.newParentId === undefined) {
            const library = this.database.queryOne(
-               'SELECT id FROM Library WHERE id = ? AND userId = ?',
+               "SELECT id FROM Page WHERE id = ? AND userId = ? AND type = 'library'",
                [movePageDto.newLibraryId, userId]
            );
            if (!library) {

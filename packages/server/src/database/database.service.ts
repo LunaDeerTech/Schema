@@ -57,31 +57,16 @@ export class DatabaseService implements OnModuleDestroy {
       )
     `);
 
-    // 创建知识库表
-    this.db.exec(`
-      CREATE TABLE IF NOT EXISTS Library (
-        id TEXT PRIMARY KEY,
-        title TEXT NOT NULL,
-        content TEXT NOT NULL,
-        description TEXT,
-        icon TEXT,
-        sortOrder INTEGER DEFAULT 0,
-        isPublic INTEGER DEFAULT 0,
-        publicSlug TEXT UNIQUE,
-        metadata TEXT DEFAULT '{}',
-        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-        userId TEXT NOT NULL,
-        FOREIGN KEY (userId) REFERENCES User(id) ON DELETE CASCADE
-      )
-    `);
+    // Library table removed - merged into Page
 
     // 创建页面表
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS Page (
         id TEXT PRIMARY KEY,
+        type TEXT NOT NULL DEFAULT 'page',
         title TEXT NOT NULL,
         content TEXT NOT NULL,
+        description TEXT,
         icon TEXT,
         coverImage TEXT,
         isPublic INTEGER DEFAULT 0,
@@ -92,10 +77,10 @@ export class DatabaseService implements OnModuleDestroy {
         updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
         lastViewedAt DATETIME,
         userId TEXT NOT NULL,
-        libraryId TEXT NOT NULL,
+        libraryId TEXT,
         parentId TEXT,
         FOREIGN KEY (userId) REFERENCES User(id) ON DELETE CASCADE,
-        FOREIGN KEY (libraryId) REFERENCES Library(id) ON DELETE CASCADE,
+        FOREIGN KEY (libraryId) REFERENCES Page(id) ON DELETE CASCADE,
         FOREIGN KEY (parentId) REFERENCES Page(id) ON DELETE SET NULL
       )
     `);
@@ -189,10 +174,10 @@ export class DatabaseService implements OnModuleDestroy {
 
     // 创建索引以提高查询性能
     this.db.exec(`
-      CREATE INDEX IF NOT EXISTS idx_library_user ON Library(userId);
       CREATE INDEX IF NOT EXISTS idx_page_user ON Page(userId);
       CREATE INDEX IF NOT EXISTS idx_page_library ON Page(libraryId);
       CREATE INDEX IF NOT EXISTS idx_page_parent ON Page(parentId);
+      CREATE INDEX IF NOT EXISTS idx_page_type ON Page(type);
       CREATE INDEX IF NOT EXISTS idx_page_public ON Page(isPublic);
       CREATE INDEX IF NOT EXISTS idx_page_last_viewed ON Page(lastViewedAt);
       CREATE INDEX IF NOT EXISTS idx_version_page ON PageVersion(pageId);
@@ -208,7 +193,6 @@ export class DatabaseService implements OnModuleDestroy {
     // 确保唯一约束存在（为已存在的数据表添加唯一索引）
     this.db.exec(`
       CREATE UNIQUE INDEX IF NOT EXISTS idx_user_email ON User(email);
-      CREATE UNIQUE INDEX IF NOT EXISTS idx_library_publicSlug ON Library(publicSlug);
       CREATE UNIQUE INDEX IF NOT EXISTS idx_page_publicSlug ON Page(publicSlug);
       CREATE UNIQUE INDEX IF NOT EXISTS idx_tag_name ON Tag(name);
     `);
@@ -298,7 +282,7 @@ export class DatabaseService implements OnModuleDestroy {
   checkIntegrity(): boolean {
     try {
       // 检查关键表是否存在
-      const requiredTables = ['User', 'Library', 'Page', 'PageVersion', 'Tag', 'Task'];
+      const requiredTables = ['User', 'Page', 'PageVersion', 'Tag', 'Task'];
       
       for (const table of requiredTables) {
         if (!this.tableExists(table)) {

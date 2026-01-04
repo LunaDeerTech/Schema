@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   NGrid, 
@@ -17,7 +17,15 @@ import {
   NH1, 
   NH2,
   NEllipsis,
-  NSkeleton
+  NSkeleton,
+  NModal,
+  NForm,
+  NFormItem,
+  NInput,
+  useMessage,
+  NLayout,
+  NLayoutContent,
+  NLayoutSider
 } from 'naive-ui'
 import { 
   AddOutline as AddIcon,
@@ -32,6 +40,24 @@ import { useLibraryStore } from '@/stores/library'
 const router = useRouter()
 const userStore = useUserStore()
 const libraryStore = useLibraryStore()
+const message = useMessage()
+
+// Layout State
+const rightDrawerCollapsed = ref(false)
+
+const handleResize = () => {
+  if (window.innerWidth < 1024 && !rightDrawerCollapsed.value) {
+    rightDrawerCollapsed.value = true
+  }
+}
+
+// Create Library Modal State
+const showCreateLibraryModal = ref(false)
+const createLibraryModel = ref({
+  title: '',
+  description: ''
+})
+const createLibraryLoading = ref(false)
 
 // Date
 const currentDate = computed(() => {
@@ -68,8 +94,35 @@ const longUnvisited = ref([
 
 // Actions
 const handleCreateLibrary = () => {
-  // TODO: Open create library modal
-  console.log('Create Library')
+  createLibraryModel.value = { title: '', description: '' }
+  showCreateLibraryModal.value = true
+}
+
+const submitCreateLibrary = async () => {
+  if (!createLibraryModel.value.title) {
+    message.warning('Please enter a library title')
+    return
+  }
+  
+  createLibraryLoading.value = true
+  try {
+    const newLib = await libraryStore.createLibrary({
+      title: createLibraryModel.value.title,
+      content: { type: 'doc', content: [] },
+      description: createLibraryModel.value.description
+    })
+    
+    if (newLib) {
+      message.success('Library created successfully')
+      showCreateLibraryModal.value = false
+      libraryStore.setCurrentLibrary(newLib)
+      router.push(`/library/${newLib.id}`)
+    }
+  } catch (error) {
+    message.error('Failed to create library')
+  } finally {
+    createLibraryLoading.value = false
+  }
 }
 
 const handleSearch = () => {
@@ -90,23 +143,29 @@ const navigateToPage = (id: string) => {
 }
 
 onMounted(async () => {
+  handleResize()
+  window.addEventListener('resize', handleResize)
   await libraryStore.fetchLibraries()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
 <template>
   <div class="home-view">
-    <!-- Header -->
-    <div class="header-section">
-      <div class="greeting">
-        <n-h1 style="margin-bottom: 0;">Good Morning, {{ userStore.userName }}</n-h1>
-        <n-text depth="3">{{ currentDate }}</n-text>
-      </div>
-    </div>
+    <n-layout has-sider sider-placement="right" style="height: 100%; background: transparent;">
+      <n-layout-content :native-scrollbar="false" style="background: transparent;" content-style="padding: 24px;">
+        <!-- Header -->
+        <div class="header-section">
+          <div class="greeting">
+            <n-h1 style="margin-bottom: 0;">Good Morning, {{ userStore.userName }}</n-h1>
+            <n-text depth="3">{{ currentDate }}</n-text>
+          </div>
+        </div>
 
-    <n-grid :cols="24" :x-gap="24" item-responsive>
-      <!-- Left Column: Libraries -->
-      <n-gi span="24 m:14 l:16">
+        <!-- Libraries -->
         <div class="section-header">
           <n-h2>Knowledge Libraries</n-h2>
         </div>
@@ -129,8 +188,9 @@ onMounted(async () => {
           </n-card>
         </div>
 
-        <n-grid v-else :cols="1" :y-gap="16">
-          <n-gi v-for="lib in libraryStore.libraries" :key="lib.id">
+        <n-grid v-else :cols="24" :x-gap="16" :y-gap="16" responsive="screen" item-responsive>
+          <!-- Responsive columns: 1 on small, 2 on medium, 3 on large -->
+          <n-gi span="24 m:12 l:8" v-for="lib in libraryStore.libraries" :key="lib.id">
             <n-card hoverable class="library-card" @click="navigateToLibrary(lib.id)">
               <template #header>
                 <div class="lib-header">
@@ -156,113 +216,158 @@ onMounted(async () => {
             </n-card>
           </n-gi>
           
-          <n-gi>
+          <n-gi span="24 m:12 l:8">
             <n-button dashed block class="new-lib-btn" @click="handleCreateLibrary">
               <template #icon><n-icon><AddIcon /></n-icon></template>
               New Library
             </n-button>
           </n-gi>
         </n-grid>
-      </n-gi>
+      </n-layout-content>
 
-      <!-- Right Column: Widgets -->
-      <n-gi span="24 m:10 l:8">
-        <n-space vertical :size="24">
-          
-          <!-- Quick Actions -->
-          <n-card size="small" title="Quick Actions">
-            <n-space justify="space-between">
-              <n-button secondary circle type="primary" @click="handleCreateLibrary">
-                <template #icon><n-icon><AddIcon /></n-icon></template>
-              </n-button>
-              <n-button secondary circle type="info" @click="handleSearch">
-                <template #icon><n-icon><SearchIcon /></n-icon></template>
-              </n-button>
-              <n-button secondary circle type="success">
-                <template #icon><n-icon><CheckIcon /></n-icon></template>
-              </n-button>
-            </n-space>
-            <n-space justify="space-between" style="margin-top: 8px; padding: 0 4px;">
-              <n-text depth="3" style="font-size: 12px;">New Lib</n-text>
-              <n-text depth="3" style="font-size: 12px;">Search</n-text>
-              <n-text depth="3" style="font-size: 12px;">Tasks</n-text>
-            </n-space>
-          </n-card>
+      <!-- Right Drawer -->
+      <n-layout-sider
+        collapse-mode="transform"
+        :collapsed-width="0"
+        :width="360"
+        show-trigger="arrow-circle"
+        bordered
+        :native-scrollbar="false"
+        v-model:collapsed="rightDrawerCollapsed"
+        style="background: transparent;"
+      >
+        <div class="right-drawer-content">
+          <n-space vertical :size="24">
+            
+            <!-- Quick Actions -->
+            <n-card size="small" title="Quick Actions">
+              <n-space justify="space-between">
+                <n-button secondary circle type="primary" @click="handleCreateLibrary">
+                  <template #icon><n-icon><AddIcon /></n-icon></template>
+                </n-button>
+                <n-button secondary circle type="info" @click="handleSearch">
+                  <template #icon><n-icon><SearchIcon /></n-icon></template>
+                </n-button>
+                <n-button secondary circle type="success">
+                  <template #icon><n-icon><CheckIcon /></n-icon></template>
+                </n-button>
+              </n-space>
+              <n-space justify="space-between" style="margin-top: 8px; padding: 0 4px;">
+                <n-text depth="3" style="font-size: 12px;">New Lib</n-text>
+                <n-text depth="3" style="font-size: 12px;">Search</n-text>
+                <n-text depth="3" style="font-size: 12px;">Tasks</n-text>
+              </n-space>
+            </n-card>
 
-          <!-- Recent Pages -->
-          <n-card size="small" title="Recent Pages">
-            <n-list hoverable clickable>
-              <n-list-item v-for="page in recentPages" :key="page.id" @click="navigateToPage(page.id)">
-                <n-thing>
-                  <template #header>
-                    <n-ellipsis style="max-width: 200px">{{ page.title }}</n-ellipsis>
-                  </template>
-                  <template #description>
-                    <n-space size="small" align="center">
-                      <n-icon size="12" depth="3"><TimeIcon /></n-icon>
-                      <n-text depth="3" style="font-size: 12px;">{{ page.time }}</n-text>
-                    </n-space>
-                  </template>
-                </n-thing>
-              </n-list-item>
-            </n-list>
-          </n-card>
+            <!-- Recent Pages -->
+            <n-card size="small" title="Recent Pages">
+              <n-list hoverable clickable>
+                <n-list-item v-for="page in recentPages" :key="page.id" @click="navigateToPage(page.id)">
+                  <n-thing>
+                    <template #header>
+                      <n-ellipsis style="max-width: 200px">{{ page.title }}</n-ellipsis>
+                    </template>
+                    <template #description>
+                      <n-space size="small" align="center">
+                        <n-icon size="12" depth="3"><TimeIcon /></n-icon>
+                        <n-text depth="3" style="font-size: 12px;">{{ page.time }}</n-text>
+                      </n-space>
+                    </template>
+                  </n-thing>
+                </n-list-item>
+              </n-list>
+            </n-card>
 
-          <!-- Pending Tasks -->
-          <n-card size="small" title="Pending Tasks">
-            <template #header-extra>
-              <n-tag type="warning" round size="small">{{ pendingTasks.length }}</n-tag>
-            </template>
-            <n-list>
-              <n-list-item v-for="task in pendingTasks" :key="task.id">
-                <n-space align="start" :wrap="false">
-                  <n-checkbox v-model:checked="task.done" />
-                  <div>
-                    <n-text :delete="task.done">{{ task.content }}</n-text>
-                    <br/>
-                    <n-text depth="3" style="font-size: 12px;">From: {{ task.page }}</n-text>
-                  </div>
-                </n-space>
-              </n-list-item>
-            </n-list>
-          </n-card>
+            <!-- Pending Tasks -->
+            <n-card size="small" title="Pending Tasks">
+              <template #header-extra>
+                <n-tag type="warning" round size="small">{{ pendingTasks.length }}</n-tag>
+              </template>
+              <n-list>
+                <n-list-item v-for="task in pendingTasks" :key="task.id">
+                  <n-space align="start" :wrap="false">
+                    <n-checkbox v-model:checked="task.done" />
+                    <div>
+                      <n-text :delete="task.done">{{ task.content }}</n-text>
+                      <br/>
+                      <n-text depth="3" style="font-size: 12px;">From: {{ task.page }}</n-text>
+                    </div>
+                  </n-space>
+                </n-list-item>
+              </n-list>
+            </n-card>
 
-          <!-- On This Day -->
-          <n-card size="small" title="On This Day">
-            <n-list hoverable clickable>
-              <n-list-item v-for="item in onThisDay" :key="item.id">
-                <n-thing>
-                  <template #avatar>
-                    <n-tag type="info" size="small">{{ item.year }}</n-tag>
-                  </template>
-                  <template #header>{{ item.title }}</template>
-                </n-thing>
-              </n-list-item>
-            </n-list>
-          </n-card>
+            <!-- On This Day -->
+            <n-card size="small" title="On This Day">
+              <n-list hoverable clickable>
+                <n-list-item v-for="item in onThisDay" :key="item.id">
+                  <n-thing>
+                    <template #avatar>
+                      <n-tag type="info" size="small">{{ item.year }}</n-tag>
+                    </template>
+                    <template #header>{{ item.title }}</template>
+                  </n-thing>
+                </n-list-item>
+              </n-list>
+            </n-card>
 
-          <!-- Long Unvisited -->
-          <n-card size="small" title="Long Unvisited">
-            <n-list hoverable clickable>
-              <n-list-item v-for="item in longUnvisited" :key="item.id">
-                <n-space justify="space-between" align="center">
-                  <n-text>{{ item.title }}</n-text>
-                  <n-tag type="error" size="small" :bordered="false">{{ item.days }} days</n-tag>
-                </n-space>
-              </n-list-item>
-            </n-list>
-          </n-card>
+            <!-- Long Unvisited -->
+            <n-card size="small" title="Long Unvisited">
+              <n-list hoverable clickable>
+                <n-list-item v-for="item in longUnvisited" :key="item.id">
+                  <n-space justify="space-between" align="center">
+                    <n-text>{{ item.title }}</n-text>
+                    <n-tag type="error" size="small" :bordered="false">{{ item.days }} days</n-tag>
+                  </n-space>
+                </n-list-item>
+              </n-list>
+            </n-card>
 
-        </n-space>
-      </n-gi>
-    </n-grid>
+          </n-space>
+        </div>
+      </n-layout-sider>
+    </n-layout>
+
+    <!-- Create Library Modal -->
+    <n-modal v-model:show="showCreateLibraryModal">
+      <n-card
+        style="width: 600px"
+        title="Create New Library"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
+      >
+        <n-form>
+          <n-form-item label="Library Title">
+            <n-input v-model:value="createLibraryModel.title" placeholder="e.g. Tech Learning" />
+          </n-form-item>
+          <n-form-item label="Description">
+            <n-input 
+              v-model:value="createLibraryModel.description" 
+              type="textarea" 
+              placeholder="What is this library about?" 
+            />
+          </n-form-item>
+        </n-form>
+        <template #footer>
+          <n-space justify="end">
+            <n-button @click="showCreateLibraryModal = false">Cancel</n-button>
+            <n-button type="primary" :loading="createLibraryLoading" @click="submitCreateLibrary">
+              Create
+            </n-button>
+          </n-space>
+        </template>
+      </n-card>
+    </n-modal>
   </div>
 </template>
 
 <style scoped lang="scss">
 .home-view {
-  max-width: 1200px;
+  max-width: 1440px;
   margin: 0 auto;
+  height: 100%;
 }
 
 .header-section {
@@ -276,6 +381,7 @@ onMounted(async () => {
 .library-card {
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
+  height: 100%;
   
   &:hover {
     transform: translateY(-2px);
@@ -291,16 +397,25 @@ onMounted(async () => {
     display: block;
     margin-top: 8px;
     margin-bottom: 16px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }
 
 .new-lib-btn {
-  height: 60px;
+  height: 100%;
+  min-height: 160px;
   border-style: dashed;
 }
 
 .empty-card {
   padding: 40px 0;
   background-color: #f9f9f9;
+}
+
+.right-drawer-content {
+  padding: 24px;
 }
 </style>

@@ -45,20 +45,29 @@ export interface PaginatedResponse<T> {
   hasMore: boolean;
 }
 
-// Library Types
-export interface Library {
+// Page Types
+export interface Page {
   id: string;
+  type: 'library' | 'page';
   title: string;
   content: any; // Tiptap JSON
   description?: string;
   icon?: string;
+  coverImage?: string;
   isPublic: boolean;
   publicSlug?: string;
   sortOrder: number;
+  metadata?: any;
   createdAt: Date;
   updatedAt: Date;
+  lastViewedAt?: Date;
   userId: string;
+  libraryId?: string;
+  parentId?: string;
 }
+
+// Library is now a special type of Page
+export type Library = Page;
 
 export interface CreateLibraryRequest {
   title: string;
@@ -74,25 +83,6 @@ export interface UpdateLibraryRequest {
   icon?: string;
   isPublic?: boolean;
   sortOrder?: number;
-}
-
-// Page Types
-export interface Page {
-  id: string;
-  title: string;
-  content: any; // Tiptap JSON
-  icon?: string;
-  coverImage?: string;
-  isPublic: boolean;
-  publicSlug?: string;
-  sortOrder: number;
-  metadata?: any;
-  createdAt: Date;
-  updatedAt: Date;
-  lastViewedAt?: Date;
-  userId: string;
-  libraryId: string;
-  parentId?: string;
 }
 
 export interface CreatePageRequest {
