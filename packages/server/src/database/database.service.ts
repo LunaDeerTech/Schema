@@ -293,7 +293,7 @@ export class DatabaseService implements OnModuleDestroy {
       }
       
       // 运行完整性检查
-      const result = this.db.prepare('PRAGMA integrity_check').get();
+      const result = this.db.prepare('PRAGMA integrity_check').get() as any;
       if (result && result.integrity_check === 'ok') {
         console.log('✓ Database integrity check passed');
         return true;

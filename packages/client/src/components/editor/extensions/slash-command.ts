@@ -10,6 +10,7 @@ import {
   CheckboxOutline,
   CodeSlashOutline,
   ChatboxEllipsesOutline,
+  ImageOutline,
 } from '@vicons/ionicons5'
 
 const getSuggestionItems = ({ query }: { query: string }) => {
@@ -83,6 +84,20 @@ const getSuggestionItems = ({ query }: { query: string }) => {
       icon: ChatboxEllipsesOutline,
       command: ({ editor, range }: any) => {
         editor.chain().focus().deleteRange(range).toggleBlockquote().run()
+      },
+    },
+    {
+      title: 'Image',
+      icon: ImageOutline,
+      command: ({ editor, range }: any) => {
+        editor.chain().focus().deleteRange(range).run()
+        // Dispatch custom event to open image uploader
+        const event = new CustomEvent('open-image-uploader', { 
+            detail: { 
+                pos: editor.view.coordsAtPos(editor.state.selection.from) 
+            } 
+        })
+        window.dispatchEvent(event)
       },
     },
   ].filter((item) =>

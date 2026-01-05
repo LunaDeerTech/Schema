@@ -3,17 +3,31 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const configService = app.get(ConfigService);
 
   // Enable CORS
   app.enableCors();
 
   // Global prefix for API
   app.setGlobalPrefix('api/v1');
+
+  // Serve uploaded files - PRIORITY OVER FRONTEND ASSETS
+  const uploadDir = configService.get('UPLOAD_DIR') || join(process.cwd(), 'uploads');
+  console.log('----------------------------------------');
+  console.log('Static Assets Configuration:');
+  console.log('Upload Directory:', uploadDir);
+  console.log('Upload Prefix:', '/uploads');
+  console.log('----------------------------------------');
+  
+  app.useStaticAssets(uploadDir, {
+    prefix: '/uploads',
+  });
 
   // Serve static files from frontend build
   const clientDistPath = join(__dirname, '..', '..', '..', 'client', 'dist');

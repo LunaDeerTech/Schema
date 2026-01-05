@@ -4,7 +4,7 @@ import { BubbleMenu } from '@tiptap/vue-3/menus'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import Link from '@tiptap/extension-link'
-import Image from '@tiptap/extension-image'
+import { ImageBlock } from './extensions/image-block'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
@@ -12,8 +12,9 @@ import BubbleMenuExtension from '@tiptap/extension-bubble-menu'
 import SlashCommand from './extensions/slash-command'
 import PageReference from './extensions/page-reference'
 import { common, createLowlight } from 'lowlight'
-import { watch, onBeforeUnmount } from 'vue'
-import { NIcon } from 'naive-ui'
+import { ref, watch, onBeforeUnmount, onMounted, toRaw } from 'vue'
+import { NIcon, useMessage } from 'naive-ui'
+import { uploadApi } from '@/api/upload'
 import {
   CodeSlashOutline as CodeSlash,
   ListOutline as List,
@@ -21,7 +22,10 @@ import {
   ChatboxEllipsesOutline,
 } from '@vicons/ionicons5'
 
+import ImageUploaderPopover from './ImageUploaderPopover.vue'
+
 const lowlight = createLowlight(common)
+const message = useMessage()
 
 interface Props {
   content?: any
@@ -37,8 +41,34 @@ const emit = defineEmits<{
   (e: 'update', content: any): void
 }>()
 
+const showImageUploader = ref(false)
+const uploaderPosition = ref({ top: 0, left: 0 })
+
+const handleOpenImageUploader = (e: Event) => {
+    const customEvent = e as CustomEvent
+    const { top, left, bottom } = customEvent.detail.pos
+    // Position below the cursor
+    uploaderPosition.value = { top: bottom + 10, left: left }
+    showImageUploader.value = true
+}
+
+const handleInsertImage = (url: string) => {
+    if (editor.value) {
+        editor.value.chain().focus().setImage({ src: url }).run()
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('open-image-uploader', handleOpenImageUploader)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('open-image-uploader', handleOpenImageUploader)
+  // editor.value?.destroy() // useEditor handles destruction automatically
+})
+
 const editor = useEditor({
-  content: props.content,
+  content: props.content ? toRaw(props.content) : '',
   editable: props.editable,
   extensions: [
     StarterKit.configure({
@@ -50,7 +80,7 @@ const editor = useEditor({
     Link.configure({
       openOnClick: false,
     }),
-    Image,
+    ImageBlock,
     TaskList,
     TaskItem.configure({
       nested: true,
@@ -65,49 +95,45 @@ const editor = useEditor({
   onUpdate: ({ editor }: { editor: any }) => {
     emit('update', editor.getJSON())
   },
-})
-
-// Watch for external content changes
-watch(
-  () => props.content,
-  (newContent) => {
-    if (editor.value && newContent !== editor.value.getJSON()) {
-      // Only update if content is different to avoid cursor jumps or loops
-      // Note: Comparing JSON objects might need a deep equal check in a real app,
-      // but for now we rely on the parent passing the same object reference or we accept a potential re-render if it changes.
-      // A better approach for collaborative editing or frequent updates is to not watch content prop after init,
-      // or use a more sophisticated comparison.
-      // For this step, we'll assume the parent manages content and might reset it.
-      
-      // However, standard Tiptap practice is often to only set content on mount, 
-      // or have a specific method to set content if it changes externally (like loading a new page).
-      // If we are just typing, we shouldn't update from prop.
-      
-      // Let's check if the editor is focused. If focused, we probably shouldn't update from prop unless it's a different page.
-      // For now, I'll leave this simple: if the parent changes the prop, we update.
-      // But to avoid loops, we might need to be careful.
-      
-      // Actually, for a simple editor component, we might just set content on mount and watch for ID changes if we had one.
-      // Since we don't have a page ID here, we'll just set it if the editor is empty or if we want to force update.
-      // But `useEditor` handles initial content.
-      
-      // Let's just update if the content is drastically different or if we are loading a new page.
-      // For now, I will NOT watch content to avoid cursor jumping issues, assuming the parent uses `v-if` or `key` to re-mount the component when switching pages.
+  editorProps: {
+    handleDrop: (view, event, slice, moved) => {
+      if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
+        const file = event.dataTransfer.files[0]
+        if (file.type.startsWith('image/')) {
+          event.preventDefault() // Prevent default browser behavior (download)
+          const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY })
+          if (coordinates) {
+             uploadApi.uploadImage(file).then(res => {
+                 const url = res.url || (res.data && res.data.url)
+                 if (url) {
+                    const { schema } = view.state
+                    const node = schema.nodes.image.create({ src: url })
+                    const transaction = view.state.tr.insert(coordinates.pos, node)
+                    view.dispatch(transaction)
+                 }
+             }).catch(err => {
+                 console.error(err)
+                 message.error('Image upload failed')
+             })
+             return true
+          }
+        }
+      }
+      return false
     }
   }
-)
-
-// If the parent changes the page, they should probably re-mount this component or we should expose a method to set content.
-// A common pattern is to watch a `pageId` prop, but we don't have that here.
-// Let's assume the parent handles re-mounting by keying the component.
-
-onBeforeUnmount(() => {
-  editor.value?.destroy()
 })
+
 </script>
 
 <template>
   <div class="editor-wrapper">
+    <image-uploader-popover
+        :visible="showImageUploader"
+        :position="uploaderPosition"
+        @close="showImageUploader = false"
+        @insert="handleInsertImage"
+    />
     <bubble-menu
       v-if="editor"
       :editor="editor"
