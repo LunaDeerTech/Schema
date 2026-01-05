@@ -7,7 +7,7 @@ import { LibraryResponseDto } from '../library/dto/library-response.dto';
 export class PublicService {
   constructor(private readonly database: DatabaseService) {}
 
-  async findPageBySlug(slug: string): Promise<PageResponseDto> {
+  async findPageBySlug(slug: string): Promise<PageResponseDto & { author?: any }> {
     console.log(`Finding public page by slug: ${slug}`);
     // Try to find by publicSlug first
     let page = this.database.queryOne(`
@@ -39,6 +39,18 @@ export class PublicService {
       throw new NotFoundException('Page not found or not public');
     }
 
+    // Fetch tags
+    const tags = this.database.query(`
+      SELECT t.* FROM Tag t
+      INNER JOIN PageTag pt ON pt.tagId = t.id
+      WHERE pt.pageId = ?
+    `, [page.id]);
+
+    // Fetch author
+    const author = this.database.queryOne(`
+      SELECT id, displayName, email, avatar FROM User WHERE id = ?
+    `, [page.userId]);
+
     return {
       id: page.id,
       title: page.title,
@@ -56,7 +68,9 @@ export class PublicService {
       userId: page.userId,
       libraryId: page.libraryId,
       parentId: page.parentId,
-      children: []
+      children: [],
+      tags: tags || [],
+      author: author || { displayName: 'Unknown' }
     };
   }
 

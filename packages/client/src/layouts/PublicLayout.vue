@@ -6,14 +6,18 @@ import { usePublicStore } from '@/stores/public'
 import { storeToRefs } from 'pinia'
 
 const publicStore = usePublicStore()
-const { tree, currentPageId } = storeToRefs(publicStore)
+const { tree, currentPageId, currentLibrary } = storeToRefs(publicStore)
 </script>
 
 <template>
   <NLayout style="height: 100vh">
     <PublicTopNavigation />
     <NLayout has-sider style="height: calc(100vh - 64px)">
-      <PublicSidebar :tree="tree" :current-id="currentPageId" />
+      <PublicSidebar 
+        :tree="tree" 
+        :current-id="currentPageId" 
+        :library="currentLibrary"
+      />
       <NLayoutContent content-style="padding: 24px;">
         <router-view />
       </NLayoutContent>

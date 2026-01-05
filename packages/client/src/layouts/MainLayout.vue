@@ -53,7 +53,7 @@ const isHome = computed(() => route.name === 'Home')
 
 .main-content {
   padding: 20px;
-  background-color: #fff;
+  background-color: #fafafa;
   
   &.is-home {
     padding: 0;
