@@ -177,10 +177,6 @@ watch(() => route.params.slug, fetchPage, { immediate: true })
 
 .content-area {
   min-height: 400px;
-  background: #fff;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .loading-state, .error-state {

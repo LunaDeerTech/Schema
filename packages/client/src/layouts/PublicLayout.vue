@@ -18,7 +18,7 @@ const { tree, currentPageId, currentLibrary } = storeToRefs(publicStore)
         :current-id="currentPageId" 
         :library="currentLibrary"
       />
-      <NLayoutContent content-style="padding: 24px;">
+      <NLayoutContent content-style="padding: 24px; background-color: #fff;">
         <router-view />
       </NLayoutContent>
     </NLayout>
