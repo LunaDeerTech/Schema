@@ -49,6 +49,7 @@ export class LibraryController {
     @Param('id') id: string,
     @Body() updateLibraryDto: UpdateLibraryDto
   ): Promise<LibraryResponseDto> {
+    console.log('LibraryController.update received:', { id, userId: user.id, body: updateLibraryDto });
     return this.libraryService.update(user.id, id, updateLibraryDto);
   }
 

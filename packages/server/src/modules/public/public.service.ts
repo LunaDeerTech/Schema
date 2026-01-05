@@ -1,0 +1,162 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { DatabaseService } from '@/database/database.service';
+import { PageResponseDto } from '../page/dto/page-response.dto';
+import { LibraryResponseDto } from '../library/dto/library-response.dto';
+
+@Injectable()
+export class PublicService {
+  constructor(private readonly database: DatabaseService) {}
+
+  async findPageBySlug(slug: string): Promise<PageResponseDto> {
+    console.log(`Finding public page by slug: ${slug}`);
+    // Try to find by publicSlug first
+    let page = this.database.queryOne(`
+      SELECT p.*, 
+             l.title as libraryTitle,
+             parent.title as parentTitle
+      FROM Page p
+      LEFT JOIN Page l ON p.libraryId = l.id
+      LEFT JOIN Page parent ON p.parentId = parent.id
+      WHERE p.publicSlug = ? AND p.isPublic = 1 AND p.type = 'page'
+    `, [slug]);
+
+    // If not found, try by ID (if slug looks like UUID or just fallback)
+    if (!page) {
+       console.log(`Page not found by slug, trying ID: ${slug}`);
+       page = this.database.queryOne(`
+        SELECT p.*, 
+               l.title as libraryTitle,
+               parent.title as parentTitle
+        FROM Page p
+        LEFT JOIN Page l ON p.libraryId = l.id
+        LEFT JOIN Page parent ON p.parentId = parent.id
+        WHERE p.id = ? AND p.isPublic = 1 AND p.type = 'page'
+      `, [slug]);
+    }
+
+    if (!page) {
+      console.log(`Page not found or not public: ${slug}`);
+      throw new NotFoundException('Page not found or not public');
+    }
+
+    return {
+      id: page.id,
+      title: page.title,
+      content: page.content ? JSON.parse(page.content) : { type: 'doc', content: [] },
+      description: page.description,
+      icon: page.icon,
+      coverImage: page.coverImage,
+      isPublic: true,
+      publicSlug: page.publicSlug,
+      sortOrder: page.sortOrder,
+      metadata: page.metadata ? JSON.parse(page.metadata) : {},
+      createdAt: page.createdAt,
+      updatedAt: page.updatedAt,
+      lastViewedAt: page.lastViewedAt,
+      userId: page.userId,
+      libraryId: page.libraryId,
+      parentId: page.parentId,
+      children: []
+    };
+  }
+
+  async findLibraryBySlug(slug: string): Promise<LibraryResponseDto> {
+    console.log(`Finding public library by slug: ${slug}`);
+    
+    // Debug query to see if it exists at all
+    const debugLib = this.database.queryOne(
+        "SELECT id, title, isPublic, publicSlug, type FROM Page WHERE publicSlug = ? OR id = ?", 
+        [slug, slug]
+    );
+    console.log('Debug library lookup:', debugLib);
+
+    let library = this.database.queryOne(`
+      SELECT 
+        l.*,
+        (SELECT COUNT(*) FROM Page p WHERE p.libraryId = l.id AND p.type = 'page' AND p.isPublic = 1) as pageCount
+      FROM Page l
+      WHERE l.publicSlug = ? AND l.isPublic = 1 AND l.type = 'library'
+    `, [slug]);
+
+    if (!library) {
+       console.log(`Not found by slug, trying ID: ${slug}`);
+       library = this.database.queryOne(`
+        SELECT 
+          l.*,
+          (SELECT COUNT(*) FROM Page p WHERE p.libraryId = l.id AND p.type = 'page' AND p.isPublic = 1) as pageCount
+        FROM Page l
+        WHERE l.id = ? AND l.isPublic = 1 AND l.type = 'library'
+      `, [slug]);
+    }
+
+    if (!library) {
+      console.log(`Library not found or not public: ${slug}`);
+      throw new NotFoundException('Library not found or not public');
+    }
+
+    const tags = this.database.query(`
+      SELECT t.* FROM Tag t
+      INNER JOIN PageTag pt ON pt.tagId = t.id
+      WHERE pt.pageId = ?
+    `, [library.id]);
+
+    return {
+      ...library,
+      isPublic: true,
+      content: library.content ? JSON.parse(library.content) : { type: 'doc', content: [] },
+      pageCount: library.pageCount,
+      tags: tags
+    } as LibraryResponseDto;
+  }
+
+  async getPublicTree(libraryId: string): Promise<PageResponseDto[]> {
+    const pages = this.database.query(`
+      SELECT * FROM Page 
+      WHERE libraryId = ? AND type = 'page' AND isPublic = 1
+      ORDER BY sortOrder ASC
+    `, [libraryId]);
+
+    const publicIds = new Set(pages.map(p => p.id));
+    
+    // Effective roots are pages with no parent OR parent is not in the public set
+    const effectiveRoots = pages.filter(p => {
+        if (!p.parentId) return true;
+        return !publicIds.has(p.parentId);
+    });
+    
+    const buildTreeFromNode = (node: any): PageResponseDto => {
+        return {
+          id: node.id,
+          title: node.title,
+          content: null,
+          icon: node.icon,
+          coverImage: node.coverImage,
+          isPublic: true,
+          publicSlug: node.publicSlug,
+          sortOrder: node.sortOrder,
+          metadata: node.metadata ? JSON.parse(node.metadata) : {},
+          createdAt: node.createdAt,
+          updatedAt: node.updatedAt,
+          lastViewedAt: node.lastViewedAt,
+          userId: node.userId,
+          libraryId: node.libraryId,
+          parentId: node.parentId,
+          children: pages
+            .filter(p => p.parentId === node.id)
+            .map(child => buildTreeFromNode(child))
+        };
+    };
+
+    return effectiveRoots.map(root => buildTreeFromNode(root));
+  }
+
+  async searchPublic(query: string): Promise<PageResponseDto[]> {
+    return this.database.query(`
+      SELECT * FROM Page 
+      WHERE (title LIKE ? OR content LIKE ?) 
+      AND isPublic = 1 
+      AND type = 'page'
+      LIMIT 20
+    `, [`%${query}%`, `%${query}%`]) as PageResponseDto[];
+  }
+}

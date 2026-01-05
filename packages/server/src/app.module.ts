@@ -8,6 +8,7 @@ import { LibraryModule } from './modules/library/library.module';
 import { PageModule } from './modules/page/page.module';
 import { TagModule } from './modules/tag/tag.module';
 import { SearchModule } from './modules/search/search.module';
+import { PublicModule } from './modules/public/public.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { SearchModule } from './modules/search/search.module';
     PageModule,
     TagModule,
     SearchModule,
+    PublicModule,
   ],
   controllers: [],
   providers: [],

@@ -17,6 +17,7 @@ import {
 } from '@vicons/ionicons5'
 import TiptapEditor from '@/components/editor/TiptapEditor.vue'
 import IconPicker from '@/components/common/IconPicker.vue'
+import PublicAccessDrawer from '@/components/common/PublicAccessDrawer.vue'
 
 const route = useRoute()
 const pageStore = usePageStore()
@@ -239,6 +240,21 @@ const handleContentUpdate = useDebounceFn(async (content: any) => {
   }
 }, 1000)
 
+const handlePageUpdate = (updatedData: any) => {
+  if (pageStore.currentPage) {
+    // Update local state
+    pageStore.currentPage = { ...pageStore.currentPage, ...updatedData }
+    
+    // If it's a library, update library store too
+    if (pageStore.currentPage.type === 'library') {
+      const lib = libraryStore.libraries.find(l => l.id === pageStore.currentPage?.id)
+      if (lib) {
+        Object.assign(lib, updatedData)
+      }
+    }
+  }
+}
+
 </script>
 
 <template>
@@ -359,11 +375,12 @@ const handleContentUpdate = useDebounceFn(async (content: any) => {
       </n-drawer-content>
     </n-drawer>
     
-    <n-drawer v-model:show="showPublic" width="300">
-      <n-drawer-content title="Public Access">
-        <p>Public access settings placeholder</p>
-      </n-drawer-content>
-    </n-drawer>
+    <PublicAccessDrawer 
+      v-model:show="showPublic" 
+      :type="pageStore.currentPage?.type === 'library' ? 'library' : 'page'"
+      :data="pageStore.currentPage"
+      @update="handlePageUpdate"
+    />
   </div>
   <div v-else-if="loading" class="loading-state">
     <n-spin size="large" />

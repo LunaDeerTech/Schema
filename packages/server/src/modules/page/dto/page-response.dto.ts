@@ -1,5 +1,6 @@
 export class PageResponseDto {
   id: string;
+  type?: string;
   title: string;
   content: string;
   description?: string;

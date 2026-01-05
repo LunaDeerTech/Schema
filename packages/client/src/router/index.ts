@@ -47,6 +47,22 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/public',
+    component: () => import('@/layouts/PublicLayout.vue'),
+    children: [
+      {
+        path: 'pages/:slug',
+        name: 'PublicPage',
+        component: () => import('@/views/public/PublicPage.vue')
+      },
+      {
+        path: 'libraries/:slug',
+        name: 'PublicLibrary',
+        component: () => import('@/views/public/PublicPage.vue')
+      }
+    ]
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/NotFound.vue')

@@ -217,6 +217,7 @@ export class PageService {
 
     return {
       id: page.id,
+      type: page.type,
       title: page.title,
       content: page.content ? JSON.parse(page.content) : { type: 'doc', content: [] },
       description: page.description,
@@ -412,6 +413,13 @@ export class PageService {
     if (updatePageDto.isPublic !== undefined) {
       updates.push('isPublic = ?');
       params.push(updatePageDto.isPublic ? 1 : 0);
+      
+      if (updatePageDto.isPublic && !page.publicSlug) {
+        // Generate simple random slug if not present
+        const slug = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
+        updates.push('publicSlug = ?');
+        params.push(slug);
+      }
     }
 
     if (updates.length === 0) {
@@ -427,6 +435,34 @@ export class PageService {
       `UPDATE Page SET ${updates.join(', ')} WHERE id = ? AND userId = ?`,
       params
     );
+
+    // Cascade update isPublic to all descendants if it was changed
+    if (updatePageDto.isPublic !== undefined) {
+      const isPublicVal = updatePageDto.isPublic ? 1 : 0;
+      
+      // Get all descendants
+      const descendants = this.database.query(`
+        WITH RECURSIVE descendants(id) AS (
+          SELECT id FROM Page WHERE parentId = ?
+          UNION ALL
+          SELECT p.id FROM Page p JOIN descendants d ON p.parentId = d.id
+        )
+        SELECT id, publicSlug FROM Page WHERE id IN (SELECT id FROM descendants)
+      `, [id]);
+
+      for (const descendant of descendants) {
+        let slug = descendant.publicSlug;
+        // If enabling public access and no slug exists, generate one
+        if (isPublicVal && !slug) {
+             slug = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
+        }
+        
+        this.database.run(
+            'UPDATE Page SET isPublic = ?, publicSlug = ? WHERE id = ?',
+            [isPublicVal, slug, descendant.id]
+        );
+      }
+    }
 
     return this.findOne(userId, id);
   }

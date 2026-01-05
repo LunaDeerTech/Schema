@@ -2,6 +2,7 @@ import { TagResponseDto } from '../../tag/dto/tag-response.dto';
 
 export class LibraryResponseDto {
   id: string;
+  type?: string;
   title: string;
   content: any;
   description?: string;
