@@ -142,12 +142,6 @@ const searchResults = [
           <n-icon :component="HelpIcon" />
         </template>
       </n-button>
-      
-      <n-button quaternary circle class="icon-btn">
-        <template #icon>
-          <n-icon :component="SettingsIcon" />
-        </template>
-      </n-button>
 
       <n-dropdown :options="userOptions" @select="handleUserSelect">
         <div class="user-profile">
