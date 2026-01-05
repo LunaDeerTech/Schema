@@ -427,16 +427,16 @@ watch(() => pageStore.currentPage, async (page) => {
           
           <div 
             v-if="libraryStore.currentLibrary" 
-            class="current-library-name"
+            class="library-card"
+            :class="{ active: route.name === 'Library' }"
             @click="navigateToCurrentLibrary"
           >
-            <div style="display: flex; align-items: center; cursor: pointer; padding: 4px 0;">
-              <span v-if="libraryStore.currentLibrary.icon" style="font-size: 18px; margin-right: 8px; line-height: 1;">
-                {{ libraryStore.currentLibrary.icon }}
-              </span>
-              <n-text strong style="font-size: 16px;">
-                {{ libraryStore.currentLibrary.title }}
-              </n-text>
+            <div class="library-icon-wrapper">
+              <span v-if="libraryStore.currentLibrary.icon" class="emoji-icon">{{ libraryStore.currentLibrary.icon }}</span>
+              <n-icon v-else size="20"><LibraryIcon /></n-icon>
+            </div>
+            <div class="library-details">
+              <span class="library-title">{{ libraryStore.currentLibrary.title }}</span>
             </div>
           </div>
           <div v-else>
@@ -581,11 +581,11 @@ watch(() => pageStore.currentPage, async (page) => {
 
 <style scoped lang="scss">
 .sidebar {
-  background-color: #f8f9fa;
+  background-color: #fcfcfc;
 }
 
 .sidebar-content {
-  padding: 16px;
+  padding: 16px 12px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -595,10 +595,68 @@ watch(() => pageStore.currentPage, async (page) => {
   margin-bottom: 24px;
 }
 
-.section-label {
-  font-size: 12px;
+.library-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+
+  &.active {
+    background-color: rgba(24, 160, 88, 0.1);
+    
+    .library-title {
+      color: var(--n-primary-color);
+    }
+    
+    .library-icon-wrapper {
+      color: var(--n-primary-color);
+    }
+  }
+}
+
+.library-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--n-text-color-2);
+  
+  .emoji-icon {
+    font-size: 20px;
+    line-height: 1;
+  }
+}
+
+.library-details {
+  flex: 1;
+  overflow: hidden;
+}
+
+.library-title {
   font-weight: 600;
-  letter-spacing: 0.5px;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  color: var(--n-text-color);
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--n-text-color-3);
+  padding-left: 8px;
+  letter-spacing: 0.05em;
 }
 
 .tree-header {
@@ -606,6 +664,7 @@ watch(() => pageStore.currentPage, async (page) => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
+  padding-left: 8px;
 }
 
 .collapsed-icon {

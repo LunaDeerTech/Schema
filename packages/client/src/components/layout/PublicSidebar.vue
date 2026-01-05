@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { h, computed } from 'vue'
-import { NLayoutSider, NTree, NText } from 'naive-ui'
+import { NLayoutSider, NTree, NText, NIcon } from 'naive-ui'
 import { useRouter } from 'vue-router'
+import { BookOutline } from '@vicons/ionicons5'
 import type { Page as RawPage, Library } from '@/types'
 import type { TreeOption } from 'naive-ui'
 
@@ -63,13 +64,13 @@ function goToLibrary() {
 }
 
 const renderLabel = ({ option }: { option: TreeOption }) => {
-  return h(NText, { depth: 1 }, { default: () => option.title as string })
+  return h(NText, { depth: 1, style: 'font-size: 14px;' }, { default: () => option.title as string })
 }
 
 const renderPrefix = ({ option }: { option: TreeOption }) => {
   const page = option as unknown as Page
   if (page.icon) {
-    return h('span', { style: 'margin-right: 4px; font-size: 18px; line-height: 1;' }, page.icon)
+    return h('span', { class: 'page-icon' }, page.icon)
   }
   return ''
 }
@@ -78,69 +79,161 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
 <template>
   <NLayoutSider
     bordered
-    width="260"
+    width="280"
     :native-scrollbar="false"
+    class="public-sidebar"
   >
-    <div v-if="library" class="library-header" @click="goToLibrary" :class="{ active: currentId === library.id }">
-      <div class="icon-wrapper">
-        <span v-if="library.icon" class="library-icon">{{ library.icon }}</span>
+    <div class="sidebar-inner">
+      <div v-if="library" class="library-info">
+        <div 
+          class="library-card" 
+          :class="{ active: currentId === library.id }"
+          @click="goToLibrary"
+        >
+          <div class="library-icon-wrapper">
+            <span v-if="library.icon" class="emoji-icon">{{ library.icon }}</span>
+            <NIcon v-else size="24">
+              <BookOutline />
+            </NIcon>
+          </div>
+          <div class="library-details">
+            <span class="library-name">{{ library.title }}</span>
+          </div>
+        </div>
       </div>
-      <span class="library-title">{{ library.title }}</span>
+      
+      <div class="tree-container">
+        <div class="tree-label">PAGES</div>
+        <NTree
+          block-line
+          :data="processedTree"
+          key-field="id"
+          label-field="title"
+          children-field="children"
+          :selected-keys="currentId ? [currentId] : []"
+          @update:selected-keys="handleSelect"
+          :render-label="renderLabel"
+          :render-prefix="renderPrefix"
+          default-expand-all
+          class="custom-tree"
+        />
+      </div>
     </div>
-    
-    <NTree
-      block-line
-      :data="processedTree"
-      key-field="id"
-      label-field="title"
-      children-field="children"
-      :selected-keys="currentId ? [currentId] : []"
-      @update:selected-keys="handleSelect"
-      :render-label="renderLabel"
-      :render-prefix="renderPrefix"
-      default-expand-all
-    />
   </NLayoutSider>
 </template>
 
-<style scoped>
-.library-header {
+<style scoped lang="scss">
+.public-sidebar {
+  background-color: #fcfcfc;
+}
+
+.sidebar-inner {
+  padding: 16px 12px;
+}
+
+.library-info {
+  margin-bottom: 24px;
+}
+
+.library-card {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
   cursor: pointer;
-  border-bottom: 1px solid var(--n-border-color);
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  background-color: white;
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+
+  &:hover {
+    background-color: white;
+    border-color: var(--n-primary-color);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transform: translateY(-1px);
+  }
+
+  &.active {
+    border-color: var(--n-primary-color);
+    background-color: rgba(24, 160, 88, 0.05);
+  }
 }
 
-.library-header:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-.library-header.active {
-  background-color: rgba(24, 160, 88, 0.1);
-  color: var(--n-primary-color);
-}
-
-.icon-wrapper {
+.library-icon-wrapper {
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 8px;
-  width: 24px;
-  height: 24px;
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  color: #4b5563;
+  
+  .emoji-icon {
+    font-size: 24px;
+    line-height: 1;
+  }
 }
 
-.library-icon {
-  font-size: 20px;
-  line-height: 1;
-}
-
-.library-title {
-  font-weight: 600;
-  font-size: 16px;
-  white-space: nowrap;
+.library-details {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-  text-overflow: ellipsis;
+  
+  .library-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--n-text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .library-meta {
+    font-size: 12px;
+    color: var(--n-text-color-3);
+  }
+}
+
+.tree-container {
+  .tree-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--n-text-color-3);
+    margin-bottom: 8px;
+    padding-left: 8px;
+    letter-spacing: 0.05em;
+  }
+}
+
+:deep(.n-tree) {
+  .n-tree-node {
+    border-radius: 6px;
+    margin-bottom: 2px;
+    padding: 4px 0;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+    
+    &.n-tree-node--selected {
+      background-color: rgba(24, 160, 88, 0.1);
+      
+      .n-tree-node-content__text {
+        color: var(--n-primary-color);
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+.page-icon {
+  font-size: 16px;
+  margin-right: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 </style>
