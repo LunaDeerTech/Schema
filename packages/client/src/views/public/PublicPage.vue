@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { NSpin, NResult, NIcon, NTag } from 'naive-ui'
-import { DocumentOutline } from '@vicons/ionicons5'
+import { NSpin, NResult, NTag } from 'naive-ui'
 import { api } from '@/api/http'
 import { usePublicStore } from '@/stores/public'
 import TiptapEditor from '@/components/editor/TiptapEditor.vue'
