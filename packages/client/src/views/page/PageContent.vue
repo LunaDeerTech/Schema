@@ -246,7 +246,7 @@ const handlePageUpdate = (updatedData: any) => {
     pageStore.currentPage = { ...pageStore.currentPage, ...updatedData }
     
     // If it's a library, update library store too
-    if (pageStore.currentPage.type === 'library') {
+    if (pageStore.currentPage && pageStore.currentPage.type === 'library') {
       const lib = libraryStore.libraries.find(l => l.id === pageStore.currentPage?.id)
       if (lib) {
         Object.assign(lib, updatedData)
