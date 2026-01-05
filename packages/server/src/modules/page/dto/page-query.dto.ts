@@ -21,4 +21,12 @@ export class PageQueryDto {
   @IsNumber()
   @Min(1)
   pageSize?: number = 20;
+
+  @IsOptional()
+  @IsString()
+  sortBy?: 'updatedAt' | 'createdAt' | 'title' | 'sortOrder' | 'lastViewedAt';
+
+  @IsOptional()
+  @IsString()
+  sortDirection?: 'ASC' | 'DESC';
 }

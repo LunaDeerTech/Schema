@@ -14,7 +14,7 @@ import { PublicModule } from './modules/public/public.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true, // 使配置在所有模块中可用
-      envFilePath: '../../.env', // .env 文件路径（相对于 src 目录）
+      envFilePath: ['.env', '../../.env', '../../../.env'], // 尝试多个路径
     }),
     DatabaseModule,
     HealthModule,

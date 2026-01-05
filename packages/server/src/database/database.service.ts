@@ -10,6 +10,7 @@ export class DatabaseService implements OnModuleDestroy {
 
   constructor() {
     // 从环境变量读取数据库路径，提供默认值
+    console.log('DB_PATH env:', process.env.DB_PATH);
     this.dbPath = process.env.DB_PATH || path.join(process.cwd(), 'dev.db');
     const dbDir = path.dirname(this.dbPath);
 

@@ -15,6 +15,7 @@ export class PageResponseDto {
   lastViewedAt?: string;
   userId: string;
   libraryId: string;
+  libraryTitle?: string;
   parentId?: string;
   // Additional fields for tree structure
   parent?: PageResponseDto | null;

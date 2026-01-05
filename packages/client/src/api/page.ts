@@ -25,6 +25,8 @@ export interface PageQueryParams {
   parentId?: string
   page?: number
   pageSize?: number
+  sortBy?: 'updatedAt' | 'createdAt' | 'title' | 'sortOrder' | 'lastViewedAt'
+  sortDirection?: 'ASC' | 'DESC'
 }
 
 export interface MovePageRequest {

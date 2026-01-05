@@ -36,6 +36,7 @@ export interface Page {
   sortOrder: number
   parentId?: string
   libraryId?: string
+  libraryTitle?: string
   createdAt: string
   updatedAt: string
   lastViewedAt?: string

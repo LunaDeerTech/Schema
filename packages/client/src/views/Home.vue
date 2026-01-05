@@ -39,6 +39,7 @@ import {
 } from '@vicons/ionicons5'
 import { useUserStore } from '@/stores/user'
 import { useLibraryStore } from '@/stores/library'
+import { pageApi } from '@/api/page'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -121,11 +122,40 @@ const currentDate = computed(() => {
 })
 
 // Mock Data for Widgets
-const recentPages = ref([
-  { id: '1', title: 'React Hooks Best Practice', time: '10 min ago', library: 'Tech Learning' },
-  { id: '2', title: 'Project Alpha Review', time: '2 hours ago', library: 'Work Library' },
-  { id: '3', title: 'Weekly Summary W51', time: 'Yesterday', library: 'Personal Notes' }
-])
+const recentPages = ref<any[]>([])
+
+const formatTimeAgo = (dateString: string) => {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+  
+  if (diffInSeconds < 60) return 'Just now'
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min ago`
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`
+  return date.toLocaleDateString()
+}
+
+const fetchRecentPages = async () => {
+  try {
+    const res = await pageApi.getPages({
+      page: 1,
+      pageSize: 5,
+      sortBy: 'updatedAt',
+      sortDirection: 'DESC'
+    })
+    if (res.data && res.data.items) {
+      recentPages.value = res.data.items.map(page => ({
+        id: page.id,
+        title: page.title,
+        time: formatTimeAgo(page.updatedAt),
+        library: page.libraryTitle || 'Unknown Library'
+      }))
+    }
+  } catch (error) {
+    console.error('Failed to fetch recent pages', error)
+  }
+}
 
 const pendingTasks = ref([
   { id: '1', content: 'Review React docs', page: 'React Hooks Best Practice', done: false },
@@ -253,7 +283,10 @@ onMounted(async () => {
   updateGreeting()
   handleResize()
   window.addEventListener('resize', handleResize)
-  await libraryStore.fetchLibraries()
+  await Promise.all([
+    libraryStore.fetchLibraries(),
+    fetchRecentPages()
+  ])
 })
 
 onUnmounted(() => {

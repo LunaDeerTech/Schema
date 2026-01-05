@@ -93,7 +93,7 @@ export class PageService {
    * Find all pages with optional filtering and pagination
    */
   async findAll(userId: string, query: PageQueryDto): Promise<{ items: PageResponseDto[]; total: number; page: number; pageSize: number; hasMore: boolean }> {
-    const { libraryId, parentId, page = 1, pageSize = 20 } = query;
+    const { libraryId, parentId, page = 1, pageSize = 20, sortBy = 'sortOrder', sortDirection = 'ASC' } = query;
     const offset = (page - 1) * pageSize;
 
     // Build conditions
@@ -125,6 +125,11 @@ export class PageService {
     );
     const total = totalResult.count;
 
+    // Validate sortBy
+    const allowedSortFields = ['updatedAt', 'createdAt', 'title', 'sortOrder', 'lastViewedAt'];
+    const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'sortOrder';
+    const safeSortDirection = sortDirection === 'DESC' ? 'DESC' : 'ASC';
+
     // Get paginated items
     const items = this.database.query(`
       SELECT p.*, 
@@ -134,7 +139,7 @@ export class PageService {
       LEFT JOIN Page l ON p.libraryId = l.id
       LEFT JOIN Page parent ON p.parentId = parent.id
       WHERE ${whereClause}
-      ORDER BY p.sortOrder ASC
+      ORDER BY p.${safeSortBy} ${safeSortDirection}
       LIMIT ? OFFSET ?
     `, [...params, pageSize, offset]);
 
@@ -154,6 +159,7 @@ export class PageService {
       lastViewedAt: item.lastViewedAt,
       userId: item.userId,
       libraryId: item.libraryId,
+      libraryTitle: item.libraryTitle,
       parentId: item.parentId,
       parent: item.parentId ? { 
         id: item.parentId, 
