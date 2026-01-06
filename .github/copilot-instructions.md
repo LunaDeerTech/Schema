@@ -4,94 +4,117 @@
 
 Schema is a **personal knowledge management system** (single-user, no collaboration) built with TypeScript full-stack. Think Confluence for individuals—structured knowledge management without team complexity.
 
-**Current Status**: Planning/documentation phase. Follow `docs/StepsMilestone*.md` sequentially (1→6) when implementing.
-
 ## Architecture
 
 **Monorepo Structure** (pnpm workspaces):
 ```
 packages/
-├── client/    # Vue 3 + Vite frontend
-├── server/    # NestJS backend  
-└── shared/    # Shared types, constants, utilities
+├── client/    # Vue 3 + Vite + Naive UI frontend
+├── server/    # NestJS backend with SQLite (better-sqlite3)
+└── shared/    # Shared types (@schema/shared) - import from here for shared types
 ```
 
-**Deployment**: Single Docker container. NestJS serves Vue build as static files on port 3000. All APIs prefixed `/api/v1/`.
+**Key Design Decision**: Library is a special Page type (`type: 'library'`), not a separate table. Pages reference their library via `libraryId`.
 
-**Data Flow**: Vue → Pinia stores → `services/api/` → NestJS controllers → Services → SQLite
+**Data Flow**: Vue components → Pinia stores (`stores/*.ts`) → API layer (`api/*.ts`) → NestJS controllers → Services → `DatabaseService` → SQLite
 
 ## Development Commands
 
 ```bash
-pnpm install                              # Install all dependencies
-pnpm dev                                  # Start client (5173) + server (3000)
+pnpm install                 # Install all dependencies
+pnpm dev                     # Start client (5173) + server (3000) concurrently
+pnpm dev:server              # Server only
+pnpm dev:client              # Client only
+pnpm build && pnpm start     # Production: server serves built Vue app on :3000
 ```
 
-## Coding Conventions
+## Frontend Patterns (Vue 3 + Composition API)
 
-### Frontend (Vue 3)
+### Component Structure
 ```vue
 <script setup lang="ts">
-// Order: imports → props → emits → state/computed → methods → lifecycle
+// Order: imports → props/emits → state (ref/reactive) → computed → methods → lifecycle
+import { pageApi } from '@/api/page'  // NEVER call APIs directly in components
+import { usePageStore } from '@/stores/page'
 </script>
 ```
-- Files: `PascalCase.vue`, composables: `useCamelCase.ts`
-- **Never call APIs directly in components**—use `services/api/*.ts`
 
-## Frontend Styling
-- Use iOS-like clean design with Naive UI
+### API Layer (`src/api/*.ts`)
+- All HTTP calls go through `api/http.ts` (axios with JWT injection)
+- Components use Pinia stores which call API functions
+- Example: `pageApi.getPages()` → store action → component
+
+### Styling
+- Naive UI components with iOS-like clean design
 - SCSS variables in `src/assets/styles/variables.scss`
-- Avoid inline styles; prefer class bindings
-- Global styles in `src/assets/styles/global.scss`
+- Prefer class bindings over inline styles
 
-### Backend (NestJS)
-- Module structure: `*.module.ts`, `*.controller.ts`, `*.service.ts`, `dto/`, `entities/`
-- All routes require `JwtAuthGuard` except `/api/v1/public/*`
-- Get user ID via `@CurrentUser('id')` decorator
-- DTOs use `class-validator`; services own business logic
-- If need to add new tables or fields, add in `packages/server/src/database/migrator.ts`'s migrations
+## Backend Patterns (NestJS)
 
-### API Response Format
+### Module Structure
+```
+modules/page/
+├── page.module.ts
+├── page.controller.ts      # Routes, uses @CurrentUser('id') for userId
+├── page.service.ts         # Business logic, injects DatabaseService
+└── dto/                    # class-validator DTOs
+```
+
+### Database Access
+- Use `DatabaseService` methods: `run()`, `queryOne()`, `queryAll()`, `transaction()`
+- Generate IDs: `this.database.queryOne('SELECT hex(randomblob(16)) as id').id`
+- **Schema changes**: Add migrations in `packages/server/src/database/migrator.ts`
+
+### Auth Pattern
+```typescript
+@UseGuards(JwtAuthGuard)  // Required on all controllers except PublicController
+@Get()
+findAll(@CurrentUser('id') userId: string) {  // Get authenticated user ID
+  return this.service.findAll(userId);  // ALWAYS filter by userId
+}
+```
+
+### API Response Format (handled by `ResponseInterceptor`)
 ```typescript
 // Success: { code: 0, data: T }
 // Paginated: { code: 0, data: { items, total, page, pageSize, hasMore } }
-// Error: { code: number, message: string }
-// Codes: 1001=validation, 1002=not found, 2001=unauthorized, 5001=server error
+// Error codes: 1001=validation, 1002=not found, 2001=unauthorized, 5001=server
 ```
 
-## Critical Patterns
+## Critical Domain Rules
 
-1. **Single-user**: No multi-tenancy. All queries MUST filter by `userId`.
+1. **Single-user model**: All queries MUST filter by `userId` - no multi-tenancy
 2. **Content format**: Always Tiptap JSON: `{ type: 'doc', content: [...] }`
-3. **Public access**: Use `isPublic` flag + `publicSlug` for sharing.
-4. **Hierarchical pages**: `parentId` creates tree structure within libraries.
+3. **Page hierarchy**: `parentId` creates tree within a library; use `libraryId` to scope
+4. **Public access**: Set `isPublic=1` + generate `publicSlug` for sharing
 
-## Core Data Models
+## Core Data Model (Page table serves both Library and Page)
 
-Key entities (see `docs/Guidelines.md` §3.2 for full schema):
-- **Library**: Knowledge base container with optional `publicSlug` for sharing
-- **Page**: Hierarchical content (`parentId`), JSON content (Tiptap/ProseMirror format)
-- **PageReference**: Bidirectional links (`sourceId` ↔ `targetId`)
-- **PageVersion**: Auto-versioning on edits
+```typescript
+interface Page {
+  type: 'library' | 'page';  // Library is a special page type
+  libraryId?: string;        // null for libraries, required for pages
+  parentId?: string;         // For nested page hierarchy
+  content: TiptapJSON;       // { type: 'doc', content: [...] }
+  isPublic: boolean;
+  publicSlug?: string;       // For public sharing URLs
+}
+```
+
+## Editor Integration (Tiptap)
+
+Custom extensions in `client/src/components/editor/extensions/`:
+- `slash-command.ts` - "/" command palette
+- `page-reference.ts` - `@` mentions for page linking
+- `image-block.ts` - Image uploads via `uploadApi`
 
 ## Testing & Verification
 
-- Run the server and client daemonly and export logs so the api requests won't interrupt app flow.
-- Write js unit tests into `__tests__` folders alongside code for unit tests.
-
-## Implementation Guide
-
-Follow milestones in order:
-1. **Milestone 1**: Monorepo setup, SQLite, JWT auth
-2. **Milestone 2**: Library & Page CRUD, tree structure
-3. **Milestone 3**: Tiptap editor, slash commands, page references
-4. **Milestone 4**: Versions, full-text search, templates
-5. **Milestone 5**: Public access, Markdown/PDF export
-6. **Milestone 6**: Responsive UI, shortcuts, Docker production
+- Run dev servers in background with logs: `pnpm dev > dev.log 2>&1 &`
+- Unit tests in `__tests__` folders alongside source files
 
 ## Reference Docs
 
-- [Guidelines.md](../docs/Guidelines.md) - Full technical spec, API design, DB schema
-- [InterfaceDesign.md](../docs/InterfaceDesign.md) - UI layouts, components, interactions
-- [ProductDescription.md](../docs/ProductDescription.md) - Product scope and requirements
-- `docs/StepsMilestone*.md` - Step-by-step implementation guides
+- [Guidelines.md](../docs/Guidelines.md) - Full API design, DB schema
+- [InterfaceDesign.md](../docs/InterfaceDesign.md) - UI layouts, components
+- `docs/StepsMilestone*.md` - Implementation guides (follow 1→6 sequentially)
