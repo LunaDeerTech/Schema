@@ -50,9 +50,14 @@ const openHelp = () => {
 // User Menu Options
 const userOptions = [
   {
-    label: 'Profile',
+    label: 'Profile Settings',
     key: 'profile',
     icon: () => h(NIcon, null, { default: () => h(PersonIcon) })
+  },
+  {
+    label: 'Your Contents',
+    key: 'content',
+    icon: () => h(NIcon, null, { default: () => h(MenuIcon) })
   },
   {
     label: 'Settings',
@@ -75,7 +80,11 @@ const handleUserSelect = (key: string) => {
     userStore.logout()
     router.push('/login')
   } else if (key === 'settings') {
-    // Open settings
+    router.push('/settings/site-info')
+  } else if (key === 'profile') {
+    router.push('/settings/profile')
+  } else if (key === 'content') {
+    router.push('/settings/libraries')
   }
 }
 

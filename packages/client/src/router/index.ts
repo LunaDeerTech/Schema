@@ -47,6 +47,77 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/settings',
+    component: () => import('@/views/settings/SettingsLayout.vue'),
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        redirect: 'profile'
+      },
+      {
+        path: 'profile',
+        name: 'SettingsProfile',
+        component: () => import('@/views/settings/SettingsPlaceholder.vue'),
+        meta: { title: 'Account Information' }
+      },
+      {
+        path: 'security',
+        name: 'SettingsSecurity',
+        component: () => import('@/views/settings/SettingsPlaceholder.vue'),
+        meta: { title: 'Password & Security' }
+      },
+      {
+        path: 'libraries',
+        name: 'SettingsLibraries',
+        component: () => import('@/views/settings/SettingsPlaceholder.vue'),
+        meta: { title: 'Libraries' }
+      },
+      {
+        path: 'pages',
+        name: 'SettingsPages',
+        component: () => import('@/views/settings/SettingsPlaceholder.vue'),
+        meta: { title: 'Pages' }
+      },
+      {
+        path: 'archived',
+        name: 'SettingsArchived',
+        component: () => import('@/views/settings/SettingsPlaceholder.vue'),
+        meta: { title: 'Archived' }
+      },
+      {
+        path: 'assets',
+        name: 'SettingsAssets',
+        component: () => import('@/views/settings/SettingsPlaceholder.vue'),
+        meta: { title: 'Image Resources' }
+      },
+      {
+        path: 'templates',
+        name: 'SettingsTemplates',
+        component: () => import('@/views/settings/SettingsPlaceholder.vue'),
+        meta: { title: 'Templates' }
+      },
+      {
+        path: 'site-info',
+        name: 'SettingsSiteInfo',
+        component: () => import('@/views/settings/SettingsPlaceholder.vue'),
+        meta: { title: 'Site Information' }
+      },
+      {
+        path: 'smtp',
+        name: 'SettingsSmtp',
+        component: () => import('@/views/settings/SettingsPlaceholder.vue'),
+        meta: { title: 'SMTP Configuration' }
+      },
+      {
+        path: 'access',
+        name: 'SettingsAccess',
+        component: () => import('@/views/settings/SettingsPlaceholder.vue'),
+        meta: { title: 'Access Configuration' }
+      }
+    ]
+  },
+  {
     path: '/public',
     component: () => import('@/layouts/PublicLayout.vue'),
     children: [
