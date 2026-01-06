@@ -1,13 +1,66 @@
 <script setup lang="ts">
 import { NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
+import { ref } from 'vue'
 
 const props = defineProps(nodeViewProps)
+
+const resizing = ref(false)
+const resizeStartX = ref(0)
+const initialWidth = ref(0)
+
+const onMouseDown = (e: MouseEvent) => {
+  e.preventDefault()
+  resizing.value = true
+  resizeStartX.value = e.clientX
+  
+  const container = (e.target as HTMLElement).closest('.image-view') as HTMLElement
+  if (container) {
+    initialWidth.value = container.offsetWidth
+  }
+
+  document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('mouseup', onMouseUp)
+}
+
+const onMouseMove = (e: MouseEvent) => {
+  if (!resizing.value) return
+  
+  const dx = e.clientX - resizeStartX.value
+  const newWidth = Math.max(100, initialWidth.value + dx) // Min width 100px
+  
+  props.updateAttributes({
+    width: `${newWidth}px`
+  })
+}
+
+const onMouseUp = () => {
+  resizing.value = false
+  document.removeEventListener('mousemove', onMouseMove)
+  document.removeEventListener('mouseup', onMouseUp)
+}
 </script>
 
 <template>
   <node-view-wrapper class="image-block-wrapper">
-    <div class="image-view" :class="{ 'is-selected': props.selected }">
-      <img :src="props.node.attrs.src" :alt="props.node.attrs.alt" :title="props.node.attrs.title" />
+    <div 
+        class="image-view" 
+        :class="{ 
+            'is-selected': props.selected,
+            'is-resizing': resizing
+        }"
+        :style="{ width: props.node.attrs.width ? props.node.attrs.width : undefined }"
+    >
+      <img 
+        :src="props.node.attrs.src" 
+        :alt="props.node.attrs.alt" 
+        :title="props.node.attrs.title" 
+      />
+      
+      <div 
+          v-if="props.editor.isEditable"
+          class="resize-handle" 
+          @mousedown.prevent.stop="onMouseDown"
+      ></div>
     </div>
   </node-view-wrapper>
 </template>
@@ -17,19 +70,53 @@ const props = defineProps(nodeViewProps)
 
 .image-block-wrapper {
     margin: 1rem 0;
+    display: flex;
+    justify-content: center;
     
     .image-view {
-        display: flex;
-        justify-content: center;
+        position: relative;
+        max-width: 100%;
         
         img {
-            max-width: 100%;
+            width: 100%;
+            height: auto;
             border-radius: 4px;
             display: block;
         }
         
-        &.is-selected img {
+        &.is-selected {
             outline: 2px solid $ios-system-blue;
+            border-radius: 4px;
+        }
+
+        .resize-handle {
+            position: absolute;
+            right: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 64px;
+            cursor: col-resize;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            &::after {
+                content: '';
+                width: 4px;
+                height: 32px;
+                background-color: rgba(0, 0, 0, 0.5);
+                border-radius: 2px;
+                opacity: 0;
+                transition: opacity 0.2s;
+            }
+        }
+        
+        &:hover .resize-handle::after, 
+        &.is-selected .resize-handle::after,
+        &.is-resizing .resize-handle::after {
+             opacity: 1;
         }
     }
 }

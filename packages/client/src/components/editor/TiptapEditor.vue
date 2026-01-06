@@ -12,7 +12,7 @@ import BubbleMenuExtension from '@tiptap/extension-bubble-menu'
 import SlashCommand from './extensions/slash-command'
 import PageReference from './extensions/page-reference'
 import { common, createLowlight } from 'lowlight'
-import { ref, watch, onBeforeUnmount, onMounted, toRaw } from 'vue'
+import { ref, onBeforeUnmount, onMounted, toRaw } from 'vue'
 import { NIcon, useMessage } from 'naive-ui'
 import { uploadApi } from '@/api/upload'
 import {
@@ -46,7 +46,7 @@ const uploaderPosition = ref({ top: 0, left: 0 })
 
 const handleOpenImageUploader = (e: Event) => {
     const customEvent = e as CustomEvent
-    const { top, left, bottom } = customEvent.detail.pos
+    const { left, bottom } = customEvent.detail.pos
     // Position below the cursor
     uploaderPosition.value = { top: bottom + 10, left: left }
     showImageUploader.value = true
@@ -96,7 +96,7 @@ const editor = useEditor({
     emit('update', editor.getJSON())
   },
   editorProps: {
-    handleDrop: (view, event, slice, moved) => {
+    handleDrop: (view, event, _ , moved) => {
       if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
         const file = event.dataTransfer.files[0]
         if (file.type.startsWith('image/')) {
