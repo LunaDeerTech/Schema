@@ -4,9 +4,13 @@ import PublicTopNavigation from '@/components/layout/PublicTopNavigation.vue'
 import PublicSidebar from '@/components/layout/PublicSidebar.vue'
 import { usePublicStore } from '@/stores/public'
 import { storeToRefs } from 'pinia'
+import { usePageTitle } from '@/composables/usePageTitle'
 
 const publicStore = usePublicStore()
 const { tree, currentPageId, currentLibrary } = storeToRefs(publicStore)
+
+// 使用页面标题composable
+usePageTitle()
 </script>
 
 <template>

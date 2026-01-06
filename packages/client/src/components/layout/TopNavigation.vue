@@ -26,6 +26,7 @@ import {
   PersonOutline as PersonIcon
 } from '@vicons/ionicons5'
 import { useUserStore } from '@/stores/user'
+import { useSystemStore } from '@/stores/system'
 
 const props = defineProps<{
   collapsed: boolean
@@ -38,6 +39,7 @@ const emit = defineEmits<{
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const systemStore = useSystemStore()
 
 const showSearch = ref(false)
 const searchText = ref('')
@@ -134,7 +136,7 @@ const searchResults = [
           <n-icon :component="MenuIcon" />
         </template>
       </n-button>
-      <div class="logo" @click="router.push('/')">Schema</div>
+      <div class="logo" @click="router.push('/')">{{ systemStore.siteTitle }}</div>
     </div>
 
     <div class="nav-center">

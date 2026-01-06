@@ -4,8 +4,10 @@ import { useRouter } from 'vue-router'
 import { NLayoutHeader, NSpace, NText, NButton, NIcon, NAutoComplete } from 'naive-ui'
 import { HelpCircleOutline, SearchOutline } from '@vicons/ionicons5'
 import { api } from '@/api/http'
+import { useSystemStore } from '@/stores/system'
 
 const router = useRouter()
+const systemStore = useSystemStore()
 const searchValue = ref('')
 const options = ref<{label: string, value: string}[]>([])
 const loading = ref(false)
@@ -41,7 +43,7 @@ function handleSelect(value: string) {
     <NSpace justify="space-between" align="center" style="height: 100%; padding: 0 20px;">
       <NSpace align="center">
         <!-- Logo (No-op) -->
-        <NText strong style="font-size: 18px; cursor: default;">Schema</NText>
+        <NText strong style="font-size: 18px; cursor: default;">{{ systemStore.siteTitle }}</NText>
       </NSpace>
       
       <NSpace align="center" style="flex: 1; max-width: 600px; margin: 0 20px;">

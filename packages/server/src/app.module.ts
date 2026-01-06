@@ -10,6 +10,7 @@ import { TagModule } from './modules/tag/tag.module';
 import { SearchModule } from './modules/search/search.module';
 import { PublicModule } from './modules/public/public.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { SystemModule } from './modules/system/system.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { UploadModule } from './modules/upload/upload.module';
     SearchModule,
     PublicModule,
     UploadModule,
+    SystemModule,
   ],
   controllers: [],
   providers: [],

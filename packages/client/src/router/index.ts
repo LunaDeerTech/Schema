@@ -100,7 +100,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'site-info',
         name: 'SettingsSiteInfo',
-        component: () => import('@/views/settings/SettingsPlaceholder.vue'),
+        component: () => import('@/views/settings/SiteInfoSettings.vue'),
         meta: { title: 'Site Information' }
       },
       {

@@ -322,10 +322,24 @@ export class DatabaseService implements OnModuleDestroy {
           'INSERT INTO SystemConfig (key, value, updatedAt) VALUES (?, ?, ?)'
         );
         
-        insertConfig.run('version', '1.0.0', new Date().toISOString());
-        insertConfig.run('createdAt', new Date().toISOString(), new Date().toISOString());
+        const now = new Date().toISOString();
+        
+        insertConfig.run('version', '1.0.0', now);
+        insertConfig.run('createdAt', now, now);
         
         console.log('✓ Default system config created');
+      }
+
+      // 确保网站信息默认配置存在
+      const siteTitleConfig = this.db.prepare('SELECT value FROM SystemConfig WHERE key = ?').get('siteTitle');
+      if (!siteTitleConfig) {
+        const insertConfig = this.db.prepare(
+          'INSERT INTO SystemConfig (key, value, updatedAt) VALUES (?, ?, ?)'
+        );
+        const now = new Date().toISOString();
+        insertConfig.run('siteTitle', 'Schema', now);
+        insertConfig.run('siteDescription', 'Personal Knowledge Management System', now);
+        console.log('✓ Default site info config created');
       }
     } catch (error) {
       console.error('✗ Failed to ensure default config:', error);

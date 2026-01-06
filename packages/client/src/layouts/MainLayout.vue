@@ -7,12 +7,16 @@ import {
 } from 'naive-ui'
 import TopNavigation from '@/components/layout/TopNavigation.vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
+import { usePageTitle } from '@/composables/usePageTitle'
 
 const route = useRoute()
 
 const collapsed = ref(false)
 const showSidebar = computed(() => route.name !== 'Home')
 const isHome = computed(() => route.name === 'Home')
+
+// 使用页面标题composable
+usePageTitle()
 </script>
 
 <template>
