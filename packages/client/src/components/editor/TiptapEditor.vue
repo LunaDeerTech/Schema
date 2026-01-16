@@ -42,21 +42,22 @@ const emit = defineEmits<{
 }>()
 
 const showImageUploader = ref(false)
-const uploaderPosition = ref({ top: 0, left: 0 })
+const uploaderPosition = ref({ top: 0, bottom: 0, left: 0 })
 const wrapperRef = ref<HTMLElement | null>(null)
 
 const handleOpenImageUploader = (e: Event) => {
     const customEvent = e as CustomEvent
-    const { left, bottom } = customEvent.detail.pos
+    const { left, bottom, top } = customEvent.detail.pos
     
     if (wrapperRef.value) {
         const wrapperRect = wrapperRef.value.getBoundingClientRect()
         uploaderPosition.value = { 
-            top: bottom - wrapperRect.top + 10, 
+            top: top - wrapperRect.top,
+            bottom: bottom - wrapperRect.top,
             left: left - wrapperRect.left 
         }
     } else {
-        uploaderPosition.value = { top: bottom + 10, left: left }
+        uploaderPosition.value = { top: top, bottom: bottom, left: left }
     }
     showImageUploader.value = true
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, watch, computed } from 'vue'
 import { NInput, NButton, NIcon, useMessage } from 'naive-ui'
 import { CloudUploadOutline } from '@vicons/ionicons5'
 import { uploadApi } from '@/api/upload'
@@ -7,7 +7,7 @@ import FloatingPanel from './common/FloatingPanel.vue'
 
 const props = defineProps<{
   visible: boolean
-  position: { top: number; left: number }
+  position: { top: number; bottom: number; left: number }
 }>()
 
 const emit = defineEmits<{
@@ -20,6 +20,36 @@ const loading = ref(false)
 const imageUrl = ref('')
 const fileInput = ref<HTMLInputElement | null>(null)
 const popoverRef = ref<InstanceType<typeof FloatingPanel> | null>(null)
+const placement = ref<'top' | 'bottom'>('bottom')
+
+const popoverStyle = computed(() => {
+  if (placement.value === 'top') {
+    return {
+      top: `${props.position.top - 10}px`,
+      left: `${props.position.left}px`,
+      transform: 'translateY(-100%)'
+    }
+  }
+  return {
+    top: `${props.position.bottom + 10}px`,
+    left: `${props.position.left}px`
+  }
+})
+
+watch(() => props.visible, async (val) => {
+  if (val) {
+    placement.value = 'bottom'
+    await nextTick()
+    const el = popoverRef.value?.$el
+    if (el) {
+      const rect = el.getBoundingClientRect()
+      // If bottom overflows viewport, flip to top
+      if (rect.bottom > window.innerHeight) {
+        placement.value = 'top'
+      }
+    }
+  }
+})
 
 const handleUpload = async (file: File) => {
   loading.value = true
@@ -83,7 +113,7 @@ onUnmounted(() => {
     v-if="visible"
     ref="popoverRef"
     class="image-uploader-popover"
-    :style="{ top: `${position.top}px`, left: `${position.left}px` }"
+    :style="popoverStyle"
     width="300px"
     padding="1rem"
   >
@@ -116,7 +146,7 @@ onUnmounted(() => {
 .image-uploader-popover {
   position: absolute;
   z-index: 1000;
-  transform: translateY(10px);
+  // transform removed, handled in computed style for flipping
 
   .content {
     display: flex;
