@@ -39,7 +39,7 @@ export const PageReference = Mention.configure({
 
           popup = tippy('body', {
             getReferenceClientRect: props.clientRect,
-            appendTo: () => document.body,
+            appendTo: () => props.editor.view.dom.parentNode || document.body,
             content: component.element,
             showOnCreate: true,
             interactive: true,

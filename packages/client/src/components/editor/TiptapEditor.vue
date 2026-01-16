@@ -43,12 +43,21 @@ const emit = defineEmits<{
 
 const showImageUploader = ref(false)
 const uploaderPosition = ref({ top: 0, left: 0 })
+const wrapperRef = ref<HTMLElement | null>(null)
 
 const handleOpenImageUploader = (e: Event) => {
     const customEvent = e as CustomEvent
     const { left, bottom } = customEvent.detail.pos
-    // Position below the cursor
-    uploaderPosition.value = { top: bottom + 10, left: left }
+    
+    if (wrapperRef.value) {
+        const wrapperRect = wrapperRef.value.getBoundingClientRect()
+        uploaderPosition.value = { 
+            top: bottom - wrapperRect.top + 10, 
+            left: left - wrapperRect.left 
+        }
+    } else {
+        uploaderPosition.value = { top: bottom + 10, left: left }
+    }
     showImageUploader.value = true
 }
 
@@ -127,7 +136,7 @@ const editor = useEditor({
 </script>
 
 <template>
-  <div class="editor-wrapper">
+  <div class="editor-wrapper" ref="wrapperRef">
     <image-uploader-popover
         :visible="showImageUploader"
         :position="uploaderPosition"
@@ -137,7 +146,7 @@ const editor = useEditor({
     <bubble-menu
       v-if="editor"
       :editor="editor"
-      :tippy-options="{ duration: 100 }"
+      :tippy-options="{ duration: 100, appendTo: 'parent' }"
       class="bubble-menu"
     >
       <button
@@ -226,6 +235,7 @@ const editor = useEditor({
 .editor-wrapper {
   width: 100%;
   height: 100%;
+  position: relative;
   
   .bubble-menu {
     display: flex;
