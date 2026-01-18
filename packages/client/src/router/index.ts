@@ -58,7 +58,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'profile',
         name: 'SettingsProfile',
-        component: () => import('@/views/settings/SettingsPlaceholder.vue'),
+        component: () => import('@/views/settings/ProfileSettings.vue'),
         meta: { title: 'Account Information' }
       },
       {

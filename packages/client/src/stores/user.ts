@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi, type LoginRequest, type RegisterRequest } from '@/api/auth'
+import { userApi, type UpdateProfileRequest } from '@/api/user'
 import { STORAGE_TOKEN_KEY } from '@/constants'
 
 export interface User {
@@ -114,6 +115,27 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  const updateProfile = async (data: UpdateProfileRequest): Promise<AuthResult> => {
+    loading.value = true
+    try {
+      const response = await userApi.updateProfile(data)
+      
+      if (response.code === 0) {
+        setUser(response.data)
+        return { success: true, data: response.data }
+      } else {
+        return { success: false, error: '更新失败' }
+      }
+    } catch (error: any) {
+      return { 
+        success: false, 
+        error: error.response?.data?.message || error.message || '更新失败'
+      }
+    } finally {
+      loading.value = false
+    }
+  }
+
   const logout = () => {
     clearToken()
     clearUser()
@@ -134,6 +156,7 @@ export const useUserStore = defineStore('user', () => {
     login,
     register,
     fetchProfile,
+    updateProfile,
     logout
   }
 })

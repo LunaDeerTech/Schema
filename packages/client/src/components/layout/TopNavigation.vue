@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, h, onMounted, onUnmounted } from 'vue'
+import { ref, h, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { 
   NLayoutHeader, 
@@ -114,6 +114,13 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
 })
 
+// Avatar error handling
+const avatarSrc = computed(() => {
+  const url = userStore.user?.avatar
+  if (!url || url.trim() === '') return undefined
+  return url
+})
+
 // Mock data for search panel
 const recentSearches = ['React Hooks notes', 'Project review 2024', 'Learning plan']
 const searchResults = [
@@ -157,12 +164,18 @@ const searchResults = [
       <n-dropdown :options="userOptions" @select="handleUserSelect">
         <div class="user-profile">
           <n-avatar
+            v-if="avatarSrc"
             round
             size="small"
-            :src="userStore.user?.avatar"
-            :style="{ backgroundColor: userStore.user?.avatar ? 'transparent' : '#1A73E8' }"
+            :src="avatarSrc"
+          />
+          <n-avatar
+            v-else
+            round
+            size="small"
+            :style="{ backgroundColor: '#1A73E8' }"
           >
-            {{ userStore.user?.avatar ? '' : (userStore.userName?.[0]?.toUpperCase() || 'U') }}
+            {{ userStore.userName?.[0]?.toUpperCase() || 'U' }}
           </n-avatar>
         </div>
       </n-dropdown>

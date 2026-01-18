@@ -1,4 +1,4 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '@/database/database.service';
 import { User } from '@/types/database.types';
 import * as bcrypt from 'bcrypt';
@@ -63,6 +63,40 @@ export class UserService {
     if (!user) return false;
 
     return bcrypt.compare(password, user.passwordHash);
+  }
+
+  async update(id: string, data: { displayName?: string; avatar?: string }): Promise<User> {
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const updates: string[] = [];
+    const params: any[] = [];
+
+    if (data.displayName !== undefined) {
+      updates.push('displayName = ?');
+      params.push(data.displayName);
+    }
+
+    if (data.avatar !== undefined) {
+      updates.push('avatar = ?');
+      params.push(data.avatar);
+    }
+
+    if (updates.length === 0) {
+      return user;
+    }
+
+    const now = new Date().toISOString();
+    updates.push('updatedAt = ?');
+    params.push(now);
+    params.push(id);
+
+    const sql = `UPDATE User SET ${updates.join(', ')} WHERE id = ?`;
+    this.database.run(sql, params);
+
+    return (await this.findById(id)) as User;
   }
 
   private generateId(): string {
