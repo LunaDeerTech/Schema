@@ -7,7 +7,6 @@ import { uploadApi } from '@/api/upload'
 const userStore = useUserStore()
 const message = useMessage()
 
-const formRef = ref(null)
 const model = reactive({
   displayName: '',
   email: '',
@@ -72,7 +71,7 @@ async function handleUpload({ file, onFinish, onError }: UploadCustomRequestOpti
     </div>
 
     <n-card>
-      <n-form ref="formRef" :model="model" label-placement="top" class="form-wrapper">
+      <n-form :model="model" label-placement="top" class="form-wrapper">
         <div class="avatar-section">
           <n-avatar :size="80" :src="model.avatar" class="avatar" fallback-src="https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg" />
           <div class="avatar-info">
