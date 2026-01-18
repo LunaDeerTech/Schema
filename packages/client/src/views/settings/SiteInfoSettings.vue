@@ -93,8 +93,8 @@ onMounted(() => {
     <div class="settings-header">
       <h2>{{ title }}</h2>
     </div>
+    
     <n-card>
-
       <n-form
         ref="formRef"
         :model="formValue"
@@ -103,12 +103,14 @@ onMounted(() => {
         label-placement="top"
         label-width="auto"
         require-mark-placement="right-hanging"
+        class="form-wrapper"
       >
         <n-form-item label="Site Title" path="title">
           <n-input
             v-model:value="formValue.title"
             placeholder="Enter your site title"
             :maxlength="100"
+            show-count
             clearable
           />
         </n-form-item>
@@ -120,31 +122,37 @@ onMounted(() => {
             type="textarea"
             :maxlength="500"
             :autosize="{
-              minRows: 3,
-              maxRows: 6
+              minRows: 4,
+              maxRows: 8
             }"
+            show-count
             clearable
           />
+          <template #feedback>
+            This description will appear in search engine results.
+          </template>
         </n-form-item>
 
-        <n-form-item>
+        <div class="form-actions">
           <n-space>
             <n-button
               type="primary"
               :loading="saving"
               :disabled="loading"
               @click="handleSave"
+              size="large"
             >
               {{ saving ? 'Saving...' : 'Save Changes' }}
             </n-button>
             <n-button
               :disabled="loading || saving"
               @click="handleReset"
+              size="large"
             >
               Reset
             </n-button>
           </n-space>
-        </n-form-item>
+        </div>
       </n-form>
     </n-card>
   </div>
@@ -164,11 +172,15 @@ onMounted(() => {
       font-weight: 600;
     }
   }
+}
 
-  .n-card {
-    :deep(.n-card__content) {
-      padding: 24px;
-    }
-  }
+.form-wrapper {
+  max-width: 600px;
+}
+
+.form-actions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-start;
 }
 </style>

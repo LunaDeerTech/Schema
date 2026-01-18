@@ -54,6 +54,7 @@ async function handleUpload({ file, onFinish, onError }: UploadCustomRequestOpti
     if (res && res.url) {
       model.avatar = res.url
       onFinish()
+      message.success('Avatar updated successfully')
     } else {
       throw new Error('Invalid response')
     }
@@ -72,10 +73,10 @@ async function handleUpload({ file, onFinish, onError }: UploadCustomRequestOpti
 
     <n-card>
       <n-form ref="formRef" :model="model" label-placement="top" class="form-wrapper">
-        <n-form-item label="Avatar">
-          <div class="avatar-uploader">
-            <n-avatar :size="80" :src="model.avatar" class="avatar" />
-            <div class="upload-actions">
+        <div class="avatar-section">
+          <n-avatar :size="80" :src="model.avatar" class="avatar" fallback-src="https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg" />
+          <div class="avatar-info">
+            <div class="upload-row">
               <n-upload 
                 action="" 
                 :custom-request="handleUpload" 
@@ -84,27 +85,29 @@ async function handleUpload({ file, onFinish, onError }: UploadCustomRequestOpti
               >
                 <n-button secondary>Change Avatar</n-button>
               </n-upload>
-              <div class="upload-hint">Supported formats: JPG, PNG, GIF</div>
+            </div>
+            <div class="upload-hint">
+              Supported formats: JPG, PNG, GIF
             </div>
           </div>
+        </div>
+
+        <n-form-item label="Display Name" path="displayName">
+          <n-input v-model:value="model.displayName" placeholder="How should we call you?" />
         </n-form-item>
         
-        <n-form-item label="Email Address">
+        <n-form-item label="Email Address" path="email">
           <n-input v-model:value="model.email" disabled placeholder="Email" />
           <template #feedback>
-            Email address cannot be changed.
+            Contact administrator to change your email
           </template>
         </n-form-item>
         
-        <n-form-item label="Display Name">
-          <n-input v-model:value="model.displayName" placeholder="Enter your display name" />
-        </n-form-item>
-        
-        <n-form-item class="actions">
+        <div class="form-actions">
           <n-button type="primary" :loading="loading" @click="handleSave" size="large">
             Save Changes
           </n-button>
-        </n-form-item>
+        </div>
       </n-form>
     </n-card>
   </div>
@@ -127,19 +130,21 @@ async function handleUpload({ file, onFinish, onError }: UploadCustomRequestOpti
 }
 
 .form-wrapper {
-  max-width: 500px;
+  max-width: 600px;
 }
 
-.avatar-uploader {
+.avatar-section {
   display: flex;
   align-items: center;
   gap: 24px;
+  margin-bottom: 32px;
   
   .avatar {
+    flex-shrink: 0;
     border: 1px solid var(--n-border-color);
   }
   
-  .upload-actions {
+  .avatar-info {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -151,7 +156,9 @@ async function handleUpload({ file, onFinish, onError }: UploadCustomRequestOpti
   }
 }
 
-.actions {
+.form-actions {
   margin-top: 24px;
+  display: flex;
+  justify-content: flex-start;
 }
 </style>
