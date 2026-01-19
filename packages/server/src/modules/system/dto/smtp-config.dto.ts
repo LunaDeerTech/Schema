@@ -60,4 +60,8 @@ export class TestSmtpConfigDto {
 
   @IsBoolean()
   secure: boolean;
+
+  @IsString()
+  @IsOptional()
+  testEmail?: string;
 }

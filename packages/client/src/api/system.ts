@@ -51,7 +51,15 @@ export const systemApi = {
   },
 
   // Test SMTP connection
-  async testSmtpConnection(data: SmtpConfig): Promise<{ code: number; data: { success: boolean; message: string } }> {
+  async testSmtpConnection(data: {
+    host: string;
+    port: number;
+    user: string;
+    pass: string;
+    from: string;
+    secure: boolean;
+    testEmail?: string;
+  }): Promise<{ code: number; data: { success: boolean; message: string } }> {
     return api.post('/system/smtp-test', data)
   }
 }

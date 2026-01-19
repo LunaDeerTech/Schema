@@ -20,6 +20,7 @@ const route = useRoute()
 const message = useMessage()
 const loading = ref(false)
 const testing = ref(false)
+const testEmail = ref('')
 
 const title = computed(() => route.meta.title as string || 'SMTP Configuration')
 
@@ -73,10 +74,23 @@ async function handleSave() {
 }
 
 async function handleTest() {
+  if (!testEmail.value) {
+    message.warning('Please enter a test email address')
+    return
+  }
   testing.value = true
   try {
-    await systemApi.testSmtpConnection(formValue.value)
-    message.success('Connection successful')
+    const testConfig = {
+      host: formValue.value.host || '',
+      port: formValue.value.port || 465,
+      user: formValue.value.user || '',
+      pass: formValue.value.pass || '',
+      from: formValue.value.from || '',
+      secure: formValue.value.secure ?? true,
+      testEmail: testEmail.value
+    }
+    const response = await systemApi.testSmtpConnection(testConfig)
+    message.success(response.data.message || 'Connection successful')
   } catch (error: any) {
     const msg = error.response?.data?.message || error.message || 'Connection failed'
     message.error(Array.isArray(msg) ? msg[0] : msg)
@@ -129,10 +143,13 @@ onMounted(() => {
             <n-form-item label="Secure (SSL)" path="secure">
               <n-switch v-model:value="formValue.secure" />
             </n-form-item>
+            <n-form-item label="Test Email" path="testEmail">
+              <n-input v-model:value="testEmail" placeholder="Enter email to receive test message" />
+            </n-form-item>
             <n-form-item>
               <n-space>
                 <n-button type="primary" @click="handleSave" :loading="loading">Save</n-button>
-                <n-button @click="handleTest" :loading="testing">Test Connection</n-button>
+                <n-button @click="handleTest" :loading="testing">Test Connection & Send Email</n-button>
               </n-space>
             </n-form-item>
           </n-form>

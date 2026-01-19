@@ -153,6 +153,18 @@ export class SystemService {
       });
 
       await transporter.verify();
+      
+      // If testEmail is provided, send a test email
+      if (config.testEmail) {
+        await transporter.sendMail({
+          from: config.from,
+          to: config.testEmail,
+          subject: 'SMTP Test Email from Schema',
+          html: '<p>This is a test email to verify your SMTP configuration.</p><p>If you received this email, your SMTP settings are working correctly!</p>',
+        });
+        return { success: true, message: 'Connection successful and test email sent' };
+      }
+      
       return { success: true, message: 'Connection successful' };
     } catch (error) {
       throw new BadRequestException(`Connection failed: ${error.message}`);
