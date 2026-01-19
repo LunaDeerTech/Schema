@@ -22,9 +22,13 @@ import {
   ShieldCheckmarkOutline
 } from '@vicons/ionicons5'
 import TopNavigation from '@/components/layout/TopNavigation.vue'
+import { usePageTitle } from '@/composables/usePageTitle'
 
 const router = useRouter()
 const route = useRoute()
+
+// 使用 usePageTitle 来管理页面标题
+usePageTitle()
 
 // Assumption: User is always admin in single-user mode, or check store if implemented
 const isAdmin = ref(true) 

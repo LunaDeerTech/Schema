@@ -36,6 +36,11 @@ async function fetchPage() {
     if (libId) {
       publicStore.fetchTree(libId)
     }
+    
+    // 手动更新浏览器标题
+    if (page.value) {
+      document.title = `${page.value.icon ? page.value.icon + ' ' : ''}${page.value.title}`
+    }
   } catch (err) {
     error.value = 'Page not found or not public'
   } finally {
