@@ -92,7 +92,7 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
         >
           <div class="library-icon-wrapper">
             <span v-if="library.icon" class="emoji-icon">{{ library.icon }}</span>
-            <NIcon v-else size="24">
+            <NIcon v-else size="20">
               <BookOutline />
             </NIcon>
           </div>
@@ -161,8 +161,8 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
 }
 
 .library-icon-wrapper {
-  width: 40px;
-  height: 40px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -171,7 +171,7 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
   color: #4b5563;
   
   .emoji-icon {
-    font-size: 24px;
+    font-size: 20px;
     line-height: 1;
   }
 }
