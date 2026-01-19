@@ -83,7 +83,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'assets',
         name: 'SettingsAssets',
-        component: () => import('@/views/settings/SettingsPlaceholder.vue'),
+        component: () => import('@/views/settings/ImageResources.vue'),
         meta: { title: 'Image Resources' }
       },
       {

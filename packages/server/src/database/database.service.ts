@@ -173,6 +173,25 @@ export class DatabaseService implements OnModuleDestroy {
       )
     `);
 
+    // 创建上传图片记录表
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS UploadedImage (
+        id TEXT PRIMARY KEY,
+        filename TEXT NOT NULL,
+        originalName TEXT NOT NULL,
+        mimeType TEXT NOT NULL,
+        size INTEGER NOT NULL,
+        url TEXT NOT NULL,
+        pageId TEXT,
+        libraryId TEXT,
+        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+        userId TEXT NOT NULL,
+        FOREIGN KEY (userId) REFERENCES User(id) ON DELETE CASCADE,
+        FOREIGN KEY (pageId) REFERENCES Page(id) ON DELETE SET NULL,
+        FOREIGN KEY (libraryId) REFERENCES Page(id) ON DELETE SET NULL
+      )
+    `);
+
     // 创建索引以提高查询性能
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_page_user ON Page(userId);
@@ -189,6 +208,9 @@ export class DatabaseService implements OnModuleDestroy {
       CREATE INDEX IF NOT EXISTS idx_task_due ON Task(dueDate);
       CREATE INDEX IF NOT EXISTS idx_template_user ON Template(userId);
       CREATE INDEX IF NOT EXISTS idx_template_category ON Template(category);
+      CREATE INDEX IF NOT EXISTS idx_uploaded_image_user ON UploadedImage(userId);
+      CREATE INDEX IF NOT EXISTS idx_uploaded_image_page ON UploadedImage(pageId);
+      CREATE INDEX IF NOT EXISTS idx_uploaded_image_library ON UploadedImage(libraryId);
     `);
 
     // 确保唯一约束存在（为已存在的数据表添加唯一索引）

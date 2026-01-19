@@ -8,6 +8,8 @@ import FloatingPanel from './common/FloatingPanel.vue'
 const props = defineProps<{
   visible: boolean
   position: { top: number; bottom: number; left: number }
+  pageId?: string
+  libraryId?: string
 }>()
 
 const emit = defineEmits<{
@@ -16,6 +18,14 @@ const emit = defineEmits<{
 }>()
 
 const message = useMessage()
+
+// Debug: Watch for visibility changes
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    console.log('=== ImageUploaderPopover visible ===');
+    console.log('props:', { pageId: props.pageId, libraryId: props.libraryId });
+  }
+})
 const loading = ref(false)
 const imageUrl = ref('')
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -53,8 +63,12 @@ watch(() => props.visible, async (val) => {
 
 const handleUpload = async (file: File) => {
   loading.value = true
+  console.log('=== ImageUploaderPopover handleUpload ===');
+  console.log('props.pageId:', props.pageId);
+  console.log('props.libraryId:', props.libraryId);
+  console.log('=========================================');
   try {
-    const res = await uploadApi.uploadImage(file)
+    const res = await uploadApi.uploadImage(file, props.pageId, props.libraryId)
     // Check if res.data exists, otherwise use res directly if interceptor unwraps it
     const url = res.url || (res.data && res.data.url)
     if (url) {

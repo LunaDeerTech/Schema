@@ -30,6 +30,8 @@ const message = useMessage()
 interface Props {
   content?: any
   editable?: boolean
+  pageId?: string
+  libraryId?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -45,9 +47,14 @@ const showImageUploader = ref(false)
 const uploaderPosition = ref({ top: 0, bottom: 0, left: 0 })
 const wrapperRef = ref<HTMLElement | null>(null)
 
+// Debug props
+console.log('TiptapEditor props:', { pageId: props.pageId, libraryId: props.libraryId });
+
 const handleOpenImageUploader = (e: Event) => {
     const customEvent = e as CustomEvent
     const { left, bottom, top } = customEvent.detail.pos
+    
+    console.log('handleOpenImageUploader - props:', { pageId: props.pageId, libraryId: props.libraryId });
     
     if (wrapperRef.value) {
         const wrapperRect = wrapperRef.value.getBoundingClientRect()
@@ -113,7 +120,8 @@ const editor = useEditor({
           event.preventDefault() // Prevent default browser behavior (download)
           const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY })
           if (coordinates) {
-             uploadApi.uploadImage(file).then(res => {
+             console.log('handleDrop - uploading with pageId:', props.pageId, 'libraryId:', props.libraryId);
+             uploadApi.uploadImage(file, props.pageId, props.libraryId).then(res => {
                  const url = res.url || (res.data && res.data.url)
                  if (url) {
                     const { schema } = view.state
@@ -139,10 +147,12 @@ const editor = useEditor({
 <template>
   <div class="editor-wrapper" ref="wrapperRef">
     <image-uploader-popover
-        :visible="showImageUploader"
-        :position="uploaderPosition"
-        @close="showImageUploader = false"
-        @insert="handleInsertImage"
+      :visible="showImageUploader"
+      :position="uploaderPosition"
+      :page-id="pageId"
+      :library-id="libraryId"
+      @close="showImageUploader = false"
+      @insert="handleInsertImage"
     />
     <bubble-menu
       v-if="editor"

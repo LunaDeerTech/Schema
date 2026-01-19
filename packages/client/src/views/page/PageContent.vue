@@ -349,7 +349,9 @@ const handlePageUpdate = (updatedData: any) => {
     <div class="content-area">
       <TiptapEditor 
         :key="pageStore.currentPage.id"
-        :content="pageStore.currentPage.content" 
+        :content="pageStore.currentPage.content"
+        :page-id="pageStore.currentPage.id"
+        :library-id="pageStore.currentPage.libraryId"
         @update="handleContentUpdate" 
       />
     </div>
