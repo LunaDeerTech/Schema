@@ -42,4 +42,13 @@ export const uploadApi = {
     const response = await httpClient.delete<any>(`/upload/images/${id}`)
     return response.data?.data || response.data
   },
+
+  async replaceImage(id: string, formData: FormData) {
+    const response = await httpClient.put<any>(`/upload/images/${id}/replace`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    return response.data?.data || response.data
+  },
 }

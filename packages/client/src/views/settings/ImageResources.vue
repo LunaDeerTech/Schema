@@ -24,7 +24,8 @@ import {
   TrashOutline, 
   CopyOutline, 
   ArrowForwardOutline as ArrowRightIcon,
-  ImageOutline as ImageIcon
+  ImageOutline as ImageIcon,
+  CloudUploadOutline as UploadIcon
 } from '@vicons/ionicons5'
 import { uploadApi } from '@/api/upload'
 
@@ -155,6 +156,41 @@ function copyImageUrl(url: string) {
   })
 }
 
+function handleReplaceImage(image: UploadedImage) {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = 'image/*'
+  input.onchange = async (e: Event) => {
+    const target = e.target as HTMLInputElement
+    const file = target.files?.[0]
+    if (!file) return
+
+    try {
+      loading.value = true
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      await uploadApi.replaceImage(image.id, formData)
+      message.success('Image replaced successfully')
+      
+      // 重新加载图片列表
+      await loadImages()
+      
+      // 强制刷新该图片的显示（破坏浏览器缓存）
+      // 通过更新图片对象来触发Vue的响应式更新
+      const index = images.value.findIndex(img => img.id === image.id)
+      if (index !== -1) {
+        images.value[index] = { ...images.value[index] }
+      }
+    } catch (error: any) {
+      message.error(error.message || 'Failed to replace image')
+    } finally {
+      loading.value = false
+    }
+  }
+  input.click()
+}
+
 onMounted(() => {
   loadImages()
 })
@@ -213,7 +249,7 @@ onMounted(() => {
                 <template #cover>
                   <div class="image-preview-wrapper">
                     <NImage
-                      :src="image.url"
+                      :src="image.url + '?t=' + new Date(image.createdAt).getTime()"
                       :alt="image.originalName"
                       object-fit="cover"
                       class="grid-image"
@@ -268,7 +304,15 @@ onMounted(() => {
                       Go to {{ image.pageType === 'library' ? 'Library' : 'Page' }}
                     </NTooltip>
 
-                    <div style="flex: 1"></div>
+                    <NTooltip>
+                      <template #trigger>
+                        <NButton size="tiny" quaternary circle @click="handleReplaceImage(image)">
+                          <template #icon><NIcon :component="UploadIcon" /></template>
+                        </NButton>
+                      </template>
+                      Replace Image
+                    </NTooltip>
+
 
                     <NButton size="tiny" quaternary circle type="error" @click="handleDeleteImage(image)">
                       <template #icon><NIcon :component="TrashOutline" /></template>

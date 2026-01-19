@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Delete, Param, UseInterceptors, UploadedFile, BadRequestException, UseGuards, Body, Req } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Put, Param, UseInterceptors, UploadedFile, BadRequestException, UseGuards, Body, Req } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -102,7 +102,8 @@ export class UploadController {
     }
 
     // 1. 删除物理文件
-    const filePath = path.join(process.cwd(), 'uploads', image.filename);
+    const uploadDir = process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads');
+    const filePath = path.join(uploadDir, image.filename);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
@@ -138,6 +139,88 @@ export class UploadController {
     return { 
       success: true,
       updatedPages: pagesWithImage.length 
+    };
+  }
+
+  @Put('images/:id/replace')
+  @UseInterceptors(FileInterceptor('file', {
+    fileFilter: (req, file, cb) => {
+       if (!file.mimetype.match(/\/(jpg|jpeg|png|gif|webp)$/)) {
+           return cb(new BadRequestException('Only image files are allowed!'), false);
+       }
+       cb(null, true);
+    }
+  }))
+  replaceImage(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser('id') userId: string,
+  ) {
+    if (!file) {
+        throw new BadRequestException('File is required');
+    }
+
+    // 获取原图片信息
+    const oldImage = this.database.queryOne(
+      'SELECT * FROM UploadedImage WHERE id = ? AND userId = ?',
+      [id, userId]
+    );
+
+    if (!oldImage) {
+      throw new BadRequestException('Image not found or unauthorized');
+    }
+
+    console.log('=== Replace Image Debug ===');
+    console.log('Old image:', oldImage);
+    console.log('New file:', file.filename, file.originalname);
+    console.log('process.cwd():', process.cwd());
+
+    // 使用与 main.ts 相同的路径逻辑
+    const uploadDir = process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads');
+    console.log('Upload directory:', uploadDir);
+
+    // 删除旧的物理文件
+    const oldFilePath = path.join(uploadDir, oldImage.filename);
+    console.log('Old file path:', oldFilePath);
+    console.log('Old file exists:', fs.existsSync(oldFilePath));
+    
+    if (fs.existsSync(oldFilePath)) {
+      fs.unlinkSync(oldFilePath);
+      console.log('Old file deleted');
+    }
+
+    // 将新上传的文件重命名为旧文件名（保持URL不变）
+    const newFilePath = path.join(uploadDir, file.filename);
+    const targetFilePath = oldFilePath; // 使用旧文件的路径
+    
+    console.log('New file path:', newFilePath);
+    console.log('New file exists:', fs.existsSync(newFilePath));
+    console.log('Target file path:', targetFilePath);
+    
+    // 确保新文件存在后再重命名
+    if (fs.existsSync(newFilePath)) {
+      fs.renameSync(newFilePath, targetFilePath);
+      console.log('File renamed successfully');
+    } else {
+      console.log('ERROR: New file not found!');
+      throw new BadRequestException('Uploaded file not found');
+    }
+    console.log('=========================');
+
+    // 更新数据库记录（保持 filename 和 url 不变，更新文件元信息包括原始文件名）
+    const now = new Date().toISOString();
+
+    this.database.run(
+      `UPDATE UploadedImage 
+       SET originalName = ?, mimeType = ?, size = ?, createdAt = ?
+       WHERE id = ?`,
+      [file.originalname, file.mimetype, file.size, now, id]
+    );
+
+    return {
+      id,
+      url: oldImage.url, // URL 保持不变
+      timestamp: now, // 用于前端破坏缓存
     };
   }
 
