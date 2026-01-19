@@ -487,7 +487,10 @@ const handlePageUpdate = (updatedData: any) => {
   min-height: 400px;
   background: #fff;
   border-radius: 8px;
-  padding: 24px;
+  $content-padding: 24px;
+  padding: $content-padding;
+  padding-left: calc(#{$content-padding} * 2.5);
+  padding-right: calc(#{$content-padding} * 2.5);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   
   pre {

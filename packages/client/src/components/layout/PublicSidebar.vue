@@ -160,7 +160,15 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
           {{ systemStore.siteTitle }}
         </NText>
         <NText depth="3" style="font-size: 11px; margin-top: 4px">
-          Powered by Schema
+          Powered by 
+          <a 
+            href="https://github.com/LunaDeerTech/Schema" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style="color: var(--n-primary-color); text-decoration: none;"
+          >
+            Schema
+          </a>
         </NText>
       </div>
     </div>
