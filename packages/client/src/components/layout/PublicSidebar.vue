@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { h, computed } from 'vue'
-import { NLayoutSider, NTree, NText, NIcon } from 'naive-ui'
+import { h, computed, ref } from 'vue'
+import { NLayoutSider, NTree, NText, NIcon, NButton } from 'naive-ui'
 import { useRouter } from 'vue-router'
-import { BookOutline } from '@vicons/ionicons5'
+import { BookOutline, ChevronBackOutline, ChevronForwardOutline } from '@vicons/ionicons5'
+import { useSystemStore } from '@/stores/system'
 import type { Page as RawPage, Library } from '@/types'
 import type { TreeOption } from 'naive-ui'
+
+const systemStore = useSystemStore()
+const collapsed = ref(false)
 
 // Extend Page type to include optional children for tree rendering
 type Page = RawPage & { children?: Page[] }
@@ -79,15 +83,19 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
 <template>
   <NLayoutSider
     bordered
-    width="280"
+    :width="collapsed ? 64 : 280"
+    :collapsed-width="64"
     :native-scrollbar="false"
     class="public-sidebar"
+    :collapsed="collapsed"
+    :show-trigger="false"
   >
-    <div class="sidebar-inner">
+    <div class="sidebar-content" style="padding-bottom: 60px;">
+      <!-- Library Info with Collapse Toggle -->
       <div v-if="library" class="library-info">
         <div 
           class="library-card" 
-          :class="{ active: currentId === library.id }"
+          :class="{ active: currentId === library.id, collapsed: collapsed }"
           @click="goToLibrary"
         >
           <div class="library-icon-wrapper">
@@ -96,13 +104,38 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
               <BookOutline />
             </NIcon>
           </div>
-          <div class="library-details">
+          <div v-if="!collapsed" class="library-details">
             <span class="library-name">{{ library.title }}</span>
           </div>
+          <NButton
+            v-if="!collapsed"
+            text
+            size="small"
+            class="collapse-btn"
+            @click.stop="collapsed = !collapsed"
+          >
+            <template #icon>
+              <NIcon><ChevronBackOutline /></NIcon>
+            </template>
+          </NButton>
         </div>
+        
+        <!-- Expand button when collapsed -->
+        <NButton
+          v-if="collapsed"
+          text
+          size="small"
+          class="expand-btn"
+          @click="collapsed = false"
+        >
+          <template #icon>
+            <NIcon><ChevronForwardOutline /></NIcon>
+          </template>
+        </NButton>
       </div>
       
-      <div class="tree-container">
+      <!-- Pages Tree -->
+      <div v-if="!collapsed" class="tree-container">
         <div class="tree-label">PAGES</div>
         <NTree
           block-line
@@ -119,20 +152,39 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
         />
       </div>
     </div>
+    
+    <!-- Footer Section (Fixed at absolute bottom) -->
+    <div class="sidebar-footer" v-if="!collapsed">
+      <div class="footer-content">
+        <NText depth="3" style="font-size: 12px">
+          {{ systemStore.siteTitle }}
+        </NText>
+        <NText depth="3" style="font-size: 11px; margin-top: 4px">
+          Powered by Schema
+        </NText>
+      </div>
+    </div>
   </NLayoutSider>
 </template>
 
 <style scoped lang="scss">
 .public-sidebar {
   background-color: #fcfcfc;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
 }
 
-.sidebar-inner {
+.sidebar-content {
   padding: 16px 12px;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .library-info {
   margin-bottom: 24px;
+  flex-shrink: 0;
 }
 
 .library-card {
@@ -146,8 +198,23 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
   background-color: white;
   border: 1px solid rgba(0,0,0,0.05);
   box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  position: relative;
+  
+  &.collapsed {
+    justify-content: center;
+    padding: 12px;
+  }
+  
+  .collapse-btn {
+    margin-left: auto;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
 
   &:hover {
+    .collapse-btn {
+      opacity: 1;
+    }
     background-color: white;
     border-color: var(--n-primary-color);
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -158,6 +225,13 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
     border-color: var(--n-primary-color);
     background-color: rgba(24, 160, 88, 0.05);
   }
+}
+
+.expand-btn {
+  margin-top: 8px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .library-icon-wrapper {
@@ -197,6 +271,9 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
 }
 
 .tree-container {
+  flex: 1;
+  overflow-y: auto;
+  
   .tree-label {
     font-size: 11px;
     font-weight: 600;
@@ -204,6 +281,24 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
     margin-bottom: 8px;
     padding-left: 8px;
     letter-spacing: 0.05em;
+  }
+}
+
+.sidebar-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #fcfcfc;
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--n-border-color);
+  
+  .footer-content {
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
 }
 
