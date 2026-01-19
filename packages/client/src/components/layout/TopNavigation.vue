@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, h, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, h, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { 
   NLayoutHeader, 
