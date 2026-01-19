@@ -38,11 +38,6 @@ const routes: RouteRecordRaw[] = [
         path: 'page/:id',
         name: 'Page',
         component: () => import('@/views/page/PageContent.vue')
-      },
-      {
-        path: 'editor-test',
-        name: 'EditorTest',
-        component: () => import('@/views/EditorTest.vue')
       }
     ]
   },
