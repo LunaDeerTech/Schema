@@ -11,6 +11,7 @@ import {
   CodeSlashOutline,
   ChatboxEllipsesOutline,
   ImageOutline,
+  GridOutline,
 } from '@vicons/ionicons5'
 
 const getSuggestionItems = ({ query }: { query: string }) => {
@@ -98,6 +99,18 @@ const getSuggestionItems = ({ query }: { query: string }) => {
             } 
         })
         window.dispatchEvent(event)
+      },
+    },
+    {
+      title: 'Table',
+      icon: GridOutline,
+      command: ({ editor, range }: any) => {
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+          .run()
       },
     },
   ].filter((item) =>

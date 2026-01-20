@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3/menus'
+import { TextSelection } from '@tiptap/pm/state'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import Link from '@tiptap/extension-link'
+import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table'
 import { ImageBlock } from './extensions/image-block'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
@@ -20,6 +22,14 @@ import {
   ListOutline as List,
   ListCircleOutline as ListCircle,
   ChatboxEllipsesOutline,
+  ArrowBackOutline,
+  ArrowForwardOutline,
+  ArrowUpOutline,
+  ArrowDownOutline,
+  TrashOutline,
+  GitMergeOutline,
+  GitNetworkOutline,
+  RemoveCircleOutline,
 } from '@vicons/ionicons5'
 
 import ImageUploaderPopover from './ImageUploaderPopover.vue'
@@ -97,6 +107,12 @@ const editor = useEditor({
     Link.configure({
       openOnClick: false,
     }),
+    Table.configure({
+      resizable: true,
+    }),
+    TableRow,
+    TableHeader,
+    TableCell,
     ImageBlock,
     TaskList,
     TaskItem.configure({
@@ -158,6 +174,10 @@ const editor = useEditor({
       v-if="editor"
       :editor="editor"
       :tippy-options="{ duration: 100, appendTo: 'parent' }"
+      :should-show="({ state }) => {
+        const { selection } = state
+        return !selection.empty && selection instanceof TextSelection
+      }"
       class="bubble-menu"
     >
       <button
@@ -235,6 +255,52 @@ const editor = useEditor({
         title="Blockquote"
       >
         <n-icon><ChatboxEllipsesOutline /></n-icon>
+      </button>
+    </bubble-menu>
+
+    <bubble-menu
+      v-if="editor"
+      :editor="editor"
+      :tippy-options="{ duration: 100, appendTo: 'parent' }"
+      :should-show="({ editor, state }) => {
+        const { selection } = state
+        const isTable = editor.isActive('table')
+        const isText = selection instanceof TextSelection
+        if (!isTable) return false
+        if (isText && !selection.empty) return false
+        return true
+      }"
+      class="bubble-menu table-menu"
+    >
+      <button @click="editor.chain().focus().addColumnBefore().run()" title="Add Column Before">
+        <n-icon><ArrowBackOutline /></n-icon>
+      </button>
+      <button @click="editor.chain().focus().addColumnAfter().run()" title="Add Column After">
+        <n-icon><ArrowForwardOutline /></n-icon>
+      </button>
+      <button @click="editor.chain().focus().deleteColumn().run()" title="Delete Column">
+        <n-icon><RemoveCircleOutline /></n-icon>
+      </button>
+      <div class="divider"></div>
+      <button @click="editor.chain().focus().addRowBefore().run()" title="Add Row Before">
+        <n-icon><ArrowUpOutline /></n-icon>
+      </button>
+      <button @click="editor.chain().focus().addRowAfter().run()" title="Add Row After">
+        <n-icon><ArrowDownOutline /></n-icon>
+      </button>
+      <button @click="editor.chain().focus().deleteRow().run()" title="Delete Row">
+        <n-icon><RemoveCircleOutline /></n-icon>
+      </button>
+      <div class="divider"></div>
+      <button @click="editor.chain().focus().mergeCells().run()" title="Merge Cells">
+        <n-icon><GitMergeOutline /></n-icon>
+      </button>
+      <button @click="editor.chain().focus().splitCell().run()" title="Split Cell">
+        <n-icon><GitNetworkOutline /></n-icon>
+      </button>
+      <div class="divider"></div>
+      <button @click="editor.chain().focus().deleteTable().run()" title="Delete Table">
+        <n-icon><TrashOutline /></n-icon>
       </button>
     </bubble-menu>
 
@@ -396,6 +462,57 @@ const editor = useEditor({
         max-width: 100%;
         height: auto;
         border-radius: 4px;
+      }
+
+      /* Table Styles */
+      table {
+        border-collapse: collapse;
+        table-layout: fixed;
+        width: 100%;
+        margin: 0;
+        overflow: hidden;
+
+        td,
+        th {
+          min-width: 1em;
+          border: 2px solid #ced4da;
+          padding: 3px 5px;
+          vertical-align: top;
+          box-sizing: border-box;
+          position: relative;
+
+          > * {
+            margin-bottom: 0;
+          }
+        }
+
+        th {
+          font-weight: bold;
+          text-align: left;
+          background-color: #f1f3f5;
+        }
+
+        .selectedCell:after {
+          z-index: 2;
+          position: absolute;
+          content: "";
+          left: 0;
+          right: 0;
+          top: 0;
+          bottom: 0;
+          background: rgba(200, 200, 255, 0.4);
+          pointer-events: none;
+        }
+
+        .column-resize-handle {
+          position: absolute;
+          right: -2px;
+          top: 0;
+          bottom: 0;
+          width: 4px;
+          background-color: #adf;
+          pointer-events: none;
+        }
       }
     }
   }
