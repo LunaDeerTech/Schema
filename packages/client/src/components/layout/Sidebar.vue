@@ -204,12 +204,7 @@ const submitCreatePage = async () => {
   try {
     const newPage = await pageStore.createPage({
       title: createPageModel.value.title,
-      libraryId: libraryStore.currentLibrary.id,
-      content: { type: 'doc', content: [
-        { type: 'paragraph', content: [
-          { type: 'text', text: 'Type something or / to see commands' }
-        ] }
-      ] }
+      libraryId: libraryStore.currentLibrary.id
     })
     
     if (newPage && newPage.id) {

@@ -33,6 +33,8 @@ import {
 } from '@vicons/ionicons5'
 
 import ImageUploaderPopover from './ImageUploaderPopover.vue'
+import MarkdownImporter from './MarkdownImporter.vue'
+import { marked } from 'marked'
 
 const lowlight = createLowlight(common)
 const message = useMessage()
@@ -56,6 +58,7 @@ const emit = defineEmits<{
 const showImageUploader = ref(false)
 const uploaderPosition = ref({ top: 0, bottom: 0, left: 0 })
 const wrapperRef = ref<HTMLElement | null>(null)
+const showMarkdownImporter = ref(false)
 
 // Debug props
 console.log('TiptapEditor props:', { pageId: props.pageId, libraryId: props.libraryId });
@@ -85,12 +88,38 @@ const handleInsertImage = (url: string) => {
     }
 }
 
+const handleOpenMarkdownImporter = () => {
+    showMarkdownImporter.value = true
+}
+
+const handleImportMarkdown = async (content: string) => {
+    if (editor.value) {
+        try {
+            // Convert markdown to HTML
+            const html = await marked(content)
+            
+            // Get current position
+            const { from } = editor.value.state.selection
+            
+            // Insert HTML content at current position
+            editor.value.chain().focus().insertContentAt(from, html).run()
+            
+            message.success('Markdown导入成功')
+        } catch (error) {
+            console.error('Failed to parse markdown:', error)
+            message.error('Markdown解析失败')
+        }
+    }
+}
+
 onMounted(() => {
     window.addEventListener('open-image-uploader', handleOpenImageUploader)
+    window.addEventListener('open-markdown-importer', handleOpenMarkdownImporter)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('open-image-uploader', handleOpenImageUploader)
+  window.removeEventListener('open-markdown-importer', handleOpenMarkdownImporter)
   // editor.value?.destroy() // useEditor handles destruction automatically
 })
 
@@ -170,6 +199,12 @@ const editor = useEditor({
       @close="showImageUploader = false"
       @insert="handleInsertImage"
     />
+    
+    <markdown-importer
+      v-model:show="showMarkdownImporter"
+      @import="handleImportMarkdown"
+    />
+    
     <bubble-menu
       v-if="editor"
       :editor="editor"

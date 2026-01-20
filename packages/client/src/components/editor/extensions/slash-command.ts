@@ -12,6 +12,7 @@ import {
   ChatboxEllipsesOutline,
   ImageOutline,
   GridOutline,
+  DocumentTextOutline,
 } from '@vicons/ionicons5'
 
 const getSuggestionItems = ({ query }: { query: string }) => {
@@ -111,6 +112,20 @@ const getSuggestionItems = ({ query }: { query: string }) => {
           .deleteRange(range)
           .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
           .run()
+      },
+    },
+    {
+      title: 'Import Markdown',
+      icon: DocumentTextOutline,
+      command: ({ editor, range }: any) => {
+        editor.chain().focus().deleteRange(range).run()
+        // Dispatch custom event to open markdown importer
+        const event = new CustomEvent('open-markdown-importer', {
+          detail: {
+            pos: editor.view.coordsAtPos(editor.state.selection.from)
+          }
+        })
+        window.dispatchEvent(event)
       },
     },
   ].filter((item) =>
