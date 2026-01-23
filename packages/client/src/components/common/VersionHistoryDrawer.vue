@@ -3,7 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { pageApi } from '@/api/page'
 import type { PageVersion } from '@/types'
 import {
-  NDrawer, NDrawerContent, NButton, NIcon, NSpin, NList, NListItem, NTag,
+  NDrawer, NDrawerContent, NButton, NIcon, NSpin, NList, NListItem,
   NTime, NPopconfirm, NSelect, NInput, NAlert, useMessage, NInputGroup, NEmpty,
   NText
 } from 'naive-ui'
@@ -112,11 +112,6 @@ const handleCleanupVersions = async () => {
     console.error('Failed to clean up versions', e)
     message.error('Failed to clean up versions')
   }
-}
-
-// Format date for display
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleString()
 }
 
 // Get version preview (first few characters of content)
