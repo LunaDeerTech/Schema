@@ -899,10 +899,11 @@ export class PageService {
       throw new NotFoundException('Page not found');
     }
 
+    const contentObj = page.content ? JSON.parse(page.content) : { type: 'doc', content: [] };
+
     const id = this.generateId();
     const now = new Date().toISOString();
-    const contentStr = JSON.stringify(page.content);
-
+    const contentStr = JSON.stringify(contentObj);
     this.database.run(`
       INSERT INTO PageVersion (id, content, message, createdAt, pageId)
       VALUES (?, ?, ?, ?, ?)
@@ -962,7 +963,7 @@ export class PageService {
     this.database.run(`
       INSERT INTO PageVersion (id, content, message, createdAt, pageId)
       VALUES (?, ?, ?, ?, ?)
-    `, [restoreVersionId, version.content, `Restored from version ${versionId}`, now, pageId]);
+    `, [restoreVersionId, version.content, `Restored from version ${version.createdAt}`, now, pageId]);
 
     return this.findOne(userId, pageId);
   }
