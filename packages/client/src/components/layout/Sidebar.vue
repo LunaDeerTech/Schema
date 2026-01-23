@@ -78,7 +78,7 @@ const librarySwitchOptions = computed(() => {
     label: lib.title,
     key: lib.id,
     disabled: lib.id === libraryStore.currentLibrary?.id,
-    icon: lib.icon ? () => h('span', { style: 'font-size: 18px' }, lib.icon) : undefined
+    icon: lib.icon ? () => h('span', { style: 'font-size: 18px' }, String(lib.icon)) : undefined
   }))
   
   if (options.length > 0) {

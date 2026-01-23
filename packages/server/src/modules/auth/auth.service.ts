@@ -129,28 +129,33 @@ export class AuthService {
         },
       });
 
+      // 获取邮件主题和模板，如果没有配置则使用默认值
+      const subject = smtpConfig.registerSubject || 'Schema - 邮箱验证码';
+      const template = smtpConfig.registerTemplate || this.getDefaultRegisterTemplate();
+
+      // 替换模板中的占位符
+      const html = template.replace(/{{code}}/g, code);
+
       await transporter.sendMail({
         from: smtpConfig.from,
         to: email,
-        subject: 'Schema - 邮箱验证码',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">Schema - 邮箱验证码</h2>
-            <p>您好，</p>
-            <p>您的邮箱验证码是：</p>
-            <div style="background: #f5f5f5; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 4px; margin: 20px 0;">
-              ${code}
-            </div>
-            <p>该验证码将在10分钟后失效。</p>
-            <p style="color: #999; font-size: 12px;">如果您没有请求此验证码，请忽略此邮件。</p>
-          </div>
-        `,
+        subject: subject,
+        html: html,
       });
 
       return { success: true, message: '验证码已发送' };
     } catch (error) {
       throw new BadRequestException(`邮件发送失败: ${error.message}`);
     }
+  }
+
+  /**
+   * 获取默认的注册邮件模板
+   */
+  private getDefaultRegisterTemplate(): string {
+    return `
+      Your verification code is: {{code}}
+    `;
   }
 
   /**
