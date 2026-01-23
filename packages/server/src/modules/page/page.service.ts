@@ -960,10 +960,13 @@ export class PageService {
     // Create a new version for the restored state (optional, but good practice)
     // We can add a message indicating this was a restore
     const restoreVersionId = this.generateId();
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const localTime = new Date(version.createdAt).toLocaleString('en-US', { timeZone: userTimezone });
     this.database.run(`
       INSERT INTO PageVersion (id, content, message, createdAt, pageId)
       VALUES (?, ?, ?, ?, ?)
-    `, [restoreVersionId, version.content, `Restored from version ${version.createdAt}`, now, pageId]);
+    `, [restoreVersionId, version.content, `Restored from version ${localTime}`, now, pageId]);
+
 
     return this.findOne(userId, pageId);
   }

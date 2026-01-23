@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { pageApi } from '@/api/page'
 import type { PageVersion } from '@/types'
 import {
-  NDrawer, NDrawerContent, NButton, NIcon, NSpin, NList, NListItem, NThing, NTag,
-  NTime, NPopconfirm, NSelect, NInput, NAlert, useMessage
+  NDrawer, NDrawerContent, NButton, NIcon, NSpin, NList, NListItem, NTag,
+  NTime, NPopconfirm, NSelect, NInput, NAlert, useMessage, NInputGroup, NEmpty,
+  NText
 } from 'naive-ui'
 import {
-  RefreshOutline, TrashOutline, SaveOutline,
+  TrashOutline, SaveOutline,
   InformationCircleOutline
 } from '@vicons/ionicons5'
-import { watch } from 'vue'
 
 const props = defineProps<{
   show: boolean
@@ -26,8 +26,6 @@ const message = useMessage()
 
 const loading = ref(false)
 const versions = ref<PageVersion[]>([])
-const selectedVersion = ref<PageVersion | null>(null)
-const showRestoreConfirm = ref(false)
 const showCleanupConfirm = ref(false)
 const cleanupPeriod = ref<'day' | 'week' | 'month'>('week')
 const newVersionMessage = ref('')
@@ -79,15 +77,13 @@ const handleCreateVersion = async () => {
 }
 
 // Restore version
-const handleRestoreVersion = async () => {
-  if (!props.pageId || !selectedVersion.value) return
+const handleRestoreVersion = async (versionId: string) => {
+  if (!props.pageId) return
 
   try {
-    const res = await pageApi.restoreVersion(props.pageId, selectedVersion.value.id)
+    const res = await pageApi.restoreVersion(props.pageId, versionId)
     if (res.code === 0) {
       message.success('Version restored successfully')
-      showRestoreConfirm.value = false
-      selectedVersion.value = null
       emit('restore')
       emit('update:show', false)
     } else {
@@ -120,19 +116,12 @@ const handleCleanupVersions = async () => {
 
 // Format date for display
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  return new Date(dateString).toLocaleString()
 }
 
 // Get version preview (first few characters of content)
 const getVersionPreview = (version: PageVersion) => {
-  if (!version.content || !version.content.content) return 'Empty content'
+  if (!version.content || !version.content.content) return 'No content preview'
 
   try {
     const text = version.content.content
@@ -143,11 +132,11 @@ const getVersionPreview = (version: PageVersion) => {
         return ''
       })
       .join(' ')
-      .substring(0, 100)
+      .trim()
 
-    return text || 'Empty content'
+    return text.substring(0, 80) + (text.length > 80 ? '...' : '') || 'Empty content'
   } catch (e) {
-    return 'Content preview unavailable'
+    return 'Preview unavailable'
   }
 }
 
@@ -177,174 +166,137 @@ onMounted(() => {
 <template>
   <n-drawer
     :show="show"
-    width="450"
+    width="400"
+    placement="right"
     @update:show="$emit('update:show', $event)"
   >
-    <n-drawer-content title="Version History" :closable="true">
-      <!-- Loading State -->
+    <n-drawer-content
+      title="Version History"
+      :closable="true"
+      :body-content-style="{ padding: 0 }"
+      class="version-drawer"
+    >
       <div v-if="loading" class="loading-state">
         <n-spin size="large" />
       </div>
 
-      <!-- Content -->
-      <div v-else class="version-history-content">
-        <!-- Alert for auto-save -->
-        <n-alert type="info" :show-icon="false" style="margin-bottom: 16px;">
-          <template #header>
-            <strong>Auto-Save Feature</strong>
-          </template>
-          <p style="font-size: 12px; margin: 0;">
-            Versions are automatically created when you edit content, but only if at least 2 minutes have passed since the last version.
-          </p>
-        </n-alert>
-
-        <!-- Create New Version Section -->
-        <div class="create-section" style="margin-bottom: 24px;">
-          <n-input
-            v-model:value="newVersionMessage"
-            placeholder="Optional message for this version..."
-            size="small"
-            style="margin-bottom: 8px;"
-          />
-          <n-button
-            type="primary"
-            size="small"
-            :disabled="!props.pageId"
-            @click="handleCreateVersion"
-          >
-            <template #icon>
-              <n-icon><SaveOutline /></n-icon>
+      <div v-else class="drawer-layout">
+        <!-- Top Controls: Only Create & Info -->
+        <div class="controls-area">
+          <n-alert type="info" :show-icon="false" class="info-alert" :bordered="false">
+            <template #header>
+              <div class="info-header">
+                <n-icon><InformationCircleOutline /></n-icon>
+                <span>Auto-save is active (2min interval)</span>
+              </div>
             </template>
-            Create New Version
-          </n-button>
-        </div>
-
-        <!-- Versions List -->
-        <div v-if="hasVersions" class="versions-list">
-          <n-list>
-            <n-list-item v-for="version in sortedVersions" :key="version.id">
-              <n-thing>
-                <template #header>
-                  <div class="version-header">
-                    <span class="version-time">
-                      <n-time :time="new Date(version.createdAt)" type="relative" />
-                    </span>
-                    <n-tag v-if="version.message" size="small" type="info">
-                      {{ version.message }}
-                    </n-tag>
-                  </div>
-                </template>
-                <template #description>
-                  <div class="version-description">
-                    <p class="preview-text">{{ getVersionPreview(version) }}</p>
-                    <div class="version-actions">
-                      <n-button
-                        size="tiny"
-                        quaternary
-                        type="primary"
-                        @click="selectedVersion = version; showRestoreConfirm = true"
-                      >
-                        <template #icon>
-                          <n-icon><RefreshOutline /></n-icon>
-                        </template>
-                        Restore
-                      </n-button>
-                      <span class="full-date">{{ formatDate(version.createdAt) }}</span>
-                    </div>
-                  </div>
-                </template>
-              </n-thing>
-            </n-list-item>
-          </n-list>
-        </div>
-
-        <!-- Empty State -->
-        <div v-else class="empty-state">
-          <n-alert type="default" :show-icon="false">
-            <p style="margin: 0;">No version history available yet.</p>
-            <p style="margin: 8px 0 0 0; font-size: 12px;">
-              Create your first version or edit the page content to trigger auto-save.
-            </p>
           </n-alert>
+
+          <div class="create-version-row">
+            <n-input-group>
+              <n-input
+                v-model:value="newVersionMessage"
+                placeholder="Version remark (max 50 chars)"
+                size="small"
+                :maxlength="50"
+                show-count
+                @keydown.enter="handleCreateVersion"
+              />
+              <n-button type="primary" size="small" :disabled="!props.pageId" @click="handleCreateVersion">
+                <template #icon><n-icon><SaveOutline /></n-icon></template>
+                Save
+              </n-button>
+            </n-input-group>
+          </div>
         </div>
 
-        <!-- Cleanup Section -->
-        <div class="cleanup-section" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #eee;">
-          <h4 style="margin: 0 0 12px 0; font-size: 14px;">Clean Up Old Versions</h4>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <n-select
-              v-model:value="cleanupPeriod"
-              :options="[
-                { label: 'Older than 1 day', value: 'day' },
-                { label: 'Older than 1 week', value: 'week' },
-                { label: 'Older than 1 month', value: 'month' }
-              ]"
-              size="small"
-              style="flex: 1;"
-            />
-            <n-popconfirm
-              v-model:show="showCleanupConfirm"
-              @positive-click="handleCleanupVersions"
-              :negative-text="null"
-            >
-              <template #trigger>
-                <n-button size="small" type="error" :disabled="!hasVersions">
-                  <template #icon>
-                    <n-icon><TrashOutline /></n-icon>
-                  </template>
-                  Clean Up
-                </n-button>
-              </template>
-              <p>Are you sure you want to delete versions older than {{ cleanupPeriod === 'day' ? '1 day' : cleanupPeriod === 'week' ? '1 week' : '1 month' }}?</p>
-            </n-popconfirm>
+        <!-- History List -->
+        <div class="list-container">
+          <div v-if="hasVersions" class="versions-list">
+             <n-list hoverable>
+               <n-list-item
+                 v-for="version in sortedVersions"
+                 :key="version.id"
+                 class="version-item"
+               >
+                 <div class="version-meta-row">
+                    <div class="version-time-group">
+                      <n-time :time="new Date(version.createdAt)" type="datetime" format="MM-dd HH:mm" class="version-time"/>
+                      <n-text depth="3" class="relative-time">
+                         (<n-time :time="new Date(version.createdAt)" type="relative" />)
+                      </n-text>
+                    </div>
+                    
+                    <div class="version-actions">
+                       <n-popconfirm
+                         @positive-click="handleRestoreVersion(version.id)"
+                         positive-text="Restore"
+                         negative-text="Cancel"
+                       >
+                         <template #trigger>
+                           <n-button size="tiny" secondary type="primary">
+                             Restore
+                           </n-button>
+                         </template>
+                         <div class="restore-confirm-content">
+                           <p>Are you sure you want to restore to this version?</p>
+                           <n-text depth="3" size="small">Current content will be backed up as a new version.</n-text>
+                         </div>
+                       </n-popconfirm>
+                    </div>
+                 </div>
+
+                 <div class="version-message-row" v-if="version.message">
+                    <n-text class="message-text">{{ version.message }}</n-text>
+                 </div>
+                 
+                 <div class="version-preview">
+                    {{ getVersionPreview(version) }}
+                 </div>
+               </n-list-item>
+             </n-list>
+          </div>
+          
+          <div v-else class="empty-state">
+            <n-empty description="No version history available">
+               <template #extra>
+                  <span class="empty-hint">Edit content to create versions</span>
+               </template>
+            </n-empty>
           </div>
         </div>
       </div>
 
-      <!-- Restore Confirmation Dialog -->
-      <n-drawer
-        v-model:show="showRestoreConfirm"
-        width="350"
-        placement="bottom"
-        :mask-closable="false"
-      >
-        <n-drawer-content title="Confirm Restore" :closable="true">
-          <n-alert type="warning" :show-icon="true" style="margin-bottom: 16px;">
-            <template #icon>
-              <n-icon><InformationCircleOutline /></n-icon>
+      <!-- Footer: Cleanup Controls -->
+      <template #footer>
+        <div class="cleanup-footer">
+           <span class="label">Clean older than:</span>
+           <n-select
+            v-model:value="cleanupPeriod"
+            :options="[
+              { label: '1 Day', value: 'day' },
+              { label: '1 Week', value: 'week' },
+              { label: '1 Month', value: 'month' }
+            ]"
+            size="tiny"
+            class="cleanup-select"
+          />
+          <n-popconfirm
+            v-model:show="showCleanupConfirm"
+            @positive-click="handleCleanupVersions"
+            :negative-text="null"
+          >
+            <template #trigger>
+              <n-button size="tiny" secondary type="error" :disabled="!hasVersions">
+                <template #icon><n-icon><TrashOutline /></n-icon></template>
+                Clean Up
+              </n-button>
             </template>
-            <p style="margin: 0;">
-              Restoring to a previous version will replace the current page content with the selected version.
-            </p>
-            <p style="margin: 8px 0 0 0; font-size: 12px;">
-              This action will create a new version for the restored state.
-            </p>
-          </n-alert>
+            <p>Delete versions older than selected period?</p>
+          </n-popconfirm>
+        </div>
+      </template>
 
-          <div style="margin-bottom: 16px;">
-            <p style="margin: 0 0 8px 0; font-weight: bold;">Version Details:</p>
-            <p style="margin: 0; font-size: 12px; color: #666;">
-              Created: {{ selectedVersion ? formatDate(selectedVersion.createdAt) : '' }}
-            </p>
-            <p v-if="selectedVersion?.message" style="margin: 4px 0 0 0; font-size: 12px; color: #666;">
-              Message: {{ selectedVersion.message }}
-            </p>
-          </div>
-
-          <div style="display: flex; gap: 8px; justify-content: flex-end;">
-            <n-button size="small" @click="showRestoreConfirm = false">
-              Cancel
-            </n-button>
-            <n-button
-              size="small"
-              type="primary"
-              @click="handleRestoreVersion"
-            >
-              Restore Version
-            </n-button>
-          </div>
-        </n-drawer-content>
-      </n-drawer>
     </n-drawer-content>
   </n-drawer>
 </template>
@@ -357,77 +309,127 @@ onMounted(() => {
   height: 200px;
 }
 
-.version-history-content {
-  padding-bottom: 24px;
+.drawer-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-.create-section {
-  background: #f8f9fa;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+.controls-area {
+  padding: 16px;
+  background-color: var(--n-color-modal);
+  border-bottom: 1px solid var(--n-divider-color);
 }
 
-.versions-list {
-  :deep(.n-list) {
-    background: transparent;
-
-    .n-list-item {
-      border-bottom: 1px solid #f0f0f0;
-      padding: 12px 0;
-
-      &:last-child {
-        border-bottom: none;
-      }
-    }
+.info-alert {
+  margin-bottom: 12px;
+  background-color: rgba(var(--n-info-color-rgb), 0.05);
+  
+  .info-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
   }
 }
 
-.version-header {
+.list-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding-bottom: 20px;
+}
+
+.version-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--n-divider-color);
+
+  &:hover {
+    background-color: var(--n-color-hover);
+  }
+}
+
+.version-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.version-time-group {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 4px;
-
+  
   .version-time {
-    font-size: 12px;
-    color: #666;
     font-weight: 500;
+    font-size: 14px;
+    color: var(--n-text-color-1);
+  }
+
+  .relative-time {
+    font-size: 12px;
   }
 }
 
-.version-description {
-  .preview-text {
-    margin: 0 0 8px 0;
-    font-size: 12px;
-    color: #666;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+.version-message-row {
+  margin-bottom: 8px;
+  
+  .message-text {
+    font-size: 13px;
+    padding: 2px 8px;
+    background-color: rgba(var(--n-info-color-rgb), 0.1);
+    color: var(--n-text-color-2);
+    border-radius: 4px;
+    display: inline-block;
+    max-width: 100%;
+    word-break: break-word;
   }
+}
 
-  .version-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-    .full-date {
-      font-size: 11px;
-      color: #999;
-    }
-  }
+.version-preview {
+  font-size: 12px;
+  color: var(--n-text-color-3);
+  line-height: 1.5;
+  background-color: rgba(0, 0, 0, 0.03);
+  padding: 8px;
+  border-radius: 4px;
+  border-left: 2px solid var(--n-border-color);
 }
 
 .empty-state {
-  text-align: center;
-  padding: 24px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  
+  .empty-hint {
+    font-size: 12px;
+    color: var(--n-text-color-3);
+  }
 }
 
-.cleanup-section {
-  :deep(.n-select) {
-    min-width: 180px;
+.cleanup-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  
+  .label {
+    font-size: 12px;
+    color: var(--n-text-color-3);
+  }
+
+  .cleanup-select {
+    width: 110px;
+  }
+}
+
+.restore-confirm-content {
+  max-width: 200px;
+  p {
+    margin: 0 0 4px 0;
   }
 }
 </style>
