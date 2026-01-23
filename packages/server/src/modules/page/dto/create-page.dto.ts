@@ -17,7 +17,7 @@ export class CreatePageDto {
 
   @IsOptional()
   @IsString()
-  icon?: string;
+  icon?: string | null;
 
   @IsOptional()
   @IsBoolean()

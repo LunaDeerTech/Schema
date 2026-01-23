@@ -6,7 +6,7 @@ export interface CreatePageRequest {
   libraryId: string
   parentId?: string
   content?: any
-  icon?: string
+  icon?: string | null
   isPublic?: boolean
 }
 

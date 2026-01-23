@@ -23,7 +23,7 @@ export class UpdatePageDto {
 
   @IsOptional()
   @IsString()
-  icon?: string;
+  icon?: string | null;
 
   @IsOptional()
   @IsBoolean()

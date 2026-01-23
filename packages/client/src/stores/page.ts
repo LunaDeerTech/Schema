@@ -181,9 +181,9 @@ export const usePageStore = defineStore('page', () => {
   const updatePage = async (id: string, data: {
     title?: string
     content?: any
-    icon?: string
+    icon?: string | null
     isPublic?: boolean
-    parentId?: string
+    parentId?: string | null
     description?: string
   }): Promise<boolean> => {
     setLoading(true)

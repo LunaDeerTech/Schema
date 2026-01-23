@@ -166,13 +166,13 @@ const handleDescriptionSave = async () => {
   }
 }
 
-const handleIconUpdate = async (icon: string | undefined) => {
+const handleIconUpdate = async (icon: string | undefined | null) => {
   if (!pageStore.currentPage) return
-  
+
   try {
     // If it's a library page, we might need to update library store too if it's loaded there
     // But pageStore.updatePage should handle the API call
-    await pageStore.updatePage(pageStore.currentPage.id, { icon: icon ?? undefined })
+    await pageStore.updatePage(pageStore.currentPage.id, { icon: icon ?? null })
     
     // Check if this page corresponds to a library and update it
     const lib = libraryStore.libraries.find(l => l.id === pageStore.currentPage?.id)
@@ -307,7 +307,7 @@ const handleUpdateSettings = async () => {
       <div class="header-main">
         <div class="title-section">
           <IconPicker 
-            :value="pageStore.currentPage.icon" 
+            :value="pageStore.currentPage.icon ?? undefined"
             @update:value="handleIconUpdate" 
           />
           <div class="title-wrapper">

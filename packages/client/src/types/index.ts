@@ -29,7 +29,7 @@ export interface Page {
   title: string
   content: any
   description?: string
-  icon?: string
+  icon?: string | null
   coverImage?: string
   isPublic: boolean
   publicSlug?: string

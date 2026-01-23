@@ -51,19 +51,19 @@ export interface Page {
   type: 'library' | 'page';
   title: string;
   content: any; // Tiptap JSON
-  description?: string;
-  icon?: string;
-  coverImage?: string;
+  description?: string | null;
+  icon?: string | null;
+  coverImage?: string | null;
   isPublic: boolean;
-  publicSlug?: string;
+  publicSlug?: string | null;
   sortOrder: number;
   metadata?: any;
   createdAt: Date;
   updatedAt: Date;
-  lastViewedAt?: Date;
+  lastViewedAt?: Date | null;
   userId: string;
-  libraryId?: string;
-  parentId?: string;
+  libraryId?: string | null;
+  parentId?: string | null;
 }
 
 // Library is now a special type of Page
@@ -72,15 +72,15 @@ export type Library = Page;
 export interface CreateLibraryRequest {
   title: string;
   content: any;
-  description?: string;
-  icon?: string;
+  description?: string | null;
+  icon?: string | null;
 }
 
 export interface UpdateLibraryRequest {
   title?: string;
   content?: any;
-  description?: string;
-  icon?: string;
+  description?: string | null;
+  icon?: string | null;
   isPublic?: boolean;
   sortOrder?: number;
 }
@@ -88,15 +88,15 @@ export interface UpdateLibraryRequest {
 export interface CreatePageRequest {
   title: string;
   libraryId: string;
-  parentId?: string;
+  parentId?: string | null;
   content?: any;
-  icon?: string;
+  icon?: string | null;
 }
 
 export interface UpdatePageRequest {
   title?: string;
   content?: any;
-  icon?: string;
+  icon?: string | null;
   parentId?: string;
   description?: string;
 }

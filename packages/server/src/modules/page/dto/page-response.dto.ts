@@ -1,30 +1,30 @@
 export class PageResponseDto {
-  id: string;
-  type?: string;
+  id: string | null;
+  type?: string | null;
   title: string;
-  content: string;
-  description?: string;
-  icon?: string;
-  coverImage?: string;
-  isPublic: boolean;
-  publicSlug?: string;
-  sortOrder: number;
-  metadata?: string;
-  createdAt: string;
-  updatedAt: string;
-  lastViewedAt?: string;
-  userId: string;
-  libraryId: string;
-  libraryTitle?: string;
-  parentId?: string;
+  content: string | null;
+  description?: string | null;
+  icon?: string | null;
+  coverImage?: string | null;
+  isPublic: boolean | null;
+  publicSlug?: string | null;
+  sortOrder: number | null;
+  metadata?: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  lastViewedAt?: string | null;
+  userId: string | null;
+  libraryId?: string | null;
+  libraryTitle?: string | null;
+  parentId?: string | null;
   // Additional fields for tree structure
   parent?: PageResponseDto | null;
-  children?: PageResponseDto[];
+  children?: PageResponseDto[] | null;
   // Tags associated with the page
   tags?: Array<{
     id: string;
     name: string;
-    color?: string;
+    color?: string | null;
     createdAt: string;
-  }>;
+  }> | null;
 }
