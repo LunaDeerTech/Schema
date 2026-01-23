@@ -36,6 +36,7 @@ export interface AuthResponse {
       email: string
       displayName?: string
       avatar?: string
+      isAdmin: boolean
     }
   }
 }
@@ -47,6 +48,7 @@ export interface UserResponse {
     email: string
     displayName?: string
     avatar?: string
+    isAdmin: boolean
   }
 }
 
