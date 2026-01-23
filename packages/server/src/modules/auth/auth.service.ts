@@ -1,7 +1,9 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
+import { SystemService } from '../system/system.service';
 import * as bcrypt from 'bcrypt';
+import * as nodemailer from 'nodemailer';
 
 interface JwtPayload {
   sub: string;
@@ -10,9 +12,14 @@ interface JwtPayload {
 
 @Injectable()
 export class AuthService {
+  // 验证码存储：email -> { code, expiresAt }
+  private verificationCodes: Map<string, { code: string; expiresAt: number }> = new Map();
+  private readonly CODE_EXPIRY_MS = 10 * 60 * 1000; // 10分钟
+
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly systemService: SystemService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -83,5 +90,125 @@ export class AuthService {
 
   async validateUserById(userId: string) {
     return this.userService.findById(userId);
+  }
+
+  /**
+   * 发送邮箱验证码
+   */
+  async sendVerificationCode(email: string): Promise<{ success: boolean; message: string }> {
+    // 检查用户是否已存在
+    const existingUser = await this.userService.findByEmail(email);
+    if (existingUser) {
+      throw new ConflictException('该邮箱已注册');
+    }
+
+    // 生成6位验证码
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + this.CODE_EXPIRY_MS;
+
+    // 存储验证码
+    this.verificationCodes.set(email, { code, expiresAt });
+
+    // 获取SMTP配置
+    const smtpConfig = await this.systemService.getSmtpConfig();
+
+    // 如果没有配置SMTP，返回成功但不实际发送邮件（用于开发测试）
+    if (!smtpConfig.host || !smtpConfig.port) {
+      console.log(`[开发模式] 验证码: ${code} (10分钟内有效)`);
+      return { success: true, message: '验证码已生成（开发模式）' };
+    }
+
+    try {
+      const transporter = nodemailer.createTransport({
+        host: smtpConfig.host,
+        port: smtpConfig.port,
+        secure: smtpConfig.secure,
+        auth: {
+          user: smtpConfig.user,
+          pass: smtpConfig.pass,
+        },
+      });
+
+      await transporter.sendMail({
+        from: smtpConfig.from,
+        to: email,
+        subject: 'Schema - 邮箱验证码',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Schema - 邮箱验证码</h2>
+            <p>您好，</p>
+            <p>您的邮箱验证码是：</p>
+            <div style="background: #f5f5f5; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 4px; margin: 20px 0;">
+              ${code}
+            </div>
+            <p>该验证码将在10分钟后失效。</p>
+            <p style="color: #999; font-size: 12px;">如果您没有请求此验证码，请忽略此邮件。</p>
+          </div>
+        `,
+      });
+
+      return { success: true, message: '验证码已发送' };
+    } catch (error) {
+      throw new BadRequestException(`邮件发送失败: ${error.message}`);
+    }
+  }
+
+  /**
+   * 验证邮箱验证码
+   */
+  async verifyVerificationCode(email: string, code: string): Promise<{ success: boolean; message: string }> {
+    const stored = this.verificationCodes.get(email);
+
+    if (!stored) {
+      throw new BadRequestException('验证码已过期或未发送');
+    }
+
+    if (stored.expiresAt < Date.now()) {
+      this.verificationCodes.delete(email);
+      throw new BadRequestException('验证码已过期');
+    }
+
+    if (stored.code !== code) {
+      throw new BadRequestException('验证码错误');
+    }
+
+    // 验证成功后删除验证码
+    this.verificationCodes.delete(email);
+
+    return { success: true, message: '验证码验证成功' };
+  }
+
+  /**
+   * 使用验证码注册
+   */
+  async registerWithCode(email: string, password: string, displayName?: string, verificationCode?: string) {
+    // 检查用户是否已存在
+    const existingUser = await this.userService.findByEmail(email);
+    if (existingUser) {
+      throw new ConflictException('该邮箱已注册');
+    }
+
+    // 创建新用户
+    const user = await this.userService.create({
+      email,
+      password,
+      displayName,
+    });
+
+    // 生成JWT token
+    const payload = {
+      sub: user.id,
+      email: user.email
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
+        avatar: user.avatar,
+      },
+    };
   }
 }

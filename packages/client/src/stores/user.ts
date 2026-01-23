@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { authApi, type LoginRequest, type RegisterRequest } from '@/api/auth'
+import { authApi, type LoginRequest, type RegisterRequest, type SendVerificationRequest, type VerifyCodeRequest, type RegisterWithCodeRequest } from '@/api/auth'
 import { userApi, type UpdateProfileRequest } from '@/api/user'
 import { STORAGE_TOKEN_KEY } from '@/constants'
 
@@ -73,7 +73,7 @@ export const useUserStore = defineStore('user', () => {
     loading.value = true
     try {
       const response = await authApi.register(data)
-      
+
       if (response.code === 0) {
         setToken(response.data.access_token)
         setUser(response.data.user)
@@ -82,8 +82,70 @@ export const useUserStore = defineStore('user', () => {
         return { success: false, error: '注册失败' }
       }
     } catch (error: any) {
-      return { 
-        success: false, 
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message || '注册失败，请检查网络连接'
+      }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const sendVerification = async (data: SendVerificationRequest): Promise<AuthResult> => {
+    loading.value = true
+    try {
+      const response = await authApi.sendVerification(data)
+
+      if (response.code === 0) {
+        return { success: true, data: response.data }
+      } else {
+        return { success: false, error: '发送验证码失败' }
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message || '发送验证码失败，请检查网络连接'
+      }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const verifyCode = async (data: VerifyCodeRequest): Promise<AuthResult> => {
+    loading.value = true
+    try {
+      const response = await authApi.verifyCode(data)
+
+      if (response.code === 0) {
+        return { success: true, data: response.data }
+      } else {
+        return { success: false, error: '验证码验证失败' }
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message || '验证码验证失败，请检查网络连接'
+      }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const registerWithCode = async (data: RegisterWithCodeRequest): Promise<AuthResult> => {
+    loading.value = true
+    try {
+      const response = await authApi.registerWithCode(data)
+
+      if (response.code === 0) {
+        setToken(response.data.access_token)
+        setUser(response.data.user)
+        return { success: true, data: response.data }
+      } else {
+        return { success: false, error: '注册失败' }
+      }
+    } catch (error: any) {
+      return {
+        success: false,
         error: error.response?.data?.message || error.message || '注册失败，请检查网络连接'
       }
     } finally {
@@ -146,15 +208,18 @@ export const useUserStore = defineStore('user', () => {
     user,
     token,
     loading,
-    
+
     // Getters
     isAuthenticated,
     userName,
     userId,
-    
+
     // Actions
     login,
     register,
+    sendVerification,
+    verifyCode,
+    registerWithCode,
     fetchProfile,
     updateProfile,
     logout
