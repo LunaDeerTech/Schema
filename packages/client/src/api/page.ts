@@ -98,6 +98,11 @@ export const pageApi = {
     return api.post(`/pages/${pageId}/versions/cleanup`, data)
   },
 
+  // Delete a specific version
+  deleteVersion: async (pageId: string, versionId: string): Promise<ApiResponse<{ success: boolean; message: string }>> => {
+    return api.delete(`/pages/${pageId}/versions/${versionId}`)
+  },
+
   // Update page settings
   updatePageSettings: async (pageId: string, data: UpdatePageSettingsRequest): Promise<ApiResponse<{ success: boolean; message: string }>> => {
     return api.put(`/pages/${pageId}/settings`, data)

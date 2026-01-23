@@ -154,6 +154,15 @@ export class PageController {
     return this.pageService.cleanupVersions(userId, pageId, cleanupDto);
   }
 
+  @Delete(':id/versions/:versionId')
+  async deleteVersion(
+    @CurrentUser('id') userId: string,
+    @Param('id') pageId: string,
+    @Param('versionId') versionId: string,
+  ) {
+    return this.pageService.deleteVersion(userId, pageId, versionId);
+  }
+
   @Put(':id/settings')
   async updatePageSettings(
     @CurrentUser('id') userId: string,

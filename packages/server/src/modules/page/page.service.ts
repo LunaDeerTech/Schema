@@ -1026,6 +1026,42 @@ export class PageService {
   }
 
   /**
+   * Delete a specific version for a page
+   */
+  async deleteVersion(userId: string, pageId: string, versionId: string): Promise<{ success: boolean; message: string }> {
+    // Verify page exists and user has access
+    const page = this.database.queryOne(
+      'SELECT id FROM Page WHERE id = ? AND userId = ?',
+      [pageId, userId]
+    );
+
+    if (!page) {
+      throw new NotFoundException('Page not found');
+    }
+
+    // Verify version exists and belongs to the page
+    const version = this.database.queryOne(
+      'SELECT id FROM PageVersion WHERE id = ? AND pageId = ?',
+      [versionId, pageId]
+    );
+
+    if (!version) {
+      throw new NotFoundException('Version not found');
+    }
+
+    // Delete the version
+    this.database.run(
+      'DELETE FROM PageVersion WHERE id = ?',
+      [versionId]
+    );
+
+    return {
+      success: true,
+      message: 'Version deleted successfully'
+    };
+  }
+
+  /**
    * Update page settings (including version retention limit)
    */
   async updatePageSettings(userId: string, pageId: string, updateSettingsDto: UpdatePageSettingsDto): Promise<{ success: boolean; message: string }> {

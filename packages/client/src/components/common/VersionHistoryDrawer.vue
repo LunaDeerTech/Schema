@@ -9,7 +9,8 @@ import {
 } from 'naive-ui'
 import {
   TrashOutline, SaveOutline,
-  InformationCircleOutline
+  InformationCircleOutline,
+  TrashBinOutline
 } from '@vicons/ionicons5'
 
 const props = defineProps<{
@@ -111,6 +112,24 @@ const handleCleanupVersions = async () => {
   } catch (e) {
     console.error('Failed to clean up versions', e)
     message.error('Failed to clean up versions')
+  }
+}
+
+// Delete a specific version
+const handleDeleteVersion = async (versionId: string) => {
+  if (!props.pageId) return
+
+  try {
+    const res = await pageApi.deleteVersion(props.pageId, versionId)
+    if (res.code === 0) {
+      message.success('Version deleted successfully')
+      await loadVersions()
+    } else {
+      message.error(res.message || 'Failed to delete version')
+    }
+  } catch (e) {
+    console.error('Failed to delete version', e)
+    message.error('Failed to delete version')
   }
 }
 
@@ -238,6 +257,21 @@ onMounted(() => {
                            <n-text depth="3" size="small">Current content will be backed up as a new version.</n-text>
                          </div>
                        </n-popconfirm>
+                       <n-popconfirm
+                         @positive-click="handleDeleteVersion(version.id)"
+                         positive-text="Delete"
+                         negative-text="Cancel"
+                       >
+                         <template #trigger>
+                           <n-button size="tiny" secondary type="error">
+                             <template #icon><n-icon><TrashBinOutline /></n-icon></template>
+                           </n-button>
+                         </template>
+                         <div class="restore-confirm-content">
+                           <p>Are you sure you want to delete this version?</p>
+                           <n-text depth="3" size="small">This action cannot be undone.</n-text>
+                         </div>
+                       </n-popconfirm>
                     </div>
                  </div>
 
@@ -349,6 +383,12 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 6px;
+}
+
+.version-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .version-time-group {
