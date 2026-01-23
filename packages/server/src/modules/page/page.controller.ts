@@ -19,6 +19,7 @@ import { UpdatePageDto } from './dto/update-page.dto';
 import { PageQueryDto } from './dto/page-query.dto';
 import { PageTagOperationDto, PageTagsUpdateDto } from './dto/page-tag-operation.dto';
 import { MovePageDto } from './dto/move-page.dto';
+import { CreateVersionDto, CleanupVersionsDto, UpdatePageSettingsDto } from './dto/version-history.dto';
 
 @Controller('pages')
 @UseGuards(JwtAuthGuard)
@@ -116,5 +117,49 @@ export class PageController {
     @Body() updateTagsDto: PageTagsUpdateDto,
   ) {
     return this.pageService.updateTags(userId, pageId, updateTagsDto.tagIds);
+  }
+
+  @Get(':id/versions')
+  async getVersions(
+    @CurrentUser('id') userId: string,
+    @Param('id') pageId: string,
+  ) {
+    return this.pageService.getVersions(userId, pageId);
+  }
+
+  @Post(':id/versions')
+  async createVersion(
+    @CurrentUser('id') userId: string,
+    @Param('id') pageId: string,
+    @Body() createVersionDto: CreateVersionDto,
+  ) {
+    return this.pageService.createVersion(userId, pageId, createVersionDto);
+  }
+
+  @Post(':id/versions/:versionId/restore')
+  async restoreVersion(
+    @CurrentUser('id') userId: string,
+    @Param('id') pageId: string,
+    @Param('versionId') versionId: string,
+  ) {
+    return this.pageService.restoreVersion(userId, pageId, versionId);
+  }
+
+  @Post(':id/versions/cleanup')
+  async cleanupVersions(
+    @CurrentUser('id') userId: string,
+    @Param('id') pageId: string,
+    @Body() cleanupDto: CleanupVersionsDto,
+  ) {
+    return this.pageService.cleanupVersions(userId, pageId, cleanupDto);
+  }
+
+  @Put(':id/settings')
+  async updatePageSettings(
+    @CurrentUser('id') userId: string,
+    @Param('id') pageId: string,
+    @Body() updateSettingsDto: UpdatePageSettingsDto,
+  ) {
+    return this.pageService.updatePageSettings(userId, pageId, updateSettingsDto);
   }
 }

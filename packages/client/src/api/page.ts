@@ -35,6 +35,18 @@ export interface MovePageRequest {
   sortOrder?: number
 }
 
+export interface CreateVersionRequest {
+  message?: string
+}
+
+export interface CleanupVersionsRequest {
+  period: 'day' | 'week' | 'month'
+}
+
+export interface UpdatePageSettingsRequest {
+  versionRetentionLimit?: number
+}
+
 export const pageApi = {
   // Get pages with optional filters
   getPages: async (params?: PageQueryParams): Promise<ApiResponse<PaginatedResponse<Page>>> => {
@@ -72,13 +84,23 @@ export const pageApi = {
   },
 
   // Create new version
-  createVersion: async (pageId: string, message?: string): Promise<ApiResponse<PageVersion>> => {
-    return api.post(`/pages/${pageId}/versions`, { message })
+  createVersion: async (pageId: string, data: CreateVersionRequest = {}): Promise<ApiResponse<PageVersion>> => {
+    return api.post(`/pages/${pageId}/versions`, data)
   },
 
   // Restore page to a specific version
   restoreVersion: async (pageId: string, versionId: string): Promise<ApiResponse<Page>> => {
     return api.post(`/pages/${pageId}/versions/${versionId}/restore`)
+  },
+
+  // Clean up old versions
+  cleanupVersions: async (pageId: string, data: CleanupVersionsRequest): Promise<ApiResponse<{ success: boolean; deletedCount: number; message: string }>> => {
+    return api.post(`/pages/${pageId}/versions/cleanup`, data)
+  },
+
+  // Update page settings
+  updatePageSettings: async (pageId: string, data: UpdatePageSettingsRequest): Promise<ApiResponse<{ success: boolean; message: string }>> => {
+    return api.put(`/pages/${pageId}/settings`, data)
   },
 
   // Get page references (incoming and outgoing)

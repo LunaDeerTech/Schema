@@ -1,12 +1,9 @@
 <script setup lang="ts">
-interface Props {
-  fixed?: boolean
-}
-
 defineProps<{
   width?: string
   padding?: string
   maxHeight?: string
+  fixed?: boolean
 }>()
 </script>
 

@@ -305,7 +305,7 @@ export const usePageStore = defineStore('page', () => {
     setError(null)
 
     try {
-      const response = await pageApi.createVersion(pageId, message)
+      const response = await pageApi.createVersion(pageId, { message })
       if (response.code === 0) {
         // Refresh versions list
         await fetchVersions(pageId)

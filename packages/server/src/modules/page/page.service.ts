@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '@/database/database.service';
 import { CreatePageDto } from './dto/create-page.dto';
 import { UpdatePageDto } from './dto/update-page.dto';
 import { MovePageDto } from './dto/move-page.dto';
 import { PageQueryDto } from './dto/page-query.dto';
 import { PageResponseDto } from './dto/page-response.dto';
+import { CreateVersionDto, CleanupVersionsDto, UpdatePageSettingsDto } from './dto/version-history.dto';
 
 @Injectable()
 export class PageService {
@@ -442,6 +443,11 @@ export class PageService {
       params
     );
 
+    // Create automatic version if content was updated
+    if (updatePageDto.content !== undefined) {
+      await this.createAutomaticVersionIfApplicable(userId, id);
+    }
+
     // Cascade update isPublic to all descendants if it was changed
     if (updatePageDto.isPublic !== undefined) {
       const isPublicVal = updatePageDto.isPublic ? 1 : 0;
@@ -828,7 +834,7 @@ export class PageService {
       'SELECT id FROM Page WHERE id = ? AND userId = ?',
       [pageId, userId]
     );
-    
+
     if (!page) {
       throw new NotFoundException('Page not found');
     }
@@ -847,5 +853,310 @@ export class PageService {
       color: tag.color,
       createdAt: tag.createdAt
     }));
+  }
+
+  /**
+   * Get all versions for a page
+   */
+  async getVersions(userId: string, pageId: string): Promise<Array<{ id: string; content: any; message?: string; createdAt: string; pageId: string }>> {
+    // Verify page exists and user has access
+    const page = this.database.queryOne(
+      'SELECT id FROM Page WHERE id = ? AND userId = ?',
+      [pageId, userId]
+    );
+
+    if (!page) {
+      throw new NotFoundException('Page not found');
+    }
+
+    const versions = this.database.query(`
+      SELECT id, content, message, createdAt, pageId
+      FROM PageVersion
+      WHERE pageId = ?
+      ORDER BY createdAt DESC
+    `, [pageId]);
+
+    return versions.map(version => ({
+      id: version.id,
+      content: version.content ? JSON.parse(version.content) : { type: 'doc', content: [] },
+      message: version.message,
+      createdAt: version.createdAt,
+      pageId: version.pageId
+    }));
+  }
+
+  /**
+   * Create a new version for a page
+   */
+  async createVersion(userId: string, pageId: string, createVersionDto: CreateVersionDto): Promise<{ id: string; content: any; message?: string; createdAt: string; pageId: string }> {
+    // Verify page exists and user has access
+    const page = this.database.queryOne(
+      'SELECT id, content FROM Page WHERE id = ? AND userId = ?',
+      [pageId, userId]
+    );
+
+    if (!page) {
+      throw new NotFoundException('Page not found');
+    }
+
+    const id = this.generateId();
+    const now = new Date().toISOString();
+    const contentStr = JSON.stringify(page.content);
+
+    this.database.run(`
+      INSERT INTO PageVersion (id, content, message, createdAt, pageId)
+      VALUES (?, ?, ?, ?, ?)
+    `, [id, contentStr, createVersionDto.message || null, now, pageId]);
+
+    // Get retention limit from page metadata
+    const retentionLimit = this.getVersionRetentionLimit(pageId, userId);
+    if (retentionLimit > 0) {
+      await this.enforceRetentionLimit(pageId, userId, retentionLimit);
+    }
+
+    return {
+      id,
+      content: page.content,
+      message: createVersionDto.message,
+      createdAt: now,
+      pageId
+    };
+  }
+
+  /**
+   * Restore page to a specific version
+   */
+  async restoreVersion(userId: string, pageId: string, versionId: string): Promise<PageResponseDto> {
+    // Verify page exists and user has access
+    const page = this.database.queryOne(
+      'SELECT id FROM Page WHERE id = ? AND userId = ?',
+      [pageId, userId]
+    );
+
+    if (!page) {
+      throw new NotFoundException('Page not found');
+    }
+
+    // Verify version exists and belongs to the page
+    const version = this.database.queryOne(`
+      SELECT id, content, message, createdAt
+      FROM PageVersion
+      WHERE id = ? AND pageId = ?
+    `, [versionId, pageId]);
+
+    if (!version) {
+      throw new NotFoundException('Version not found');
+    }
+
+    // Restore the content
+    const now = new Date().toISOString();
+    this.database.run(`
+      UPDATE Page
+      SET content = ?, updatedAt = ?
+      WHERE id = ? AND userId = ?
+    `, [version.content, now, pageId, userId]);
+
+    // Create a new version for the restored state (optional, but good practice)
+    // We can add a message indicating this was a restore
+    const restoreVersionId = this.generateId();
+    this.database.run(`
+      INSERT INTO PageVersion (id, content, message, createdAt, pageId)
+      VALUES (?, ?, ?, ?, ?)
+    `, [restoreVersionId, version.content, `Restored from version ${versionId}`, now, pageId]);
+
+    return this.findOne(userId, pageId);
+  }
+
+  /**
+   * Clean up old versions for a page
+   */
+  async cleanupVersions(userId: string, pageId: string, cleanupDto: CleanupVersionsDto): Promise<{ success: boolean; deletedCount: number; message: string }> {
+    // Verify page exists and user has access
+    const page = this.database.queryOne(
+      'SELECT id FROM Page WHERE id = ? AND userId = ?',
+      [pageId, userId]
+    );
+
+    if (!page) {
+      throw new NotFoundException('Page not found');
+    }
+
+    // Calculate cutoff date based on period
+    const cutoffDate = new Date();
+    switch (cleanupDto.period) {
+      case 'day':
+        cutoffDate.setDate(cutoffDate.getDate() - 1);
+        break;
+      case 'week':
+        cutoffDate.setDate(cutoffDate.getDate() - 7);
+        break;
+      case 'month':
+        cutoffDate.setMonth(cutoffDate.getMonth() - 1);
+        break;
+    }
+
+    const cutoffDateStr = cutoffDate.toISOString();
+
+    // Get count of versions to delete
+    const countResult = this.database.queryOne(`
+      SELECT COUNT(*) as count
+      FROM PageVersion
+      WHERE pageId = ? AND createdAt < ?
+    `, [pageId, cutoffDateStr]);
+
+    const deletedCount = countResult.count;
+
+    // Delete old versions
+    if (deletedCount > 0) {
+      this.database.run(`
+        DELETE FROM PageVersion
+        WHERE pageId = ? AND createdAt < ?
+      `, [pageId, cutoffDateStr]);
+    }
+
+    return {
+      success: true,
+      deletedCount,
+      message: `Deleted ${deletedCount} version(s) older than ${cleanupDto.period}`
+    };
+  }
+
+  /**
+   * Update page settings (including version retention limit)
+   */
+  async updatePageSettings(userId: string, pageId: string, updateSettingsDto: UpdatePageSettingsDto): Promise<{ success: boolean; message: string }> {
+    // Verify page exists and user has access
+    const page = this.database.queryOne(
+      'SELECT id, metadata FROM Page WHERE id = ? AND userId = ?',
+      [pageId, userId]
+    );
+
+    if (!page) {
+      throw new NotFoundException('Page not found');
+    }
+
+    // Parse existing metadata
+    let metadata: any = {};
+    try {
+      if (page.metadata) {
+        metadata = JSON.parse(page.metadata);
+      }
+    } catch (e) {
+      metadata = {};
+    }
+
+    // Update version retention limit
+    if (updateSettingsDto.versionRetentionLimit !== undefined) {
+      if (updateSettingsDto.versionRetentionLimit < 0) {
+        throw new BadRequestException('Version retention limit must be non-negative');
+      }
+      metadata.versionRetentionLimit = updateSettingsDto.versionRetentionLimit;
+    }
+
+    // Save updated metadata
+    const metadataStr = JSON.stringify(metadata);
+    this.database.run(`
+      UPDATE Page
+      SET metadata = ?
+      WHERE id = ? AND userId = ?
+    `, [metadataStr, pageId, userId]);
+
+    // If retention limit was reduced, enforce it
+    if (updateSettingsDto.versionRetentionLimit !== undefined && updateSettingsDto.versionRetentionLimit > 0) {
+      await this.enforceRetentionLimit(pageId, userId, updateSettingsDto.versionRetentionLimit);
+    }
+
+    return {
+      success: true,
+      message: 'Page settings updated successfully'
+    };
+  }
+
+  /**
+   * Get version retention limit for a page
+   */
+  private getVersionRetentionLimit(pageId: string, userId: string): number {
+    const page = this.database.queryOne(
+      'SELECT metadata FROM Page WHERE id = ? AND userId = ?',
+      [pageId, userId]
+    );
+
+    if (!page || !page.metadata) {
+      return 99; // Default retention limit
+    }
+
+    try {
+      const metadata = JSON.parse(page.metadata);
+      return metadata.versionRetentionLimit ?? 99;
+    } catch (e) {
+      return 99;
+    }
+  }
+
+  /**
+   * Enforce retention limit by deleting oldest versions
+   */
+  private async enforceRetentionLimit(pageId: string, userId: string, limit: number): Promise<void> {
+    // Get all version IDs sorted by creation date (oldest first)
+    const versions = this.database.query(`
+      SELECT id
+      FROM PageVersion
+      WHERE pageId = ?
+      ORDER BY createdAt ASC
+    `, [pageId]);
+
+    // If we have more versions than the limit, delete the oldest ones
+    if (versions.length > limit) {
+      const versionsToDelete = versions.slice(0, versions.length - limit);
+      const versionIds = versionsToDelete.map(v => v.id);
+
+      if (versionIds.length > 0) {
+        const placeholders = versionIds.map(() => '?').join(',');
+        this.database.run(`
+          DELETE FROM PageVersion
+          WHERE id IN (${placeholders})
+        `, versionIds);
+      }
+    }
+  }
+
+  /**
+   * Check if we should create an automatic version (based on time since last version)
+   */
+  private shouldCreateAutomaticVersion(pageId: string, userId: string): boolean {
+    // Get the most recent version
+    const lastVersion = this.database.queryOne(`
+      SELECT createdAt
+      FROM PageVersion
+      WHERE pageId = ?
+      ORDER BY createdAt DESC
+      LIMIT 1
+    `, [pageId]);
+
+    if (!lastVersion) {
+      // No versions exist, create one
+      return true;
+    }
+
+    // Check if at least 2 minutes have passed since the last version
+    const lastVersionDate = new Date(lastVersion.createdAt);
+    const now = new Date();
+    const timeDiff = now.getTime() - lastVersionDate.getTime();
+    const twoMinutesInMs = 2 * 60 * 1000;
+
+    return timeDiff >= twoMinutesInMs;
+  }
+
+  /**
+   * Create automatic version if conditions are met
+   */
+  async createAutomaticVersionIfApplicable(userId: string, pageId: string): Promise<void> {
+    // Check if we should create a version
+    if (!this.shouldCreateAutomaticVersion(pageId, userId)) {
+      return;
+    }
+
+    // Create the version
+    await this.createVersion(userId, pageId, { message: 'Auto-saved' });
   }
 }

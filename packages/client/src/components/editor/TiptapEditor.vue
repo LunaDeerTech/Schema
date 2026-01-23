@@ -14,7 +14,7 @@ import BubbleMenuExtension from '@tiptap/extension-bubble-menu'
 import SlashCommand from './extensions/slash-command'
 import PageReference from './extensions/page-reference'
 import { common, createLowlight } from 'lowlight'
-import { ref, onBeforeUnmount, onMounted, toRaw } from 'vue'
+import { ref, onBeforeUnmount, onMounted, toRaw, watch } from 'vue'
 import { NIcon, useMessage } from 'naive-ui'
 import { uploadApi } from '@/api/upload'
 import {
@@ -62,6 +62,8 @@ const showMarkdownImporter = ref(false)
 
 // Debug props
 console.log('TiptapEditor props:', { pageId: props.pageId, libraryId: props.libraryId });
+console.log('TiptapEditor content type:', typeof props.content);
+console.log('TiptapEditor content:', props.content);
 
 const handleOpenImageUploader = (e: Event) => {
     const customEvent = e as CustomEvent
@@ -184,6 +186,16 @@ const editor = useEditor({
       }
       return false
     }
+  }
+})
+
+// Watch for content changes (e.g., when restoring a version)
+watch(() => props.content, (newContent) => {
+  console.log('TiptapEditor content changed:', newContent);
+  console.log('TiptapEditor content type:', typeof newContent);
+  if (editor.value && newContent) {
+    // Update editor content when props change
+    editor.value.commands.setContent(toRaw(newContent))
   }
 })
 

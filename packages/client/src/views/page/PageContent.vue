@@ -5,11 +5,12 @@ import { useDebounceFn } from '@vueuse/core'
 import { usePageStore } from '@/stores/page'
 import { useLibraryStore } from '@/stores/library'
 import { tagApi } from '@/api/tag'
+import { pageApi } from '@/api/page'
 import type { Tag } from '@/types'
-import { 
+import {
   NBreadcrumb, NBreadcrumbItem,
   NInput, NTag, NButton, NIcon, NSpin, NDrawer, NDrawerContent,
-  useMessage
+  NInputNumber, useMessage
 } from 'naive-ui'
 import { 
   InformationCircleOutline, TimeOutline, ListOutline, GlobeOutline,
@@ -18,6 +19,7 @@ import {
 import TiptapEditor from '@/components/editor/TiptapEditor.vue'
 import IconPicker from '@/components/common/IconPicker.vue'
 import PublicAccessDrawer from '@/components/common/PublicAccessDrawer.vue'
+import VersionHistoryDrawer from '@/components/common/VersionHistoryDrawer.vue'
 
 const route = useRoute()
 const pageStore = usePageStore()
@@ -36,21 +38,25 @@ const showInfo = ref(false)
 const showHistory = ref(false)
 const showTasks = ref(false)
 const showPublic = ref(false)
+const showVersionHistory = ref(false)
 
 // Load page data
 const loadPage = async () => {
   if (!pageId.value || pageId.value === 'undefined') return
-  
+
   loading.value = true
   try {
     await pageStore.fetchPage(pageId.value)
     if (pageStore.currentPage) {
+      console.log('Page content type:', typeof pageStore.currentPage.content)
+      console.log('Page content:', pageStore.currentPage.content)
+
       // Load tags
       const tagsRes = await tagApi.getTagsForPage(pageId.value)
       if (tagsRes.code === 0) {
         pageTags.value = tagsRes.data
       }
-      
+
       // Load all tags for autocomplete
       const allTagsRes = await tagApi.getTags()
       if (allTagsRes.code === 0) {
@@ -123,11 +129,18 @@ const breadcrumbs = computed(() => {
 // Title and Description editing
 const title = ref('')
 const description = ref('')
+const versionRetentionLimit = ref(99)
 
 watch(() => pageStore.currentPage, (newPage) => {
   if (newPage) {
     title.value = newPage.title
     description.value = newPage.description || ''
+    // Load version retention limit from metadata
+    if (newPage.metadata && newPage.metadata.versionRetentionLimit !== undefined) {
+      versionRetentionLimit.value = newPage.metadata.versionRetentionLimit
+    } else {
+      versionRetentionLimit.value = 99
+    }
   }
 })
 
@@ -244,7 +257,7 @@ const handlePageUpdate = (updatedData: any) => {
   if (pageStore.currentPage) {
     // Update local state
     pageStore.currentPage = { ...pageStore.currentPage, ...updatedData }
-    
+
     // If it's a library, update library store too
     if (pageStore.currentPage && pageStore.currentPage.type === 'library') {
       const lib = libraryStore.libraries.find(l => l.id === pageStore.currentPage?.id)
@@ -252,6 +265,30 @@ const handlePageUpdate = (updatedData: any) => {
         Object.assign(lib, updatedData)
       }
     }
+  }
+}
+
+const handleUpdateSettings = async () => {
+  if (!pageStore.currentPage) return
+
+  try {
+    const res = await pageApi.updatePageSettings(pageStore.currentPage.id, {
+      versionRetentionLimit: versionRetentionLimit.value
+    })
+    if (res.code === 0) {
+      message.success('Settings updated successfully')
+      // Update local metadata
+      if (pageStore.currentPage) {
+        const metadata = pageStore.currentPage.metadata || {}
+        metadata.versionRetentionLimit = versionRetentionLimit.value
+        pageStore.currentPage.metadata = metadata
+      }
+    } else {
+      message.error(res.message || 'Failed to update settings')
+    }
+  } catch (e) {
+    console.error('Failed to update settings', e)
+    message.error('Failed to update settings')
   }
 }
 
@@ -298,7 +335,7 @@ const handlePageUpdate = (updatedData: any) => {
           <n-button quaternary circle @click="showInfo = true">
             <template #icon><n-icon><InformationCircleOutline /></n-icon></template>
           </n-button>
-          <n-button quaternary circle @click="showHistory = true">
+          <n-button quaternary circle @click="showVersionHistory = true">
             <template #icon><n-icon><TimeOutline /></n-icon></template>
           </n-button>
           <n-button quaternary circle @click="showTasks = true">
@@ -357,11 +394,47 @@ const handlePageUpdate = (updatedData: any) => {
     </div>
     
     <!-- Drawers/Modals -->
-    <n-drawer v-model:show="showInfo" width="300">
+    <n-drawer v-model:show="showInfo" width="350">
       <n-drawer-content title="Page Info">
-        <p>Page ID: {{ pageStore.currentPage.id }}</p>
-        <p>Library ID: {{ pageStore.currentPage.libraryId }}</p>
-        <!-- Placeholder -->
+        <div class="page-info-content">
+          <div class="info-section">
+            <h4>Basic Information</h4>
+            <p><strong>Page ID:</strong> {{ pageStore.currentPage.id }}</p>
+            <p><strong>Library ID:</strong> {{ pageStore.currentPage.libraryId || 'N/A' }}</p>
+            <p><strong>Type:</strong> {{ pageStore.currentPage.type }}</p>
+          </div>
+
+          <div class="info-section">
+            <h4>Version History Settings</h4>
+            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">
+              Set the maximum number of versions to keep for this page.
+            </p>
+            <n-input-number
+              v-model:value="versionRetentionLimit"
+              :min="0"
+              :max="999"
+              placeholder="99"
+              size="small"
+              style="width: 100%; margin-bottom: 8px;"
+            >
+              <template #suffix>versions</template>
+            </n-input-number>
+            <n-button
+              size="small"
+              type="primary"
+              :disabled="!pageStore.currentPage?.id"
+              @click="handleUpdateSettings"
+            >
+              Save Settings
+            </n-button>
+          </div>
+
+          <div class="info-section">
+            <h4>Timestamps</h4>
+            <p><strong>Created:</strong> {{ new Date(pageStore.currentPage.createdAt).toLocaleString() }}</p>
+            <p><strong>Updated:</strong> {{ new Date(pageStore.currentPage.updatedAt).toLocaleString() }}</p>
+          </div>
+        </div>
       </n-drawer-content>
     </n-drawer>
     
@@ -377,11 +450,17 @@ const handlePageUpdate = (updatedData: any) => {
       </n-drawer-content>
     </n-drawer>
     
-    <PublicAccessDrawer 
-      v-model:show="showPublic" 
+    <PublicAccessDrawer
+      v-model:show="showPublic"
       :type="pageStore.currentPage?.type === 'library' ? 'library' : 'page'"
       :data="pageStore.currentPage"
       @update="handlePageUpdate"
+    />
+
+    <VersionHistoryDrawer
+      v-model:show="showVersionHistory"
+      :page-id="pageStore.currentPage?.id"
+      @restore="loadPage"
     />
   </div>
   <div v-else-if="loading" class="loading-state">
@@ -510,5 +589,35 @@ const handlePageUpdate = (updatedData: any) => {
   align-items: center;
   height: 100%;
   color: #999;
+}
+
+.page-info-content {
+  padding: 8px 0;
+
+  .info-section {
+    margin-bottom: 24px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+
+    h4 {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    p {
+      margin: 4px 0;
+      font-size: 13px;
+      color: #555;
+
+      strong {
+        color: #333;
+        margin-right: 4px;
+      }
+    }
+  }
 }
 </style>
