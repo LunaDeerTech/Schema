@@ -9,8 +9,8 @@ export class UserService {
 
   async findByEmail(email: string): Promise<User | null> {
     const sql = `
-      SELECT id, email, passwordHash, displayName, avatar, settings, createdAt, updatedAt 
-      FROM User 
+      SELECT id, email, passwordHash, displayName, avatar, settings, isAdmin, createdAt, updatedAt
+      FROM User
       WHERE email = ?
     `;
     return this.database.queryOne(sql, [email]) as User | null;
@@ -18,8 +18,8 @@ export class UserService {
 
   async findById(id: string): Promise<User | null> {
     const sql = `
-      SELECT id, email, passwordHash, displayName, avatar, settings, createdAt, updatedAt 
-      FROM User 
+      SELECT id, email, passwordHash, displayName, avatar, settings, isAdmin, createdAt, updatedAt
+      FROM User
       WHERE id = ?
     `;
     return this.database.queryOne(sql, [id]) as User | null;
@@ -36,23 +36,36 @@ export class UserService {
       throw new ConflictException('Email already exists');
     }
 
+    // 检查是否是第一个用户（系统中没有其他用户）
+    const userCount = this.database.queryOne('SELECT COUNT(*) as count FROM User');
+    const isFirstUser = !userCount || userCount.count === 0;
+
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(data.password, saltRounds);
     const id = this.generateId();
     const now = new Date().toISOString();
 
     const sql = `
-      INSERT INTO User (id, email, passwordHash, displayName, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO User (id, email, passwordHash, displayName, isAdmin, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
 
-    this.database.run(sql, [id, data.email, passwordHash, data.displayName || null, now, now]);
+    this.database.run(sql, [
+      id,
+      data.email,
+      passwordHash,
+      data.displayName || null,
+      isFirstUser ? 1 : 0,
+      now,
+      now,
+    ]);
 
     return {
       id,
       email: data.email,
       passwordHash,
       displayName: data.displayName,
+      isAdmin: isFirstUser,
       createdAt: now,
       updatedAt: now,
     };
@@ -97,6 +110,11 @@ export class UserService {
     this.database.run(sql, params);
 
     return (await this.findById(id)) as User;
+  }
+
+  async checkIsAdmin(userId: string): Promise<boolean> {
+    const user = await this.findById(userId);
+    return user?.isAdmin || false;
   }
 
   private generateId(): string {

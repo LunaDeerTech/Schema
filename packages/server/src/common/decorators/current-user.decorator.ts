@@ -6,13 +6,14 @@ export interface CurrentUser {
   email: string;
   displayName?: string;
   avatar?: string;
+  isAdmin?: boolean;
 }
 
 export const CurrentUser = createParamDecorator(
   (data: keyof CurrentUser | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<Request>();
     const user = request.user as CurrentUser;
-    
+
     return data ? user?.[data] : user;
   }
 );

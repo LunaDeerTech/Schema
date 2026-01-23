@@ -7,12 +7,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/jwt-auth.guard';
+import { AdminGuard } from '@/modules/auth/admin.guard';
 import { SystemService } from './system.service';
 import { UpdateSiteInfoDto } from './dto/update-site-info.dto';
 import { UpdateSmtpConfigDto, TestSmtpConfigDto } from './dto/smtp-config.dto';
 
 @Controller('system')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, AdminGuard)
 export class SystemController {
   constructor(private readonly systemService: SystemService) {}
 

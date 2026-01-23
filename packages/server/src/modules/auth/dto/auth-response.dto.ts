@@ -5,5 +5,6 @@ export class AuthResponseDto {
     email: string;
     displayName?: string;
     avatar?: string;
+    isAdmin: boolean;
   };
 }

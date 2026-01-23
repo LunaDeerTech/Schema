@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { h, ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { 
-  NLayout, 
-  NLayoutSider, 
-  NLayoutContent, 
-  NMenu, 
+import {
+  NLayout,
+  NLayoutSider,
+  NLayoutContent,
+  NMenu,
   NIcon,
-  type MenuOption 
+  type MenuOption
 } from 'naive-ui'
 import {
   PersonOutline,
@@ -23,15 +23,17 @@ import {
 } from '@vicons/ionicons5'
 import TopNavigation from '@/components/layout/TopNavigation.vue'
 import { usePageTitle } from '@/composables/usePageTitle'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const route = useRoute()
+const userStore = useUserStore()
 
 // 使用 usePageTitle 来管理页面标题
 usePageTitle()
 
-// Assumption: User is always admin in single-user mode, or check store if implemented
-const isAdmin = ref(true) 
+// Get admin status from user store
+const isAdmin = computed(() => userStore.isAdmin)
 const collapsed = ref(false)
 
 function renderIcon(icon: any) {

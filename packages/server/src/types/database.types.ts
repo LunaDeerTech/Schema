@@ -7,6 +7,7 @@ export interface User {
   displayName?: string;
   avatar?: string;
   settings?: string;
+  isAdmin: boolean;
   createdAt: string;
   updatedAt: string;
 }

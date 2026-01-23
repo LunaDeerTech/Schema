@@ -9,6 +9,7 @@ export interface User {
   email: string
   displayName?: string
   avatar?: string
+  isAdmin: boolean
 }
 
 export interface AuthResult {
@@ -27,6 +28,7 @@ export const useUserStore = defineStore('user', () => {
   const isAuthenticated = computed(() => !!token.value)
   const userName = computed(() => user.value?.displayName || user.value?.email || '')
   const userId = computed(() => user.value?.id || '')
+  const isAdmin = computed(() => user.value?.isAdmin || false)
 
   // Actions
   const setToken = (newToken: string) => {
@@ -213,6 +215,7 @@ export const useUserStore = defineStore('user', () => {
     isAuthenticated,
     userName,
     userId,
+    isAdmin,
 
     // Actions
     login,

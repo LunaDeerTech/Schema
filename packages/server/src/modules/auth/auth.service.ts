@@ -41,9 +41,9 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload: JwtPayload = { 
-      sub: user.id, 
-      email: user.email 
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email
     };
 
     return {
@@ -53,6 +53,7 @@ export class AuthService {
         email: user.email,
         displayName: user.displayName,
         avatar: user.avatar,
+        isAdmin: user.isAdmin,
       },
     };
   }
@@ -72,9 +73,9 @@ export class AuthService {
     });
 
     // Generate JWT token
-    const payload: JwtPayload = { 
-      sub: user.id, 
-      email: user.email 
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email
     };
 
     return {
@@ -84,6 +85,7 @@ export class AuthService {
         email: user.email,
         displayName: user.displayName,
         avatar: user.avatar,
+        isAdmin: user.isAdmin,
       },
     };
   }
@@ -213,6 +215,7 @@ export class AuthService {
         email: user.email,
         displayName: user.displayName,
         avatar: user.avatar,
+        isAdmin: user.isAdmin,
       },
     };
   }

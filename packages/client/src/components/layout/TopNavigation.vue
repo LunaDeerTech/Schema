@@ -49,33 +49,44 @@ const openHelp = () => {
   showHelp.value = true
 }
 
-// User Menu Options
-const userOptions = [
-  {
-    label: 'Profile Settings',
-    key: 'profile',
-    icon: () => h(NIcon, null, { default: () => h(PersonIcon) })
-  },
-  {
-    label: 'Your Contents',
-    key: 'content',
-    icon: () => h(NIcon, null, { default: () => h(MenuIcon) })
-  },
-  {
-    label: 'Settings',
-    key: 'settings',
-    icon: () => h(NIcon, null, { default: () => h(SettingsIcon) })
-  },
-  {
-    type: 'divider',
-    key: 'd1'
-  },
-  {
-    label: 'Logout',
-    key: 'logout',
-    icon: () => h(NIcon, null, { default: () => h(LogOutIcon) })
+// User Menu Options (computed based on admin status)
+const userOptions = computed(() => {
+  const options = [
+    {
+      label: 'Profile Settings',
+      key: 'profile',
+      icon: () => h(NIcon, null, { default: () => h(PersonIcon) })
+    },
+    {
+      label: 'Your Contents',
+      key: 'content',
+      icon: () => h(NIcon, null, { default: () => h(MenuIcon) })
+    }
+  ]
+
+  // Only show Settings option for admin users
+  if (userStore.isAdmin) {
+    options.push({
+      label: 'Settings',
+      key: 'settings',
+      icon: () => h(NIcon, null, { default: () => h(SettingsIcon) })
+    })
   }
-]
+
+  options.push(
+    {
+      type: 'divider',
+      key: 'd1'
+    } as any,
+    {
+      label: 'Logout',
+      key: 'logout',
+      icon: () => h(NIcon, null, { default: () => h(LogOutIcon) })
+    }
+  )
+
+  return options
+})
 
 const handleUserSelect = (key: string) => {
   if (key === 'logout') {

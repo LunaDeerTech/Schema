@@ -5,6 +5,7 @@ export class UserResponseDto {
   email: string;
   displayName?: string;
   avatar?: string;
+  isAdmin: boolean;
   createdAt: Date;
   updatedAt: Date;
 
@@ -14,6 +15,7 @@ export class UserResponseDto {
     dto.email = user.email;
     dto.displayName = user.displayName;
     dto.avatar = user.avatar;
+    dto.isAdmin = user.isAdmin;
     dto.createdAt = new Date(user.createdAt);
     dto.updatedAt = new Date(user.updatedAt);
     return dto;
