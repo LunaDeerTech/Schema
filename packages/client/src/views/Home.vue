@@ -581,7 +581,19 @@ onUnmounted(() => {
 
   .lib-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+  }
+
+  :deep(.n-card-header) {
+    align-items: flex-start !important;
+  }
+
+  :deep(.n-card-header__main) {
+    align-self: flex-start !important;
+  }
+
+  :deep(.n-card-header__extra) {
+    align-self: flex-start !important;
   }
 
   .lib-desc {
