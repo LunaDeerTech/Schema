@@ -37,6 +37,7 @@ export interface AuthResponse {
       displayName?: string
       avatar?: string
       isAdmin: boolean
+      isBanned?: boolean
     }
   }
 }
@@ -49,6 +50,7 @@ export interface UserResponse {
     displayName?: string
     avatar?: string
     isAdmin: boolean
+    isBanned?: boolean
   }
 }
 

@@ -19,7 +19,8 @@ import {
   CopyOutline,
   InformationCircleOutline,
   MailOutline,
-  ShieldCheckmarkOutline
+  ShieldCheckmarkOutline,
+  PeopleOutline
 } from '@vicons/ionicons5'
 import TopNavigation from '@/components/layout/TopNavigation.vue'
 import { usePageTitle } from '@/composables/usePageTitle'
@@ -113,6 +114,11 @@ const menuOptions = computed<MenuOption[]>(() => {
           label: 'Access Configuration',
           key: 'access',
           icon: renderIcon(ShieldCheckmarkOutline)
+        },
+        {
+          label: 'User Management',
+          key: 'users',
+          icon: renderIcon(PeopleOutline)
         }
       ]
     })

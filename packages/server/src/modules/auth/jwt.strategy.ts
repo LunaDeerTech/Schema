@@ -29,12 +29,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException();
     }
 
+    // Check if user is banned
+    if (user.isBanned) {
+      throw new UnauthorizedException('Your account has been banned');
+    }
+
     return {
       id: user.id,
       email: user.email,
       displayName: user.displayName,
       avatar: user.avatar,
       isAdmin: user.isAdmin,
+      isBanned: user.isBanned,
     };
   }
 }

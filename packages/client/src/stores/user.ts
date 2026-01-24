@@ -10,6 +10,7 @@ export interface User {
   displayName?: string
   avatar?: string
   isAdmin: boolean
+  isBanned?: boolean
 }
 
 export interface AuthResult {

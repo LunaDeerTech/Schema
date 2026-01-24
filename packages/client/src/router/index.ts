@@ -109,6 +109,12 @@ const routes: RouteRecordRaw[] = [
         name: 'SettingsAccess',
         component: () => import('@/views/settings/SettingsPlaceholder.vue'),
         meta: { title: 'Access Configuration' }
+      },
+      {
+        path: 'users',
+        name: 'SettingsUsers',
+        component: () => import('@/views/settings/UserManagement.vue'),
+        meta: { title: 'User Management' }
       }
     ]
   },

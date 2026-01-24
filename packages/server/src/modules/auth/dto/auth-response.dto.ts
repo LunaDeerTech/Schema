@@ -6,5 +6,6 @@ export class AuthResponseDto {
     displayName?: string;
     avatar?: string;
     isAdmin: boolean;
+    isBanned: boolean;
   };
 }

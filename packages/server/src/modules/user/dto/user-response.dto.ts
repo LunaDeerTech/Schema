@@ -6,6 +6,7 @@ export class UserResponseDto {
   displayName?: string;
   avatar?: string;
   isAdmin: boolean;
+  isBanned: boolean;
   createdAt: Date;
   updatedAt: Date;
 
@@ -16,6 +17,7 @@ export class UserResponseDto {
     dto.displayName = user.displayName;
     dto.avatar = user.avatar;
     dto.isAdmin = user.isAdmin;
+    dto.isBanned = user.isBanned;
     dto.createdAt = new Date(user.createdAt);
     dto.updatedAt = new Date(user.updatedAt);
     return dto;

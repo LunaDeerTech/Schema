@@ -3,13 +3,27 @@ import { DatabaseService } from '@/database/database.service';
 import { User } from '@/types/database.types';
 import * as bcrypt from 'bcrypt';
 
+export interface UserListQuery {
+  page?: number;
+  pageSize?: number;
+  email?: string;
+}
+
+export interface UserListResponse {
+  items: User[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+}
+
 @Injectable()
 export class UserService {
   constructor(private readonly database: DatabaseService) {}
 
   async findByEmail(email: string): Promise<User | null> {
     const sql = `
-      SELECT id, email, passwordHash, displayName, avatar, settings, isAdmin, createdAt, updatedAt
+      SELECT id, email, passwordHash, displayName, avatar, settings, isAdmin, isBanned, createdAt, updatedAt
       FROM User
       WHERE email = ?
     `;
@@ -18,11 +32,71 @@ export class UserService {
 
   async findById(id: string): Promise<User | null> {
     const sql = `
-      SELECT id, email, passwordHash, displayName, avatar, settings, isAdmin, createdAt, updatedAt
+      SELECT id, email, passwordHash, displayName, avatar, settings, isAdmin, isBanned, createdAt, updatedAt
       FROM User
       WHERE id = ?
     `;
     return this.database.queryOne(sql, [id]) as User | null;
+  }
+
+  async list(query: UserListQuery): Promise<UserListResponse> {
+    const page = query.page || 1;
+    const pageSize = query.pageSize || 10;
+    const offset = (page - 1) * pageSize;
+
+    let whereClause = '';
+    const params: any[] = [];
+
+    if (query.email) {
+      whereClause = 'WHERE email LIKE ?';
+      params.push(`%${query.email}%`);
+    }
+
+    // Get total count
+    const countSql = `SELECT COUNT(*) as count FROM User ${whereClause}`;
+    const countResult = this.database.queryOne(countSql, params);
+    const total = countResult?.count || 0;
+
+    // Get users
+    const sql = `
+      SELECT id, email, passwordHash, displayName, avatar, settings, isAdmin, isBanned, createdAt, updatedAt
+      FROM User
+      ${whereClause}
+      ORDER BY createdAt DESC
+      LIMIT ? OFFSET ?
+    `;
+    const items = this.database.queryAll(sql, [...params, pageSize, offset]) as User[];
+
+    return {
+      items,
+      total,
+      page,
+      pageSize,
+      hasMore: offset + items.length < total
+    };
+  }
+
+  async toggleBan(id: string, isBanned: boolean): Promise<User> {
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const now = new Date().toISOString();
+    const sql = `UPDATE User SET isBanned = ?, updatedAt = ? WHERE id = ?`;
+    this.database.run(sql, [isBanned ? 1 : 0, now, id]);
+
+    return (await this.findById(id)) as User;
+  }
+
+  async delete(id: string): Promise<void> {
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const sql = `DELETE FROM User WHERE id = ?`;
+    this.database.run(sql, [id]);
   }
 
   async create(data: {
@@ -46,8 +120,8 @@ export class UserService {
     const now = new Date().toISOString();
 
     const sql = `
-      INSERT INTO User (id, email, passwordHash, displayName, isAdmin, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO User (id, email, passwordHash, displayName, isAdmin, isBanned, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     this.database.run(sql, [
@@ -56,6 +130,7 @@ export class UserService {
       passwordHash,
       data.displayName || null,
       isFirstUser ? 1 : 0,
+      0,
       now,
       now,
     ]);
@@ -66,6 +141,7 @@ export class UserService {
       passwordHash,
       displayName: data.displayName,
       isAdmin: isFirstUser,
+      isBanned: false,
       createdAt: now,
       updatedAt: now,
     };

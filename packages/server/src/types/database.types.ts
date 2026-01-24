@@ -8,6 +8,7 @@ export interface User {
   avatar?: string;
   settings?: string;
   isAdmin: boolean;
+  isBanned: boolean;
   createdAt: string;
   updatedAt: string;
 }

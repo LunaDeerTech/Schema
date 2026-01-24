@@ -54,6 +54,7 @@ export class AuthService {
         displayName: user.displayName,
         avatar: user.avatar,
         isAdmin: user.isAdmin,
+        isBanned: user.isBanned,
       },
     };
   }
@@ -86,6 +87,7 @@ export class AuthService {
         displayName: user.displayName,
         avatar: user.avatar,
         isAdmin: user.isAdmin,
+        isBanned: user.isBanned,
       },
     };
   }
@@ -216,6 +218,7 @@ export class AuthService {
         displayName: user.displayName,
         avatar: user.avatar,
         isAdmin: user.isAdmin,
+        isBanned: user.isBanned,
       },
     };
   }

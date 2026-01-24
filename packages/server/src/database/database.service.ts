@@ -54,6 +54,7 @@ export class DatabaseService implements OnModuleDestroy {
         avatar TEXT,
         settings TEXT DEFAULT '{}',
         isAdmin INTEGER DEFAULT 0,
+        isBanned INTEGER DEFAULT 0,
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
         updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
       )
