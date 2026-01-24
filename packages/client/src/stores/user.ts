@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { authApi, type LoginRequest, type RegisterRequest, type SendVerificationRequest, type VerifyCodeRequest, type RegisterWithCodeRequest } from '@/api/auth'
+import { authApi, type LoginRequest, type RegisterRequest, type SendVerificationRequest, type VerifyCodeRequest, type RegisterWithCodeRequest, type SendResetPasswordRequest, type ResetPasswordRequest } from '@/api/auth'
 import { userApi, type UpdateProfileRequest } from '@/api/user'
 import { STORAGE_TOKEN_KEY } from '@/constants'
 
@@ -206,6 +206,46 @@ export const useUserStore = defineStore('user', () => {
     clearUser()
   }
 
+  const sendResetPassword = async (data: SendResetPasswordRequest): Promise<AuthResult> => {
+    loading.value = true
+    try {
+      const response = await authApi.sendResetPassword(data)
+
+      if (response.code === 0) {
+        return { success: true, data: response.data }
+      } else {
+        return { success: false, error: '发送验证码失败' }
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message || '发送验证码失败，请检查网络连接'
+      }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const resetPassword = async (data: ResetPasswordRequest): Promise<AuthResult> => {
+    loading.value = true
+    try {
+      const response = await authApi.resetPassword(data)
+
+      if (response.code === 0) {
+        return { success: true, data: response.data }
+      } else {
+        return { success: false, error: '重置密码失败' }
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message || '重置密码失败，请检查网络连接'
+      }
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     // State
     user,
@@ -224,6 +264,8 @@ export const useUserStore = defineStore('user', () => {
     sendVerification,
     verifyCode,
     registerWithCode,
+    sendResetPassword,
+    resetPassword,
     fetchProfile,
     updateProfile,
     logout

@@ -5,6 +5,8 @@ import { RegisterDto } from './dto/register.dto';
 import { SendVerificationDto } from './dto/send-verification.dto';
 import { VerifyCodeDto } from './dto/verify-code.dto';
 import { RegisterWithCodeDto } from './dto/register-with-code.dto';
+import { SendResetPasswordDto } from './dto/send-reset-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { Request } from 'express';
 
@@ -57,5 +59,19 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async getProfile(@Req() req: Request) {
     return req.user;
+  }
+
+  @Post('send-reset-password')
+  async sendResetPassword(@Body() sendResetPasswordDto: SendResetPasswordDto) {
+    return this.authService.sendVerificationCode(sendResetPasswordDto.email, 'reset-password');
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPasswordWithCode(
+      resetPasswordDto.email,
+      resetPasswordDto.newPassword,
+      resetPasswordDto.verificationCode,
+    );
   }
 }

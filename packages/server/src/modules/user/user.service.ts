@@ -188,6 +188,22 @@ export class UserService {
     return (await this.findById(id)) as User;
   }
 
+  async updatePassword(id: string, newPassword: string): Promise<User> {
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(newPassword, saltRounds);
+    const now = new Date().toISOString();
+
+    const sql = `UPDATE User SET passwordHash = ?, updatedAt = ? WHERE id = ?`;
+    this.database.run(sql, [passwordHash, now, id]);
+
+    return (await this.findById(id)) as User;
+  }
+
   async checkIsAdmin(userId: string): Promise<boolean> {
     const user = await this.findById(userId);
     return user?.isAdmin || false;

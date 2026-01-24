@@ -16,6 +16,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresGuest: true }
   },
   {
+    path: '/forget-password',
+    name: 'ForgetPassword',
+    component: () => import('@/views/ForgetPassword.vue'),
+    meta: { requiresGuest: true }
+  },
+  {
     path: '/',
     component: () => import('@/layouts/MainLayout.vue'),
     meta: { requiresAuth: true },

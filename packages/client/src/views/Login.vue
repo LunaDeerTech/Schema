@@ -37,15 +37,25 @@
           >
             登录
           </n-button>
-          
-          <n-button
-            text
-            type="primary"
-            @click="$router.push('/register')"
-            :disabled="userStore.loading"
-          >
-            没有账号？立即注册
-          </n-button>
+
+          <n-space justify="space-between">
+            <n-button
+              text
+              type="primary"
+              @click="$router.push('/register')"
+              :disabled="userStore.loading"
+            >
+              没有账号？立即注册
+            </n-button>
+            <n-button
+              text
+              type="primary"
+              @click="$router.push('/forget-password')"
+              :disabled="userStore.loading"
+            >
+              忘记密码？
+            </n-button>
+          </n-space>
         </n-space>
       </n-form>
     </n-card>

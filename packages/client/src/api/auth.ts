@@ -27,6 +27,16 @@ export interface RegisterWithCodeRequest {
   verificationCode: string
 }
 
+export interface SendResetPasswordRequest {
+  email: string
+}
+
+export interface ResetPasswordRequest {
+  email: string
+  verificationCode: string
+  newPassword: string
+}
+
 export interface AuthResponse {
   code: number
   data: {
@@ -77,6 +87,12 @@ export const authApi = {
 
   registerWithCode: (data: RegisterWithCodeRequest) =>
     api.post<AuthResponse>('/auth/register-with-code', data),
+
+  sendResetPassword: (data: SendResetPasswordRequest) =>
+    api.post<VerificationResponse>('/auth/send-reset-password', data),
+
+  resetPassword: (data: ResetPasswordRequest) =>
+    api.post<VerificationResponse>('/auth/reset-password', data),
 
   getProfile: () =>
     api.get<UserResponse>('/auth/profile'),

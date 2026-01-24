@@ -97,13 +97,20 @@ export class AuthService {
   }
 
   /**
-   * 发送邮箱验证码
+   * 发送邮箱验证码（用于注册或忘记密码）
+   * @param email 邮箱地址
+   * @param type 验证码类型：'register' 或 'reset-password'
    */
-  async sendVerificationCode(email: string): Promise<{ success: boolean; message: string }> {
+  async sendVerificationCode(email: string, type: 'register' | 'reset-password' = 'register'): Promise<{ success: boolean; message: string }> {
     // 检查用户是否已存在
     const existingUser = await this.userService.findByEmail(email);
-    if (existingUser) {
+
+    if (type === 'register' && existingUser) {
       throw new ConflictException('该邮箱已注册');
+    }
+
+    if (type === 'reset-password' && !existingUser) {
+      throw new BadRequestException('该邮箱未注册');
     }
 
     // 生成6位验证码
@@ -134,8 +141,16 @@ export class AuthService {
       });
 
       // 获取邮件主题和模板，如果没有配置则使用默认值
-      const subject = smtpConfig.registerSubject || 'Schema - 邮箱验证码';
-      const template = smtpConfig.registerTemplate || this.getDefaultRegisterTemplate();
+      let subject: string;
+      let template: string;
+
+      if (type === 'register') {
+        subject = smtpConfig.registerSubject || 'Schema - 邮箱验证码';
+        template = smtpConfig.registerTemplate || this.getDefaultRegisterTemplate();
+      } else {
+        subject = smtpConfig.resetPasswordSubject || 'Schema - 重置密码验证码';
+        template = smtpConfig.resetPasswordTemplate || this.getDefaultResetPasswordTemplate();
+      }
 
       // 替换模板中的占位符
       const html = template.replace(/{{code}}/g, code);
@@ -163,6 +178,15 @@ export class AuthService {
   }
 
   /**
+   * 获取默认的重置密码邮件模板
+   */
+  private getDefaultResetPasswordTemplate(): string {
+    return `
+      Your password reset verification code is: {{code}}
+    `;
+  }
+
+  /**
    * 验证邮箱验证码
    */
   async verifyVerificationCode(email: string, code: string): Promise<{ success: boolean; message: string }> {
@@ -181,8 +205,8 @@ export class AuthService {
       throw new BadRequestException('验证码错误');
     }
 
-    // 验证成功后删除验证码
-    this.verificationCodes.delete(email);
+    // 验证成功后不删除验证码，让后续操作（如重置密码）可以继续使用
+    // 验证码会在后续操作成功后删除，或者在过期后自动删除
 
     return { success: true, message: '验证码验证成功' };
   }
@@ -220,6 +244,42 @@ export class AuthService {
         isAdmin: user.isAdmin,
         isBanned: user.isBanned,
       },
+    };
+  }
+
+  /**
+   * 使用验证码重置密码
+   */
+  async resetPasswordWithCode(email: string, newPassword: string, verificationCode?: string) {
+    // 检查用户是否存在
+    const existingUser = await this.userService.findByEmail(email);
+    if (!existingUser) {
+      throw new BadRequestException('该邮箱未注册');
+    }
+
+    // 验证验证码（如果提供了验证码）
+    if (verificationCode) {
+      const stored = this.verificationCodes.get(email);
+      if (!stored) {
+        throw new BadRequestException('验证码已过期或未发送');
+      }
+      if (stored.expiresAt < Date.now()) {
+        this.verificationCodes.delete(email);
+        throw new BadRequestException('验证码已过期');
+      }
+      if (stored.code !== verificationCode) {
+        throw new BadRequestException('验证码错误');
+      }
+      // 验证成功后删除验证码
+      this.verificationCodes.delete(email);
+    }
+
+    // 更新用户密码
+    await this.userService.updatePassword(existingUser.id, newPassword);
+
+    return {
+      success: true,
+      message: '密码重置成功',
     };
   }
 }
