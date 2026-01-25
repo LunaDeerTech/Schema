@@ -2,7 +2,7 @@ import { Controller, Post, Get, Delete, Put, Param, UseInterceptors, UploadedFil
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { JwtAuthGuard } from '../../modules/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { DatabaseService } from '../../database/database.service';
 import * as fs from 'fs';
