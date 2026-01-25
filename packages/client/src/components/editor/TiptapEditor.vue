@@ -192,12 +192,25 @@ const editor = useEditor({
 })
 
 // Watch for content changes (e.g., when restoring a version)
+// Only update if content is actually different to avoid cursor jumps during auto-save
+let lastContentHash = ''
 watch(() => props.content, (newContent) => {
   console.log('TiptapEditor content changed:', newContent);
   console.log('TiptapEditor content type:', typeof newContent);
+
   if (editor.value && newContent) {
-    // Update editor content when props change
-    editor.value.commands.setContent(toRaw(newContent))
+    // Create a simple hash to compare content
+    const contentString = JSON.stringify(newContent)
+    const currentHash = editor.value.getJSON ? JSON.stringify(editor.value.getJSON()) : ''
+
+    // Only update if content is different and not just a re-render
+    if (contentString !== currentHash && contentString !== lastContentHash) {
+      console.log('Updating editor content (content actually changed)');
+      editor.value.commands.setContent(toRaw(newContent))
+      lastContentHash = contentString
+    } else {
+      console.log('Skipping editor update (content unchanged)');
+    }
   }
 })
 
