@@ -4,12 +4,11 @@
   "description": "Schema backend API",
   "scripts": {
     "build": "nest build",
+    "build:client": "pnpm --filter @schema/client build",
     "dev": "nest start --watch",
+    "dev:client": "pnpm --filter @schema/client dev",
     "start": "node dist/main.js",
-    "lint": "eslint . --ext .ts",
-    "db:init": "ts-node src/database/init-db.ts",
-    "db:migrate": "ts-node -e \"const { DatabaseService } = require('./dist/src/database/database.service'); const { runMigrations } = require('./dist/src/database/migrator'); const db = new DatabaseService(); db.onModuleInit().then(() => { runMigrations(db); db.onModuleDestroy(); });\"",
-    "db:test-restructure": "ts-node src/database/test-restructure.ts"
+    "lint": "eslint . --ext .ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.0",
