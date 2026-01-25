@@ -88,8 +88,8 @@ const columns: DataTableColumns<AdminUser> = [
     title: 'Actions',
     key: 'actions',
     width: 200,
-    render: (row) => {
-      const actions = []
+    render: (row: AdminUser): ReturnType<typeof h> => {
+      const actions: ReturnType<typeof h>[] = []
 
       // Toggle Ban (only if not self)
       if (row.id !== userStore.userId) {
@@ -120,7 +120,7 @@ const columns: DataTableColumns<AdminUser> = [
             },
             {
               default: () => 'Are you sure you want to delete this user?',
-              trigger: () => h(
+              trigger: (): ReturnType<typeof h> => h(
                 NButton,
                 {
                   type: 'error',
