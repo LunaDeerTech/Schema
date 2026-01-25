@@ -48,8 +48,8 @@ const loadPage = async () => {
   try {
     await pageStore.fetchPage(pageId.value)
     if (pageStore.currentPage) {
-      console.log('Page content type:', typeof pageStore.currentPage.content)
-      console.log('Page content:', pageStore.currentPage.content)
+      console.debug('Page content type:', typeof pageStore.currentPage.content)
+      console.debug('Page content:', pageStore.currentPage.content)
 
       // Load tags
       const tagsRes = await tagApi.getTagsForPage(pageId.value)

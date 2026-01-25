@@ -62,15 +62,15 @@ const wrapperRef = ref<HTMLElement | null>(null)
 const showMarkdownImporter = ref(false)
 
 // Debug props
-console.log('TiptapEditor props:', { pageId: props.pageId, libraryId: props.libraryId });
-console.log('TiptapEditor content type:', typeof props.content);
-console.log('TiptapEditor content:', props.content);
+console.debug('TiptapEditor props:', { pageId: props.pageId, libraryId: props.libraryId });
+console.debug('TiptapEditor content type:', typeof props.content);
+console.debug('TiptapEditor content:', props.content);
 
 const handleOpenImageUploader = (e: Event) => {
     const customEvent = e as CustomEvent
     const { left, bottom, top } = customEvent.detail.pos
     
-    console.log('handleOpenImageUploader - props:', { pageId: props.pageId, libraryId: props.libraryId });
+    console.debug('handleOpenImageUploader - props:', { pageId: props.pageId, libraryId: props.libraryId });
     
     if (wrapperRef.value) {
         const wrapperRect = wrapperRef.value.getBoundingClientRect()
@@ -169,7 +169,7 @@ const editor = useEditor({
           event.preventDefault() // Prevent default browser behavior (download)
           const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY })
           if (coordinates) {
-             console.log('handleDrop - uploading with pageId:', props.pageId, 'libraryId:', props.libraryId);
+             console.debug('handleDrop - uploading with pageId:', props.pageId, 'libraryId:', props.libraryId);
              uploadApi.uploadImage(file, props.pageId, props.libraryId).then(res => {
                  const url = res.url || (res.data && res.data.url)
                  if (url) {
@@ -195,8 +195,8 @@ const editor = useEditor({
 // Only update if content is actually different to avoid cursor jumps during auto-save
 let lastContentHash = ''
 watch(() => props.content, (newContent) => {
-  console.log('TiptapEditor content changed:', newContent);
-  console.log('TiptapEditor content type:', typeof newContent);
+  console.debug('TiptapEditor content changed:', newContent);
+  console.debug('TiptapEditor content type:', typeof newContent);
 
   if (editor.value && newContent) {
     // Create a simple hash to compare content
@@ -205,11 +205,11 @@ watch(() => props.content, (newContent) => {
 
     // Only update if content is different and not just a re-render
     if (contentString !== currentHash && contentString !== lastContentHash) {
-      console.log('Updating editor content (content actually changed)');
+      console.debug('Updating editor content (content actually changed)');
       editor.value.commands.setContent(toRaw(newContent))
       lastContentHash = contentString
     } else {
-      console.log('Skipping editor update (content unchanged)');
+      console.debug('Skipping editor update (content unchanged)');
     }
   }
 })

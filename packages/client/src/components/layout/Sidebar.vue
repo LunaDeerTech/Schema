@@ -255,7 +255,7 @@ const handleDrop = async ({ node, dragNode, dropPosition }: { node: TreeOption, 
     }
   }
 
-  console.log('Moving page:', { dragNodeId, newParentId, sortOrder, dropPosition })
+  console.debug('Moving page:', { dragNodeId, newParentId, sortOrder, dropPosition })
 
   // Call store action to move page
   try {

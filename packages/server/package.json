@@ -5,7 +5,7 @@
   "scripts": {
     "build": "nest build",
     "dev": "nest start --watch",
-    "start": "node dist/src/main.js",
+    "start": "node dist/main.js",
     "lint": "eslint . --ext .ts",
     "db:init": "ts-node src/database/init-db.ts",
     "db:migrate": "ts-node -e \"const { DatabaseService } = require('./dist/src/database/database.service'); const { runMigrations } = require('./dist/src/database/migrator'); const db = new DatabaseService(); db.onModuleInit().then(() => { runMigrations(db); db.onModuleDestroy(); });\"",
@@ -20,6 +20,7 @@
     "@nestjs/platform-express": "^10.3.0",
     "bcrypt": "^5.1.1",
     "better-sqlite3": "^12.5.0",
+    "body-parser": "^1.20.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
     "multer": "^2.0.2",

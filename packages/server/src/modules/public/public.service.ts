@@ -8,7 +8,7 @@ export class PublicService {
   constructor(private readonly database: DatabaseService) {}
 
   async findPageBySlug(slug: string): Promise<PageResponseDto & { author?: any }> {
-    console.log(`Finding public page by slug: ${slug}`);
+    console.debug(`Finding public page by slug: ${slug}`);
     // Try to find by publicSlug first
     let page = this.database.queryOne(`
       SELECT p.*, 
@@ -22,7 +22,7 @@ export class PublicService {
 
     // If not found, try by ID (if slug looks like UUID or just fallback)
     if (!page) {
-       console.log(`Page not found by slug, trying ID: ${slug}`);
+       console.debug(`Page not found by slug, trying ID: ${slug}`);
        page = this.database.queryOne(`
         SELECT p.*, 
                l.title as libraryTitle,
@@ -35,7 +35,7 @@ export class PublicService {
     }
 
     if (!page) {
-      console.log(`Page not found or not public: ${slug}`);
+      console.debug(`Page not found or not public: ${slug}`);
       throw new NotFoundException('Page not found or not public');
     }
 
@@ -75,14 +75,14 @@ export class PublicService {
   }
 
   async findLibraryBySlug(slug: string): Promise<LibraryResponseDto> {
-    console.log(`Finding public library by slug: ${slug}`);
+    console.debug(`Finding public library by slug: ${slug}`);
     
     // Debug query to see if it exists at all
     const debugLib = this.database.queryOne(
         "SELECT id, title, isPublic, publicSlug, type FROM Page WHERE publicSlug = ? OR id = ?", 
         [slug, slug]
     );
-    console.log('Debug library lookup:', debugLib);
+    console.debug('Debug library lookup:', debugLib);
 
     let library = this.database.queryOne(`
       SELECT 
@@ -93,7 +93,7 @@ export class PublicService {
     `, [slug]);
 
     if (!library) {
-       console.log(`Not found by slug, trying ID: ${slug}`);
+       console.debug(`Not found by slug, trying ID: ${slug}`);
        library = this.database.queryOne(`
         SELECT 
           l.*,
@@ -104,7 +104,7 @@ export class PublicService {
     }
 
     if (!library) {
-      console.log(`Library not found or not public: ${slug}`);
+      console.debug(`Library not found or not public: ${slug}`);
       throw new NotFoundException('Library not found or not public');
     }
 

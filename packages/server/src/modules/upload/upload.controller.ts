@@ -39,12 +39,12 @@ export class UploadController {
     const id = this.database.queryOne('SELECT hex(randomblob(16)) as id').id;
     const now = new Date().toISOString();
 
-    console.log('=== Upload Image Debug ===');
-    console.log('req.body:', req.body);
-    console.log('pageId:', pageId, 'type:', typeof pageId);
-    console.log('libraryId:', libraryId, 'type:', typeof libraryId);
-    console.log('userId:', userId);
-    console.log('=========================');
+    console.debug('=== Upload Image Debug ===');
+    console.debug('req.body:', req.body);
+    console.debug('pageId:', pageId, 'type:', typeof pageId);
+    console.debug('libraryId:', libraryId, 'type:', typeof libraryId);
+    console.debug('userId:', userId);
+    console.debug('=========================');
 
     // 记录上传的图片信息
     this.database.run(
@@ -170,42 +170,42 @@ export class UploadController {
       throw new BadRequestException('Image not found or unauthorized');
     }
 
-    console.log('=== Replace Image Debug ===');
-    console.log('Old image:', oldImage);
-    console.log('New file:', file.filename, file.originalname);
-    console.log('process.cwd():', process.cwd());
+    console.debug('=== Replace Image Debug ===');
+    console.debug('Old image:', oldImage);
+    console.debug('New file:', file.filename, file.originalname);
+    console.debug('process.cwd():', process.cwd());
 
     // 使用与 main.ts 相同的路径逻辑
     const uploadDir = process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads');
-    console.log('Upload directory:', uploadDir);
+    console.debug('Upload directory:', uploadDir);
 
     // 删除旧的物理文件
     const oldFilePath = path.join(uploadDir, oldImage.filename);
-    console.log('Old file path:', oldFilePath);
-    console.log('Old file exists:', fs.existsSync(oldFilePath));
+    console.debug('Old file path:', oldFilePath);
+    console.debug('Old file exists:', fs.existsSync(oldFilePath));
     
     if (fs.existsSync(oldFilePath)) {
       fs.unlinkSync(oldFilePath);
-      console.log('Old file deleted');
+      console.debug('Old file deleted');
     }
 
     // 将新上传的文件重命名为旧文件名（保持URL不变）
     const newFilePath = path.join(uploadDir, file.filename);
     const targetFilePath = oldFilePath; // 使用旧文件的路径
     
-    console.log('New file path:', newFilePath);
-    console.log('New file exists:', fs.existsSync(newFilePath));
-    console.log('Target file path:', targetFilePath);
+    console.debug('New file path:', newFilePath);
+    console.debug('New file exists:', fs.existsSync(newFilePath));
+    console.debug('Target file path:', targetFilePath);
     
     // 确保新文件存在后再重命名
     if (fs.existsSync(newFilePath)) {
       fs.renameSync(newFilePath, targetFilePath);
-      console.log('File renamed successfully');
+      console.debug('File renamed successfully');
     } else {
-      console.log('ERROR: New file not found!');
+      console.debug('ERROR: New file not found!');
       throw new BadRequestException('Uploaded file not found');
     }
-    console.log('=========================');
+    console.debug('=========================');
 
     // 更新数据库记录（保持 filename 和 url 不变，更新文件元信息包括原始文件名）
     const now = new Date().toISOString();

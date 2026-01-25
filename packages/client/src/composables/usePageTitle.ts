@@ -22,7 +22,7 @@ export function usePageTitle(customTitle?: { icon?: string; title?: string }) {
     const isLibraryRoute = routeName === 'Library'
     const isPublicLibraryRoute = routeName === 'PublicLibrary'
     
-    console.log('updateTitle called:', { routeName, meta: route.meta, customTitle })
+    console.debug('updateTitle called:', { routeName, meta: route.meta, customTitle })
     
     // 如果提供了自定义标题（用于公开页面等场景）
     if (customTitle && customTitle.title) {
@@ -58,18 +58,18 @@ export function usePageTitle(customTitle?: { icon?: string; title?: string }) {
       fullTitle = `${nameTitle} - ${baseTitle}`
     }
     
-    console.log('Setting title to:', fullTitle)
+    console.debug('Setting title to:', fullTitle)
     document.title = fullTitle
   }
 
   // 监听路由变化 - 使用 immediate 立即执行
   watch(() => route.path, () => {
-    console.log('route.path changed:', route.path)
+    console.debug('route.path changed:', route.path)
     updateTitle()
   }, { immediate: true })
   
   watch(() => route.name, () => {
-    console.log('route.name changed:', route.name)
+    console.debug('route.name changed:', route.name)
     updateTitle()
   })
 

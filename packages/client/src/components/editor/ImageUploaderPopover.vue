@@ -22,8 +22,8 @@ const message = useMessage()
 // Debug: Watch for visibility changes
 watch(() => props.visible, (newVal) => {
   if (newVal) {
-    console.log('=== ImageUploaderPopover visible ===');
-    console.log('props:', { pageId: props.pageId, libraryId: props.libraryId });
+    console.debug('=== ImageUploaderPopover visible ===');
+    console.debug('props:', { pageId: props.pageId, libraryId: props.libraryId });
   }
 })
 const loading = ref(false)
@@ -63,10 +63,10 @@ watch(() => props.visible, async (val) => {
 
 const handleUpload = async (file: File) => {
   loading.value = true
-  console.log('=== ImageUploaderPopover handleUpload ===');
-  console.log('props.pageId:', props.pageId);
-  console.log('props.libraryId:', props.libraryId);
-  console.log('=========================================');
+  console.debug('=== ImageUploaderPopover handleUpload ===');
+  console.debug('props.pageId:', props.pageId);
+  console.debug('props.libraryId:', props.libraryId);
+  console.debug('=========================================');
   try {
     const res = await uploadApi.uploadImage(file, props.pageId, props.libraryId)
     // Check if res.data exists, otherwise use res directly if interceptor unwraps it

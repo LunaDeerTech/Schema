@@ -38,7 +38,7 @@ const publicLink = computed(() => {
 async function handlePublicChange(value: boolean) {
   if (!props.data) return
   
-  console.log('handlePublicChange', { value, type: props.type, id: props.data.id });
+  console.debug('handlePublicChange', { value, type: props.type, id: props.data.id });
   loading.value = true
   try {
     let updatedData
@@ -48,9 +48,9 @@ async function handlePublicChange(value: boolean) {
       updatedData = res.data
     } else {
       // @ts-ignore
-      console.log('Calling updateLibrary with', { isPublic: value });
+      console.debug('Calling updateLibrary with', { isPublic: value });
       const res = await libraryApi.updateLibrary(props.data.id, { isPublic: value })
-      console.log('updateLibrary response', res);
+      console.debug('updateLibrary response', res);
       updatedData = res.data
     }
     

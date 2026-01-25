@@ -24,18 +24,18 @@ async function bootstrap() {
 
   // Serve uploaded files - PRIORITY OVER FRONTEND ASSETS
   const uploadDir = configService.get('UPLOAD_DIR') || join(process.cwd(), 'uploads');
-  console.log('----------------------------------------');
-  console.log('Static Assets Configuration:');
-  console.log('Upload Directory:', uploadDir);
-  console.log('Upload Prefix:', '/uploads');
-  console.log('----------------------------------------');
+  console.debug('----------------------------------------');
+  console.debug('Static Assets Configuration:');
+  console.debug('Upload Directory:', uploadDir);
+  console.debug('Upload Prefix:', '/uploads');
+  console.debug('----------------------------------------');
   
   app.useStaticAssets(uploadDir, {
     prefix: '/uploads',
   });
 
   // Serve static files from frontend build
-  const clientDistPath = join(__dirname, '..', '..', '..', 'client', 'dist');
+  const clientDistPath = join(__dirname, '..', '..', '..', 'packages', 'client', 'dist');
   app.useStaticAssets(clientDistPath, {
     prefix: '/',
   });

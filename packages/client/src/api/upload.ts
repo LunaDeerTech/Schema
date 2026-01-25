@@ -2,26 +2,26 @@ import httpClient from './http'
 
 export const uploadApi = {
   async uploadImage(file: File, pageId?: string, libraryId?: string) {
-    console.log('=== uploadImage called ===');
-    console.log('file:', file.name);
-    console.log('pageId:', pageId);
-    console.log('libraryId:', libraryId);
+    console.debug('=== uploadImage called ===');
+    console.debug('file:', file.name);
+    console.debug('pageId:', pageId);
+    console.debug('libraryId:', libraryId);
     
     const formData = new FormData()
     formData.append('file', file)
     if (pageId) {
       formData.append('pageId', pageId)
-      console.log('Added pageId to formData');
+      console.debug('Added pageId to formData');
     }
     if (libraryId) {
       formData.append('libraryId', libraryId)
-      console.log('Added libraryId to formData');
+      console.debug('Added libraryId to formData');
     }
     
     // Log FormData contents
-    console.log('FormData contents:');
+    console.debug('FormData contents:');
     for (let [key, value] of formData.entries()) {
-      console.log(`  ${key}:`, value);
+      console.debug(`  ${key}:`, value);
     }
     
     const response = await httpClient.post<any>('/upload/image', formData, {

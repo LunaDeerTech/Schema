@@ -129,10 +129,10 @@ export class LibraryService {
    * Update a library
    */
   async update(userId: string, id: string, updateLibraryDto: UpdateLibraryDto): Promise<LibraryResponseDto> {
-    console.log(`Updating library ${id} for user ${userId}`, updateLibraryDto);
+    console.debug(`Updating library ${id} for user ${userId}`, updateLibraryDto);
     // Verify library exists and belongs to user
     const library = await this.findOne(userId, id);
-    console.log('Found library:', library);
+    console.debug('Found library:', library);
 
     // Check publicSlug uniqueness if being updated
     if (updateLibraryDto.publicSlug) {
@@ -176,14 +176,14 @@ export class LibraryService {
       // Ensure boolean conversion for main update
       const isPublicVal = (updateLibraryDto.isPublic === true || String(updateLibraryDto.isPublic) === 'true') ? 1 : 0;
       params.push(isPublicVal);
-      console.log(`Setting isPublic to ${isPublicVal} for library ${id}`);
+      console.debug(`Setting isPublic to ${isPublicVal} for library ${id}`);
 
       if (isPublicVal === 1 && !library.publicSlug) {
         // Generate simple random slug if not present
         const newSlug = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
         updates.push('publicSlug = ?');
         params.push(newSlug);
-        console.log(`Generated new public slug for library ${id}: ${newSlug}`);
+        console.debug(`Generated new public slug for library ${id}: ${newSlug}`);
       }
     }
 
@@ -198,7 +198,7 @@ export class LibraryService {
     }
 
     if (updates.length === 0) {
-      console.log('No updates to perform for library', id);
+      console.debug('No updates to perform for library', id);
       return this.findOne(userId, id);
     }
 
@@ -208,7 +208,7 @@ export class LibraryService {
     params.push(userId);
 
     const sql = `UPDATE Page SET ${updates.join(', ')} WHERE id = ? AND userId = ?`;
-    console.log('Executing library update SQL:', sql, params);
+    console.debug('Executing library update SQL:', sql, params);
 
     this.database.run(sql, params);
 
@@ -216,20 +216,20 @@ export class LibraryService {
     if (updateLibraryDto.isPublic !== undefined) {
       // Ensure boolean conversion
       const isPublicVal = (updateLibraryDto.isPublic === true || String(updateLibraryDto.isPublic) === 'true') ? 1 : 0;
-      console.log(`Cascading public status ${isPublicVal} (from ${updateLibraryDto.isPublic}) to pages in library ${id}`);
+      console.debug(`Cascading public status ${isPublicVal} (from ${updateLibraryDto.isPublic}) to pages in library ${id}`);
       
       const pages = this.database.query(
         "SELECT id, publicSlug FROM Page WHERE libraryId = ? AND type = 'page'",
         [id]
       );
-      console.log(`Found ${pages.length} pages to update`);
+      console.debug(`Found ${pages.length} pages to update`);
 
       for (const page of pages) {
          let slug = page.publicSlug;
          // If enabling public access and no slug exists, generate one
          if (isPublicVal && !slug) {
              slug = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
-             console.log(`Generated slug for page ${page.id}: ${slug}`);
+             console.debug(`Generated slug for page ${page.id}: ${slug}`);
          }
          this.database.run(
             'UPDATE Page SET isPublic = ?, publicSlug = ? WHERE id = ?',
