@@ -69,7 +69,7 @@ export const Admonition = Node.create<AdmonitionOptions>({
   },
 
   addNodeView() {
-    return VueNodeViewRenderer(AdmonitionView)
+    return VueNodeViewRenderer(AdmonitionView as any)
   },
 
   addCommands() {
@@ -89,7 +89,7 @@ export const Admonition = Node.create<AdmonitionOptions>({
                 content: [
                   {
                     type: 'text',
-                    text: 'Type your admonition content here...',
+                    text: 'Type Something',
                   },
                 ],
               },
