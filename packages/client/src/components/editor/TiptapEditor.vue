@@ -13,6 +13,7 @@ import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import BubbleMenuExtension from '@tiptap/extension-bubble-menu'
 import SlashCommand from './extensions/slash-command'
 import PageReference from './extensions/page-reference'
+import { Admonition } from './extensions/admonition'
 import { common, createLowlight } from 'lowlight'
 import { ref, onBeforeUnmount, onMounted, toRaw, watch } from 'vue'
 import { NIcon, useMessage } from 'naive-ui'
@@ -155,6 +156,7 @@ const editor = useEditor({
     BubbleMenuExtension,
     SlashCommand,
     PageReference,
+    Admonition,
   ],
   onUpdate: ({ editor }: { editor: any }) => {
     emit('update', editor.getJSON())
@@ -484,6 +486,49 @@ watch(() => props.content, (newContent) => {
         margin-left: 0;
         padding-left: 1em;
         color: #6B7280;
+      }
+
+      /* Admonitions */
+      [data-admonition] {
+        margin: 1em 0;
+
+        .admonition-content {
+          border-radius: 8px;
+          border: 1px solid;
+          padding: 12px 16px;
+          position: relative;
+
+          .admonition-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+
+            .admonition-title {
+              font-weight: 600;
+            }
+          }
+
+          .admonition-body {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #374151;
+
+            p {
+              margin: 0;
+
+              &:first-child {
+                margin-top: 0;
+              }
+
+              &:last-child {
+                margin-bottom: 0;
+              }
+            }
+          }
+        }
       }
       
       /* Placeholder */

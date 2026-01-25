@@ -13,6 +13,10 @@ import {
   ImageOutline,
   GridOutline,
   DocumentTextOutline,
+  InformationCircleOutline,
+  WarningOutline,
+  CheckmarkCircleOutline,
+  CloseCircleOutline,
 } from '@vicons/ionicons5'
 
 const getSuggestionItems = ({ query }: { query: string }) => {
@@ -86,6 +90,34 @@ const getSuggestionItems = ({ query }: { query: string }) => {
       icon: ChatboxEllipsesOutline,
       command: ({ editor, range }: any) => {
         editor.chain().focus().deleteRange(range).toggleBlockquote().run()
+      },
+    },
+    {
+      title: 'Admonition - Info',
+      icon: InformationCircleOutline,
+      command: ({ editor, range }: any) => {
+        editor.chain().focus().deleteRange(range).insertAdmonition({ type: 'info' }).run()
+      },
+    },
+    {
+      title: 'Admonition - Warning',
+      icon: WarningOutline,
+      command: ({ editor, range }: any) => {
+        editor.chain().focus().deleteRange(range).insertAdmonition({ type: 'warning' }).run()
+      },
+    },
+    {
+      title: 'Admonition - Success',
+      icon: CheckmarkCircleOutline,
+      command: ({ editor, range }: any) => {
+        editor.chain().focus().deleteRange(range).insertAdmonition({ type: 'success' }).run()
+      },
+    },
+    {
+      title: 'Admonition - Danger',
+      icon: CloseCircleOutline,
+      command: ({ editor, range }: any) => {
+        editor.chain().focus().deleteRange(range).insertAdmonition({ type: 'danger' }).run()
       },
     },
     {
