@@ -35,7 +35,7 @@ async function bootstrap() {
   });
 
   // Serve static files from frontend build
-  const clientDistPath = join(__dirname, '..', '..', '..', 'packages', 'client', 'dist');
+  const clientDistPath = join(__dirname, 'frontend');
   app.useStaticAssets(clientDistPath, {
     prefix: '/',
   });
