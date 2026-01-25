@@ -1,22 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import {
-  userApi,
-  type UserListQuery,
-  type UserListResponse
-} from '@/api/user'
-import type { UserResponse } from '@/api/auth'
+import { userApi, type UserListQuery, type UserListResponse, type UserData } from '@/api/user'
 
-export interface AdminUser {
-  id: string
-  email: string
-  displayName?: string
-  avatar?: string
-  isAdmin: boolean
-  isBanned: boolean
-  createdAt: string
-  updatedAt: string
-}
+export interface AdminUser extends UserData {}
 
 export interface AdminResult {
   success: boolean
@@ -39,7 +25,7 @@ export const useAdminStore = defineStore('admin', () => {
   const fetchUsers = async (query: UserListQuery = {}): Promise<AdminResult> => {
     loading.value = true
     try {
-      const response = await userApi.getUsers(query)
+      const response: UserListResponse = await userApi.getUsers(query)
 
       if (response.code === 0) {
         users.value = response.data.items

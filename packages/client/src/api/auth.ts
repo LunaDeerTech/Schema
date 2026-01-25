@@ -60,7 +60,9 @@ export interface UserResponse {
     displayName?: string
     avatar?: string
     isAdmin: boolean
-    isBanned?: boolean
+    isBanned: boolean
+    createdAt: string
+    updatedAt: string
   }
 }
 

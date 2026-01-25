@@ -12,12 +12,28 @@ export interface UserListQuery {
   email?: string
 }
 
-export interface UserListResponse {
-  items: UserResponse[]
+export interface UserData {
+  id: string
+  email: string
+  displayName?: string
+  avatar?: string
+  isAdmin: boolean
+  isBanned: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface UserListData {
+  items: UserData[]
   total: number
   page: number
   pageSize: number
   hasMore: boolean
+}
+
+export interface UserListResponse {
+  code: number
+  data: UserListData
 }
 
 export const userApi = {
