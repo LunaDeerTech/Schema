@@ -40,12 +40,14 @@ export const Admonition = Node.create<AdmonitionOptions>({
     return {
       type: {
         default: 'info',
+        parseHTML: element => element.getAttribute('data-type'),
         renderHTML: attributes => ({
           'data-type': attributes.type,
         }),
       },
       title: {
         default: null,
+        parseHTML: element => element.getAttribute('data-title'),
         renderHTML: attributes => {
           if (!attributes.title) return {}
           return {

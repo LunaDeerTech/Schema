@@ -53,9 +53,6 @@ const config = computed(() => {
   return typeConfig[props.node.attrs.type as keyof typeof typeConfig] || typeConfig.info
 })
 
-const title = computed(() => {
-  return props.node.attrs.title || config.value.title
-})
 </script>
 
 <template>
@@ -71,9 +68,17 @@ const title = computed(() => {
         <n-icon size="18" :style="{ color: config.textColor }">
           <component :is="config.icon" />
         </n-icon>
-        <span class="admonition-title" :style="{ color: config.textColor }">
-          {{ title }}
-        </span>
+        <input
+          class="admonition-title"
+          :value="node.attrs.title"
+          :placeholder="config.title"
+          @input="
+            updateAttributes({
+              title: ($event.target as HTMLInputElement).value,
+            })
+          "
+          :style="{ color: config.textColor }"
+        />
       </div>
       <div class="admonition-body">
         <node-view-content class="content" />
@@ -105,6 +110,20 @@ const title = computed(() => {
 
 .admonition-title {
   font-weight: 600;
+  font-family: inherit;
+  font-size: 14px;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+  width: 100%;
+}
+
+.admonition-title::placeholder {
+  color: currentColor;
+  opacity: 0.8;
 }
 
 .admonition-body {
