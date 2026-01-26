@@ -8,7 +8,8 @@
     "dev": "nest start --watch",
     "dev:client": "pnpm --filter @schema/client dev",
     "start": "node dist/main.js",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts",
+    "pack": "node pack.js"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.0",
