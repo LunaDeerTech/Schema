@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 
 /**
- * Schema 项目打包脚本
- * 功能：
- * 1. 构建后端 (NestJS)
- * 2. 构建前端 (Vue 3 + Vite)
- * 3. 将前端构建文件移动到 dist/frontend 目录
+ * Schema Project Packaging Script
+ * Features:
+ * 1. Build backend (NestJS)
+ * 2. Build frontend (Vue 3 + Vite)
+ * 3. Move frontend build files to dist/frontend directory
  */
 
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-// 配置
+// Configuration
 const CONFIG = {
   frontendDir: path.join(__dirname, 'client'),
   backendDir: __dirname,
@@ -21,7 +21,7 @@ const CONFIG = {
   frontendBuildOutputDir: path.join(__dirname, 'client', 'dist'),
 };
 
-// 颜色输出
+// Color output
 const colors = {
   reset: '\x1b[0m',
   green: '\x1b[32m',
@@ -52,72 +52,72 @@ function warn(message) {
   log(`⚠️  ${message}`, 'yellow');
 }
 
-// 执行命令
+// Execute command
 function runCommand(command, cwd, errorMessage) {
   try {
-    log(`执行命令: ${command}`, 'blue');
+    log(`Executing command: ${command}`, 'blue');
     execSync(command, { 
       cwd, 
       stdio: 'inherit',
-      shell: 'cmd.exe' // Windows 使用 cmd.exe
+      shell: 'cmd.exe' // Windows uses cmd.exe
     });
     return true;
   } catch (err) {
-    error(errorMessage || `命令执行失败: ${command}`);
+    error(errorMessage || `Command failed: ${command}`);
     return false;
   }
 }
 
-// 清理 dist 目录
+// Clean dist directory
 function cleanDist() {
-  info('清理 dist 目录...');
+  info('Cleaning dist directory...');
   if (fs.existsSync(CONFIG.distDir)) {
     fs.rmSync(CONFIG.distDir, { recursive: true, force: true });
-    success('dist 目录已清理');
+    success('dist directory cleaned');
   } else {
-    info('dist 目录不存在，无需清理');
+    info('dist directory does not exist, no cleanup needed');
   }
 }
 
-// 构建后端
+// Build backend
 function buildBackend() {
-  info('开始构建后端...');
+  info('Starting backend build...');
   const result = runCommand(
     'pnpm build',
     CONFIG.backendDir,
-    '后端构建失败'
+    'Backend build failed'
   );
   if (result) {
-    success('后端构建完成');
+    success('Backend build completed');
   }
   return result;
 }
 
-// 构建前端
+// Build frontend
 function buildFrontend() {
-  info('开始构建前端...');
+  info('Starting frontend build...');
   const result = runCommand(
     'pnpm build',
     CONFIG.frontendDir,
-    '前端构建失败'
+    'Frontend build failed'
   );
   if (result) {
-    success('前端构建完成');
+    success('Frontend build completed');
   }
   return result;
 }
 
-// 移动前端构建文件
+// Move frontend build files
 function moveFrontendBuild() {
-  info('移动前端构建文件到 dist/frontend...');
+  info('Moving frontend build files to dist/frontend...');
   
-  // 检查前端构建输出目录是否存在
+  // Check if frontend build output directory exists
   if (!fs.existsSync(CONFIG.frontendBuildOutputDir)) {
-    error(`前端构建输出目录不存在: ${CONFIG.frontendBuildOutputDir}`);
+    error(`Frontend build output directory does not exist: ${CONFIG.frontendBuildOutputDir}`);
     return false;
   }
 
-  // 创建 dist/frontend 目录
+  // Create dist/frontend directory
   if (!fs.existsSync(CONFIG.distDir)) {
     fs.mkdirSync(CONFIG.distDir, { recursive: true });
   }
@@ -126,50 +126,50 @@ function moveFrontendBuild() {
     fs.rmSync(CONFIG.frontendDistDir, { recursive: true, force: true });
   }
 
-  // 移动文件
+  // Move files
   fs.renameSync(CONFIG.frontendBuildOutputDir, CONFIG.frontendDistDir);
-  success('前端构建文件已移动到 dist/frontend');
+  success('Frontend build files moved to dist/frontend');
   
   return true;
 }
 
-// 主函数
+// Main function
 function main() {
   log('========================================', 'cyan');
-  log('Schema 项目打包脚本', 'cyan');
+  log('Schema Project Packaging Script', 'cyan');
   log('========================================', 'cyan');
   
-  // 检查工作目录
+  // Check working directory
   if (!fs.existsSync(path.join(__dirname, 'package.json'))) {
-    error('请在项目根目录运行此脚本');
+    error('Please run this script from the project root directory');
   }
 
-  // 1. 清理 dist 目录
+  // 1. Clean dist directory
   cleanDist();
   
-  // 2. 构建后端
+  // 2. Build backend
   if (!buildBackend()) {
-    error('后端构建失败，终止打包');
+    error('Backend build failed, terminating packaging');
   }
   
-  // 3. 构建前端
+  // 3. Build frontend
   if (!buildFrontend()) {
-    error('前端构建失败，终止打包');
+    error('Frontend build failed, terminating packaging');
   }
   
-  // 4. 移动前端构建文件
+  // 4. Move frontend build files
   if (!moveFrontendBuild()) {
-    error('移动前端构建文件失败');
+    error('Failed to move frontend build files');
   }
   
   log('========================================', 'cyan');
-  success('打包完成！');
+  success('Packaging complete!');
   log('========================================', 'cyan');
-  log('输出目录:', 'yellow');
-  log(`  - 后端: ${path.join(CONFIG.distDir, 'main.js')}`, 'yellow');
-  log(`  - 前端: ${CONFIG.frontendDistDir}`, 'yellow');
+  log('Output directories:', 'yellow');
+  log(`  - Backend: ${path.join(CONFIG.distDir, 'main.js')}`, 'yellow');
+  log(`  - Frontend: ${CONFIG.frontendDistDir}`, 'yellow');
   log('========================================', 'cyan');
 }
 
-// 运行主函数
+// Run main function
 main();
