@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # Schema 应用服务
+  schema:
+    image: 
+    container_name: schema-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # 应用配置
+      - NODE_ENV=production
+      - PORT=3000
+
+      # 数据库配置（使用容器内路径）
+      - DATABASE_URL=/app/db/schema-database.sqlite
+
+      # JWT 配置
+      - JWT_SECRET=!!!CHANGE_THIS!!!
+      - JWT_EXPIRES_IN=7d
+
+      # 文件上传配置
+      - UPLOAD_DIR=/app/uploads
+      - MAX_FILE_SIZE=10485760
+    volumes:
+      - ./db:/app/db
+      - ./uploads:/app/uploads
+
