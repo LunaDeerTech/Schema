@@ -203,7 +203,7 @@ NODE_ENV=development
 PORT=3000
 
 # Database
-DATABASE_URL="file:./dev.db"
+DB_PATH="file:./dev.db"
 
 # JWT
 JWT_SECRET=your-super-secret-key-change-in-production
