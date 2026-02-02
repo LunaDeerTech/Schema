@@ -10,7 +10,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - DATABASE_URL=/app/db/schema-database.sqlite
+      - DB_PATH=/app/db/schema-database.sqlite
       - JWT_SECRET=!!!CHANGE_THIS!!!
       - JWT_EXPIRES_IN=7d
       - UPLOAD_DIR=/app/uploads

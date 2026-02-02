@@ -23,7 +23,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   // Serve uploaded files - PRIORITY OVER FRONTEND ASSETS
-  const uploadDir = configService.get('UPLOAD_DIR') || join(process.cwd(), 'uploads');
+  const uploadDir = process.env.UPLOAD_DIR || configService.get<string>('static.uploadDir') || join(__dirname, '..', 'uploads');
   console.debug('----------------------------------------');
   console.debug('Static Assets Configuration:');
   console.debug('Upload Directory:', uploadDir);

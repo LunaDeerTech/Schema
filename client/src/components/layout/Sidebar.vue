@@ -28,6 +28,7 @@ import { usePageStore } from '@/stores/page'
 
 const props = defineProps<{
   collapsed: boolean
+  isMobile?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -40,6 +41,29 @@ const libraryStore = useLibraryStore()
 const pageStore = usePageStore()
 const message = useMessage()
 const dialog = useDialog()
+
+const componentType = computed(() => {
+  return props.isMobile ? 'div' : NLayoutSider
+})
+
+const bindProps = computed(() => {
+  if (props.isMobile) {
+    return {
+      class: 'sidebar mobile-sidebar'
+    }
+  }
+  return {
+    bordered: true,
+    'collapse-mode': 'width',
+    'collapsed-width': 64,
+    width: 260,
+    collapsed: props.collapsed,
+    'show-trigger': true,
+    class: 'sidebar',
+    onCollapse: () => emit('update:collapsed', true),
+    onExpand: () => emit('update:collapsed', false)
+  }
+})
 
 // Create Library Modal State
 const showCreateLibraryModal = ref(false)
@@ -394,20 +418,10 @@ watch(() => pageStore.currentPage, async (page) => {
 </script>
 
 <template>
-  <n-layout-sider
-    bordered
-    collapse-mode="width"
-    :collapsed-width="64"
-    :width="260"
-    :collapsed="collapsed"
-    show-trigger
-    @collapse="emit('update:collapsed', true)"
-    @expand="emit('update:collapsed', false)"
-    class="sidebar"
-  >
+  <component :is="componentType" v-bind="bindProps">
     <div class="sidebar-content">
       <!-- Library Switcher -->
-      <div class="library-section" v-if="!collapsed">
+      <div class="library-section" v-if="(!collapsed || isMobile)">
         <n-space vertical :size="12">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <n-text depth="3" class="section-label">LIBRARY</n-text>
@@ -445,7 +459,7 @@ watch(() => pageStore.currentPage, async (page) => {
       </div>
 
       <!-- Page Tree -->
-      <div class="page-tree-section" v-if="!collapsed">
+      <div class="page-tree-section" v-if="(!collapsed || isMobile)">
         <div class="tree-header">
           <n-text depth="3" class="section-label">PAGES</n-text>
           <n-button text size="tiny" @click="handleCreatePage">
@@ -571,7 +585,7 @@ watch(() => pageStore.currentPage, async (page) => {
     </n-modal>
 
 
-  </n-layout-sider>
+  </component>
 </template>
 
 <style scoped lang="scss">

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, h } from 'vue'
 import { useRoute } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import { usePageStore } from '@/stores/page'
@@ -10,12 +10,13 @@ import type { Tag } from '@/types'
 import {
   NBreadcrumb, NBreadcrumbItem,
   NInput, NTag, NButton, NIcon, NSpin, NDrawer, NDrawerContent,
-  NInputNumber, useMessage
+  NInputNumber, useMessage, NDropdown
 } from 'naive-ui'
 import { 
   InformationCircleOutline, TimeOutline, ListOutline, GlobeOutline,
-  AddOutline
+  AddOutline, EllipsisHorizontalOutline
 } from '@vicons/ionicons5'
+import { useBreakpoints, breakpointsTailwind } from '@vueuse/core'
 import TiptapEditor from '@/components/editor/TiptapEditor.vue'
 import IconPicker from '@/components/common/IconPicker.vue'
 import PublicAccessDrawer from '@/components/common/PublicAccessDrawer.vue'
@@ -25,6 +26,9 @@ const route = useRoute()
 const pageStore = usePageStore()
 const libraryStore = useLibraryStore()
 const message = useMessage()
+
+const breakpoints = useBreakpoints(breakpointsTailwind)
+const isMobile = breakpoints.smaller('lg')
 
 const pageId = computed(() => route.params.id as string)
 const loading = ref(false)
@@ -292,6 +296,21 @@ const handleUpdateSettings = async () => {
   }
 }
 
+// Mobile Actions Menu
+const mobileActionOptions = [
+  { label: 'Info', key: 'info', icon: () => h(NIcon, null, { default: () => h(InformationCircleOutline) }) },
+  { label: 'History', key: 'history', icon: () => h(NIcon, null, { default: () => h(TimeOutline) }) },
+  { label: 'Tasks', key: 'tasks', icon: () => h(NIcon, null, { default: () => h(ListOutline) }) },
+  { label: 'Public Access', key: 'public', icon: () => h(NIcon, null, { default: () => h(GlobeOutline) }) },
+]
+
+const handleMobileActionSelect = (key: string) => {
+  if (key === 'info') showInfo.value = true
+  if (key === 'history') showVersionHistory.value = true
+  if (key === 'tasks') showTasks.value = true
+  if (key === 'public') showPublic.value = true
+}
+
 </script>
 
 <template>
@@ -303,8 +322,8 @@ const handleUpdateSettings = async () => {
           {{ crumb.label }}
         </n-breadcrumb-item>
       </n-breadcrumb>
-      
-      <div class="header-main">
+
+      <div class="header-main" :class="{ 'mobile-header': isMobile }">
         <div class="title-section">
           <IconPicker 
             :value="pageStore.currentPage.icon ?? undefined"
@@ -331,7 +350,7 @@ const handleUpdateSettings = async () => {
           </div>
         </div>
         
-        <div class="actions">
+        <div class="actions" v-if="!isMobile">
           <n-button quaternary circle @click="showInfo = true">
             <template #icon><n-icon><InformationCircleOutline /></n-icon></template>
           </n-button>
@@ -344,6 +363,13 @@ const handleUpdateSettings = async () => {
           <n-button quaternary circle @click="showPublic = true">
             <template #icon><n-icon><GlobeOutline /></n-icon></template>
           </n-button>
+        </div>
+        <div class="actions-mobile" v-else>
+           <n-dropdown :options="mobileActionOptions" @select="handleMobileActionSelect">
+             <n-button quaternary circle>
+                <template #icon><n-icon><EllipsisHorizontalOutline /></n-icon></template>
+             </n-button>
+           </n-dropdown>
         </div>
       </div>
       
@@ -476,6 +502,10 @@ const handleUpdateSettings = async () => {
   padding: 24px;
   max-width: 900px;
   margin: 0 auto;
+
+  @media (max-width: 1024px) {
+    padding: 16px;
+  }
 }
 
 .page-header {
@@ -488,6 +518,14 @@ const handleUpdateSettings = async () => {
     margin-top: 16px;
     margin-bottom: 16px;
     
+    &.mobile-header {
+       align-items: flex-start;
+       
+       .title-section {
+          max-width: calc(100% - 40px);
+       }
+    }
+
     .title-section {
       flex: 1;
       margin-right: 16px;

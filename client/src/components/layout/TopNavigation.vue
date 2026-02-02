@@ -30,6 +30,7 @@ import { useSystemStore } from '@/stores/system'
 
 const props = defineProps<{
   collapsed: boolean
+  isMobile?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -158,10 +159,10 @@ const searchResults = [
     </div>
 
     <div class="nav-center">
-      <div class="search-trigger" @click="openSearch">
+      <div class="search-trigger" @click="openSearch" :class="{ 'mobile-search': isMobile }">
         <n-icon :component="SearchIcon" class="search-icon" />
-        <span class="search-placeholder">Search pages, tags, content...</span>
-        <span class="search-shortcut">Ctrl+K</span>
+        <span class="search-placeholder" v-if="!isMobile">Search pages, tags, content...</span>
+        <span class="search-shortcut" v-if="!isMobile">Ctrl+K</span>
       </div>
     </div>
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, h, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, h, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   NGrid, 
@@ -37,6 +37,7 @@ import {
   TrashOutline as TrashIcon,
   EllipsisHorizontal as MoreIcon
 } from '@vicons/ionicons5'
+import { useBreakpoints, breakpointsTailwind } from '@vueuse/core'
 import { useUserStore } from '@/stores/user'
 import { useLibraryStore } from '@/stores/library'
 import { pageApi } from '@/api/page'
@@ -45,15 +46,20 @@ const router = useRouter()
 const userStore = useUserStore()
 const libraryStore = useLibraryStore()
 const message = useMessage()
+const breakpoints = useBreakpoints(breakpointsTailwind)
+const isMobile = breakpoints.smaller('sm')
+const isTablet = breakpoints.smaller('lg')
 
 // Layout State
 const rightDrawerCollapsed = ref(false)
 
-const handleResize = () => {
-  if (window.innerWidth < 1024 && !rightDrawerCollapsed.value) {
+// Initial collapsed state check
+onMounted(() => {
+  if (isTablet.value) {
     rightDrawerCollapsed.value = true
   }
-}
+})
+
 
 // Create Library Modal State
 const showCreateLibraryModal = ref(false)
@@ -281,16 +287,17 @@ const navigateToPage = (id: string) => {
 
 onMounted(async () => {
   updateGreeting()
-  handleResize()
-  window.addEventListener('resize', handleResize)
   await Promise.all([
     libraryStore.fetchLibraries(),
     fetchRecentPages()
   ])
 })
 
+watch(isTablet, (val: boolean) => {
+  if (val) rightDrawerCollapsed.value = true
+})
+
 onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -382,12 +389,13 @@ onUnmounted(() => {
       <n-layout-sider
         collapse-mode="transform"
         :collapsed-width="0"
-        :width="360"
+        :width="isMobile ? 280 : 360"
         show-trigger="arrow-circle"
         bordered
         :native-scrollbar="false"
         v-model:collapsed="rightDrawerCollapsed"
         style="background: transparent;"
+        class="right-drawer"
       >
         <div class="right-drawer-content">
           <n-space vertical :size="24">

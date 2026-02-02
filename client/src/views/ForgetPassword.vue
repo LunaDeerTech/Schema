@@ -330,6 +330,10 @@ onUnmounted(() => {
   min-height: 100vh;
   background-color: $ios-background-primary;
   padding: 20px;
+
+  @media (max-width: 480px) {
+    padding: 12px;
+  }
 }
 
 .forget-password-card {
@@ -349,6 +353,10 @@ onUnmounted(() => {
 
   :deep(.n-card__content) {
     padding: 32px 24px;
+    
+    @media (max-width: 480px) {
+      padding: 24px 16px;
+    }
   }
 }
 </style>

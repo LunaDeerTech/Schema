@@ -17,7 +17,29 @@ const props = defineProps<{
   tree: Page[]
   currentId?: string
   library?: Library | null
+  isMobile?: boolean
 }>()
+
+const componentType = computed(() => {
+  return props.isMobile ? 'div' : NLayoutSider
+})
+
+const bindProps = computed(() => {
+  if (props.isMobile) {
+    return {
+      class: 'public-sidebar mobile-sidebar'
+    }
+  }
+  return {
+    bordered: true,
+    width: collapsed.value ? 64 : 280,
+    'collapsed-width': 64,
+    'native-scrollbar': false,
+    class: 'public-sidebar',
+    collapsed: collapsed.value,
+    'show-trigger': false
+  }
+})
 
 const router = useRouter()
 
@@ -81,21 +103,13 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
 </script>
 
 <template>
-  <NLayoutSider
-    bordered
-    :width="collapsed ? 64 : 280"
-    :collapsed-width="64"
-    :native-scrollbar="false"
-    class="public-sidebar"
-    :collapsed="collapsed"
-    :show-trigger="false"
-  >
+  <component :is="componentType" v-bind="bindProps">
     <div class="sidebar-content" style="padding-bottom: 60px;">
       <!-- Library Info with Collapse Toggle -->
       <div v-if="library" class="library-info">
         <div 
           class="library-card" 
-          :class="{ active: currentId === library.id, collapsed: collapsed }"
+          :class="{ active: currentId === library.id, collapsed: collapsed && !isMobile }"
           @click="goToLibrary"
         >
           <div class="library-icon-wrapper">
@@ -104,11 +118,11 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
               <BookOutline />
             </NIcon>
           </div>
-          <div v-if="!collapsed" class="library-details">
+          <div v-if="!collapsed || isMobile" class="library-details">
             <span class="library-name">{{ library.title }}</span>
           </div>
           <NButton
-            v-if="!collapsed"
+            v-if="(!collapsed || isMobile) && !isMobile"
             text
             size="small"
             class="collapse-btn"
@@ -122,7 +136,7 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
         
         <!-- Expand button when collapsed -->
         <NButton
-          v-if="collapsed"
+          v-if="collapsed && !isMobile"
           text
           size="small"
           class="expand-btn"
@@ -135,7 +149,7 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
       </div>
       
       <!-- Pages Tree -->
-      <div v-if="!collapsed" class="tree-container">
+      <div v-if="!collapsed || isMobile" class="tree-container">
         <div class="tree-label">PAGES</div>
         <NTree
           block-line
@@ -154,7 +168,7 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
     </div>
     
     <!-- Footer Section (Fixed at absolute bottom) -->
-    <div class="sidebar-footer" v-if="!collapsed">
+    <div class="sidebar-footer" v-if="!collapsed || isMobile">
       <div class="footer-content">
         <NText depth="3" style="font-size: 12px">
           {{ systemStore.siteTitle }}
@@ -172,7 +186,7 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
         </NText>
       </div>
     </div>
-  </NLayoutSider>
+  </component>
 </template>
 
 <style scoped lang="scss">
