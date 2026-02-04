@@ -41,14 +41,19 @@ http.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
       
-      const userStore = useUserStore()
+      // Skip redirect for public API routes - they don't require auth
+      const isPublicRoute = originalRequest.url?.startsWith('/public')
       
-      // Clear user data and redirect to login
-      userStore.logout()
-      
-      // Redirect to login page
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login'
+      if (!isPublicRoute) {
+        const userStore = useUserStore()
+        
+        // Clear user data and redirect to login
+        userStore.logout()
+        
+        // Redirect to login page
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login'
+        }
       }
       
       return Promise.reject(error)

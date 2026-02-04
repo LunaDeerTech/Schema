@@ -162,15 +162,14 @@ router.beforeEach(async (to, _from, next) => {
   
   // If user is authenticated
   if (userStore.isAuthenticated) {
-    // Try to fetch profile if we don't have user data
-    if (!userStore.user) {
+    // Only fetch profile for routes that require auth
+    // Skip profile fetch for public routes to avoid unnecessary 401 redirects
+    if (requiresAuth && !userStore.user) {
       const result = await userStore.fetchProfile()
       if (!result.success) {
         // Token invalid, redirect to login
-        if (requiresAuth) {
-          next({ name: 'Login', query: { redirect: to.fullPath } })
-          return
-        }
+        next({ name: 'Login', query: { redirect: to.fullPath } })
+        return
       }
     }
     
