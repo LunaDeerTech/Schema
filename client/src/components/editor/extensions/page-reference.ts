@@ -3,19 +3,69 @@ import { VueRenderer } from '@tiptap/vue-3'
 import tippy from 'tippy.js'
 import ReferenceList from '../ReferenceList.vue'
 import { api } from '@/api/http'
+import { mergeAttributes } from '@tiptap/core'
 
-export const PageReference = Mention.configure({
+export const PageReference = Mention.extend({
+  name: 'mention',
+
+  addAttributes() {
+    return {
+      id: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-id'),
+        renderHTML: (attributes: Record<string, any>) => {
+          if (!attributes.id) return {}
+          return { 'data-id': attributes.id }
+        },
+      },
+      label: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-label') || element.textContent,
+        renderHTML: (attributes: Record<string, any>) => {
+          if (!attributes.label) return {}
+          return { 'data-label': attributes.label }
+        },
+      },
+    }
+  },
+
+  parseHTML() {
+    return [
+      {
+        tag: 'a[data-type="page-reference"]',
+      },
+      {
+        tag: 'span[data-type="mention"]',
+      },
+    ]
+  },
+
+  renderHTML({ node, HTMLAttributes }: { node: any; HTMLAttributes: Record<string, any> }) {
+    return [
+      'a',
+      mergeAttributes(
+        {
+          'class': 'page-reference',
+          'data-type': 'page-reference',
+          'data-id': node.attrs.id,
+          'data-label': node.attrs.label,
+          'href': `/page/${node.attrs.id}`,
+        },
+        HTMLAttributes,
+      ),
+      `@${node.attrs.label ?? node.attrs.id}`,
+    ]
+  },
+}).configure({
   HTMLAttributes: {
     class: 'page-reference',
   },
   suggestion: {
     items: async ({ query }: { query: string }) => {
-      if (!query) return []
       try {
         const response = await api.get<{ code: number; data: any[] }>('/search/suggestions', {
           params: { q: query },
         })
-        // The api wrapper returns res.data, so response is the body { code: 0, data: [...] }
         return response.data || []
       } catch (error) {
         console.error('Failed to fetch suggestions', error)

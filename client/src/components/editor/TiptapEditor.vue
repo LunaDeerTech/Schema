@@ -17,6 +17,7 @@ import { Admonition } from './extensions/admonition'
 import { common, createLowlight } from 'lowlight'
 import { ref, onBeforeUnmount, onMounted, toRaw, watch } from 'vue'
 import { NIcon, useMessage } from 'naive-ui'
+import { useRouter, useRoute } from 'vue-router'
 import { uploadApi } from '@/api/upload'
 import {
   CodeSlashOutline as CodeSlash,
@@ -55,6 +56,9 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   (e: 'update', content: any): void
 }>()
+
+const router = useRouter()
+const route = useRoute()
 
 const showImageUploader = ref(false)
 const uploaderPosition = ref({ top: 0, bottom: 0, left: 0 })
@@ -95,6 +99,33 @@ const handleOpenMarkdownImporter = () => {
     showMarkdownImporter.value = true
 }
 
+// Handle page reference clicks
+const handlePageReferenceClick = (event: MouseEvent) => {
+  const target = event.target as HTMLElement
+  const refEl = target.closest('a[data-type="page-reference"]') as HTMLAnchorElement | null
+  if (!refEl) return
+  
+  // In editable mode, require Ctrl/Cmd+Click to navigate
+  if (props.editable && !event.ctrlKey && !event.metaKey) return
+  
+  event.preventDefault()
+  event.stopPropagation()
+  
+  const pageId = refEl.getAttribute('data-id')
+  if (!pageId) return
+  
+  // Determine if we're in public mode
+  const isPublicMode = route.path.startsWith('/public')
+  
+  if (isPublicMode) {
+    // In public mode, navigate to public page (API supports both slug and id)
+    router.push(`/public/pages/${pageId}`)
+  } else {
+    // In editor/auth mode, navigate to the page
+    router.push(`/page/${pageId}`)
+  }
+}
+
 const handleImportMarkdown = async (content: string) => {
     if (editor.value) {
         try {
@@ -118,11 +149,14 @@ const handleImportMarkdown = async (content: string) => {
 onMounted(() => {
     window.addEventListener('open-image-uploader', handleOpenImageUploader)
     window.addEventListener('open-markdown-importer', handleOpenMarkdownImporter)
+    // Listen for page reference clicks on the wrapper
+    wrapperRef.value?.addEventListener('click', handlePageReferenceClick)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('open-image-uploader', handleOpenImageUploader)
   window.removeEventListener('open-markdown-importer', handleOpenMarkdownImporter)
+  wrapperRef.value?.removeEventListener('click', handlePageReferenceClick)
   // editor.value?.destroy() // useEditor handles destruction automatically
 })
 
@@ -162,6 +196,16 @@ const editor = useEditor({
     emit('update', editor.getJSON())
   },
   editorProps: {
+    handleClick: (_view, _pos, event) => {
+      const target = event.target as HTMLElement
+      const refEl = target.closest('a[data-type="page-reference"]') as HTMLAnchorElement | null
+      if (refEl) {
+        // Prevent ProseMirror default handling for page references
+        event.preventDefault()
+        return true
+      }
+      return false
+    },
     handleDrop: (view, event, _ , moved) => {
       if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
         const file = event.dataTransfer.files[0]
@@ -559,6 +603,23 @@ watch(() => props.content, (newContent) => {
         text-decoration: none;
         &:hover {
           text-decoration: underline;
+        }
+      }
+
+      /* Page References */
+      a.page-reference {
+        color: #1A73E8;
+        background-color: rgba(26, 115, 232, 0.08);
+        border-radius: 4px;
+        padding: 1px 4px;
+        text-decoration: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.15s ease;
+        
+        &:hover {
+          background-color: rgba(26, 115, 232, 0.16);
+          text-decoration: none;
         }
       }
       

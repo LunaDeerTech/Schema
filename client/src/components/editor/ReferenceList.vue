@@ -33,13 +33,14 @@ defineExpose({
 <template>
   <NavigableList ref="listRef" :items="items" @select="handleSelect">
     <template #item="{ item }">
-      <n-icon class="icon">
+      <span v-if="item.icon" class="icon emoji-icon">{{ item.icon }}</span>
+      <n-icon v-else class="icon">
         <DocumentTextOutline />
       </n-icon>
       <span class="label">{{ item.title }}</span>
     </template>
     <template #empty>
-      No pages found
+      Type to search pages...
     </template>
   </NavigableList>
 </template>
@@ -52,6 +53,11 @@ defineExpose({
   width: 1.25rem;
   height: 1.25rem;
   font-size: 1.1rem;
+}
+
+.emoji-icon {
+  font-style: normal;
+  font-size: 1rem;
 }
 
 .label {

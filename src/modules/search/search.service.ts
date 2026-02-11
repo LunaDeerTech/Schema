@@ -6,13 +6,23 @@ export class SearchService {
   constructor(private readonly db: DatabaseService) {}
 
   async searchSuggestions(userId: string, query: string) {
-    if (!query) return [];
+    if (!query) {
+      // Return recent pages when query is empty
+      const sql = `
+        SELECT id, title, icon, publicSlug, isPublic, type
+        FROM Page 
+        WHERE userId = ? AND type = 'page'
+        ORDER BY updatedAt DESC 
+        LIMIT 10
+      `;
+      return this.db.prepare(sql).all(userId);
+    }
     
     const sql = `
-      SELECT id, title, icon 
+      SELECT id, title, icon, publicSlug, isPublic, type
       FROM Page 
-      WHERE userId = ? AND title LIKE ? 
-      ORDER BY lastViewedAt DESC 
+      WHERE userId = ? AND type = 'page' AND title LIKE ? 
+      ORDER BY updatedAt DESC 
       LIMIT 10
     `;
     
