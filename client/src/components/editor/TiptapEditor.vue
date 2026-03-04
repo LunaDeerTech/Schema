@@ -277,7 +277,7 @@ watch(() => props.content, (newContent) => {
     />
     
     <bubble-menu
-      v-if="editor"
+      v-if="editor && editable"
       :editor="editor"
       :tippy-options="{ duration: 100, appendTo: 'parent' }"
       :should-show="({ state }) => {
@@ -365,7 +365,7 @@ watch(() => props.content, (newContent) => {
     </bubble-menu>
 
     <bubble-menu
-      v-if="editor"
+      v-if="editor && editable"
       :editor="editor"
       :tippy-options="{ duration: 100, appendTo: 'parent' }"
       :should-show="({ editor, state }) => {
@@ -482,6 +482,7 @@ watch(() => props.content, (newContent) => {
         line-height: 1.3;
         margin-top: 1.5em;
         margin-bottom: 0.5em;
+        color: #111827;
       }
       
       h1 { font-size: 32px; }
@@ -521,19 +522,33 @@ watch(() => props.content, (newContent) => {
         }
       }
       
+      /* Inline Code */
+      code {
+        font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
+        font-size: 0.9em;
+        background-color: rgba(135, 131, 120, 0.15);
+        border-radius: 4px;
+        padding: 0.15em 0.4em;
+        margin: 0 0.1em;
+        color: #eb5757;
+      }
+
       /* Code Block */
       pre {
         background: #F5F7FA;
-        border-radius: 4px;
+        border-radius: 6px;
         padding: 1em;
-        font-family: "JetBrains Mono", "Fira Code", monospace;
+        font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
         overflow-x: auto;
+        margin: 1.2em 0;
         
         code {
           background: none;
           padding: 0;
+          margin: 0;
           font-size: 0.9em;
           color: inherit;
+          border-radius: 0;
         }
       }
       

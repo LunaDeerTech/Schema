@@ -561,7 +561,7 @@ const handleMobileActionSelect = (key: string) => {
 
       .description-input {
         font-size: 14px;
-        color: var(--n-text-color-3);
+        color: #4B5563;
         border: none;
         background: transparent;
         padding: 0;
