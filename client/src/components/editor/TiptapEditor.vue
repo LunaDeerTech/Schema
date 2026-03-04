@@ -36,6 +36,7 @@ import {
 
 import ImageUploaderPopover from './ImageUploaderPopover.vue'
 import MarkdownImporter from './MarkdownImporter.vue'
+import TableOfContents from './TableOfContents.vue'
 import { marked } from 'marked'
 
 const lowlight = createLowlight(common)
@@ -262,6 +263,7 @@ watch(() => props.content, (newContent) => {
 
 <template>
   <div class="editor-wrapper" ref="wrapperRef">
+    <table-of-contents :editor="editor" />
     <image-uploader-popover
       :visible="showImageUploader"
       :position="uploaderPosition"
