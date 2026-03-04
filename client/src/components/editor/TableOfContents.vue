@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
+import { ref, watch, onUnmounted, computed } from 'vue'
 import { Editor } from '@tiptap/vue-3'
 import { NButton, NIcon, NDrawer, NDrawerContent } from 'naive-ui'
-import { ListOutline, CloseOutline, ChevronForwardOutline, ChevronBackOutline } from '@vicons/ionicons5'
+import { ListOutline, ChevronForwardOutline } from '@vicons/ionicons5'
 import { useWindowSize } from '@vueuse/core'
 
 const props = defineProps<{
