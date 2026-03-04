@@ -22,28 +22,24 @@ const typeConfig = {
   info: {
     icon: InformationCircleOutline,
     bgColor: '#e0f2fe',
-    borderColor: '#0ea5e9',
     textColor: '#0369a1',
     title: 'Info',
   },
   warning: {
     icon: WarningOutline,
     bgColor: '#fef3c7',
-    borderColor: '#f59e0b',
     textColor: '#92400e',
     title: 'Warning',
   },
   success: {
     icon: CheckmarkCircleOutline,
     bgColor: '#dcfce7',
-    borderColor: '#22c55e',
     textColor: '#166534',
     title: 'Success',
   },
   danger: {
     icon: CloseCircleOutline,
     bgColor: '#fee2e2',
-    borderColor: '#ef4444',
     textColor: '#991b1b',
     title: 'Danger',
   },
@@ -61,13 +57,15 @@ const config = computed(() => {
       class="admonition-content"
       :style="{
         backgroundColor: config.bgColor,
-        borderColor: config.borderColor,
+        color: config.textColor,
       }"
     >
-      <div class="admonition-header">
-        <n-icon size="18" :style="{ color: config.textColor }">
+      <div class="admonition-icon">
+        <n-icon size="24" :style="{ color: config.textColor }">
           <component :is="config.icon" />
         </n-icon>
+      </div>
+      <div class="admonition-main">
         <input
           class="admonition-title"
           :value="node.attrs.title"
@@ -79,9 +77,9 @@ const config = computed(() => {
           "
           :style="{ color: config.textColor }"
         />
-      </div>
-      <div class="admonition-body">
-        <node-view-content class="content" />
+        <div class="admonition-body">
+          <node-view-content class="content" />
+        </div>
       </div>
     </div>
   </node-view-wrapper>
@@ -89,58 +87,58 @@ const config = computed(() => {
 
 <style scoped>
 .admonition {
-  margin: 1em 0;
+  margin: 1.5em 0;
 }
 
 .admonition-content {
-  border-radius: 8px;
-  border: 1px solid;
-  padding: 12px 16px;
+  border-radius: 4px;
+  padding: 16px;
   position: relative;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
 }
 
-.admonition-header {
+.admonition-icon {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-  font-weight: 600;
-  font-size: 14px;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.admonition-main {
+  flex-grow: 1;
+  min-width: 0;
 }
 
 .admonition-title {
   font-weight: 600;
-  font-family: inherit;
-  font-size: 14px;
-  background: transparent;
+  font-size: 1em;
   border: none;
-  outline: none;
-  padding: 0;
-  margin: 0;
-  flex-grow: 1;
+  background: transparent;
   width: 100%;
+  outline: none;
+  margin-bottom: 4px;
+  font-family: inherit;
+  line-height: 1.5;
+  padding: 0;
 }
 
 .admonition-title::placeholder {
-  color: currentColor;
-  opacity: 0.8;
+  opacity: 0.6;
 }
 
 .admonition-body {
-  font-size: 14px;
   line-height: 1.6;
-  color: #374151;
+  font-size: 1em;
 }
 
 .admonition-body :deep(p) {
   margin: 0;
 }
 
-.admonition-body :deep(p:first-child) {
-  margin-top: 0;
-}
-
-.admonition-body :deep(p:last-child) {
-  margin-bottom: 0;
+.admonition-body :deep(p + p) {
+  margin-top: 0.5em;
 }
 </style>
