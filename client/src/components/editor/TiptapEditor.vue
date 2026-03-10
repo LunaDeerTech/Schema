@@ -524,8 +524,8 @@ watch(() => props.content, (newContent) => {
         }
       }
       
-      /* Inline Code */
-      code {
+      /* Inline Code — only style code that is NOT inside a pre (code block) */
+      code:not(pre code) {
         font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
         font-size: 0.9em;
         background-color: rgba(135, 131, 120, 0.15);
