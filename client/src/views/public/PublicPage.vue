@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { NSpin, NResult, NTag } from 'naive-ui'
+import { NSpin, NResult, NTag, NButton, NIcon, useMessage } from 'naive-ui'
+import { ShareSocialOutline } from '@vicons/ionicons5'
 import { api } from '@/api/http'
 import { usePublicStore } from '@/stores/public'
 import TiptapEditor from '@/components/editor/TiptapEditor.vue'
@@ -13,10 +14,20 @@ interface PublicPageData extends Page {
 }
 
 const route = useRoute()
+const message = useMessage()
 const publicStore = usePublicStore()
 const page = ref<PublicPageData | null>(null)
 const loading = ref(false)
 const error = ref('')
+
+async function copyLink() {
+  try {
+    await navigator.clipboard.writeText(window.location.href)
+    message.success('链接已复制到剪贴板')
+  } catch {
+    message.error('复制失败，请手动复制地址栏链接')
+  }
+}
 
 async function fetchPage() {
   const slug = route.params.slug as string
@@ -72,6 +83,12 @@ watch(() => route.params.slug, fetchPage, { immediate: true })
             <p v-if="page.description" class="page-description">{{ page.description }}</p>
           </div>
         </div>
+        <NButton tertiary size="small" @click="copyLink">
+          <template #icon>
+            <NIcon><ShareSocialOutline /></NIcon>
+          </template>
+          分享
+        </NButton>
       </div>
       
       <div class="meta-section">
