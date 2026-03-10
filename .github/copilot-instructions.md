@@ -1,40 +1,21 @@
-# Schema - AI Coding Agent Instructions
+# Schema — AI Coding Agent Instructions
 
 ## Project Overview
 
-**Schema** is a personal knowledge management system (Confluence for personal use) built with:
-- **Backend**: NestJS + SQLite (better-sqlite3)
-- **Frontend**: Vue 3 + Vite + Pinia + Naive UI
-- **Rich Text Editor**: Tiptap with custom extensions
+**Schema** is a personal knowledge management system (Confluence for personal use).
 
-## Architecture Overview
+| Layer | Stack |
+|-------|-------|
+| Backend | NestJS 10 + better-sqlite3 (WAL mode) — root `/` |
+| Frontend | Vue 3.4 + Vite + Pinia + Naive UI 2.43 — `client/` |
+| Editor | Tiptap 3.14 with custom extensions |
+| Auth | JWT (passport-jwt) — token in localStorage `schema_token` |
 
-### Backend Structure (Root `/`)
-- **NestJS Modules** in `src/modules/` following controller/service pattern
-- **SQLite Database** (`dev.db` in root) with WAL mode for concurrency
-- **No migration framework**: Schema changes via `initTables()` in `database.service.ts`
-- **Global Components**:
-  - `ResponseInterceptor`: Wraps all responses with `{ code: 0, data: ... }`
-  - `HttpExceptionFilter`: Standardized error responses
-  - `CurrentUser` decorator: Extracts user from JWT token
-
-### Frontend Structure (`client/`)
-- **State Management**: Pinia stores (`user`, `page`, `library`, etc.)
-- **Routing**: Vue Router with auth guards (`requiresAuth` / `requiresGuest`)
-- **API Client**: Axios with JWT interceptor (token stored in localStorage as `schema_token`)
-- **Rich Editor**: Tiptap with custom extensions (tables, task lists, code blocks, admonitions, page references)
-
-### Key Data Flow
+### Data Flow
 ```
-User Login → JWT Token → localStorage (schema_token)
-           ↓
-    API Request → Axios Interceptor adds Authorization header
-           ↓
-    NestJS → JwtAuthGuard validates token → CurrentUser extracts user ID
-           ↓
-    Database Query → Service Layer → Controller → ResponseInterceptor
-           ↓
-    Frontend → Pinia Store Update → UI Update
+Login → JWT → localStorage → Axios interceptor → Authorization header
+  → NestJS JwtAuthGuard → CurrentUser decorator → Service → DatabaseService
+  → ResponseInterceptor wraps { code: 0, data } → Pinia store → UI
 ```
 
 ## Critical Developer Workflows
@@ -43,250 +24,187 @@ User Login → JWT Token → localStorage (schema_token)
 
 #### Backend (Root Directory)
 ```bash
-# Start backend with hot reload
-pnpm dev
-
-# Build backend
-pnpm build
-
-# Run built server
-pnpm start
-
-# Lint TypeScript
-pnpm lint
-
-# Build client (separate command)
-pnpm build:client
+pnpm dev           # Start with hot reload (watches src/)
+pnpm build         # Compile to dist/
+pnpm start         # Run compiled (node dist/main.js)
+pnpm lint          # ESLint on all .ts files
+pnpm build:client  # Build frontend via monorepo filter
+pnpm pack          # Custom packaging script (pack.js)
 ```
 
 #### Frontend (`client/` Directory)
 ```bash
-# Start frontend dev server (proxies to backend)
-pnpm dev
-
-# Build for production
-pnpm build
-
-# Preview production build
-pnpm preview
-
-# Lint TypeScript/Vue
-pnpm lint
+pnpm dev           # Vite dev server on :5173, proxies /api + /uploads → :3003
+pnpm build         # TypeScript check + Vite production build → dist/
+pnpm preview       # Preview production build
+pnpm lint          # ESLint on .ts/.vue files
 ```
 
-### Database Management
+**No test framework** — verify manually via browser/Postman.
 
-**Important**: The database is SQLite (`dev.db` in root). It auto-initializes on startup:
-- Tables created if they don't exist
-- Migrations run (see `src/database/migrator.ts`)
-- Default config seeded
-- Integrity check performed
+### Database
 
-**Manual Operations:**
-- **Reset database**: Delete `dev.db`, `dev.db-shm`, `dev.db-wal` and restart server
-- **View data**: Use SQLite browser or CLI
-- **Backup**: Copy the `.db` files
+SQLite file `dev.db` in project root. Auto-initializes on startup:
+1. `initTables()` creates tables if missing (10 tables, 16 indexes)
+2. `migrator.ts` runs pending migrations (transaction-wrapped, tracked in `_migrations` table)
+3. Default config seeded, integrity check performed
 
 **Schema Changes:**
-1. Update `src/database/database.service.ts` `initTables()`
-2. Add migration in `src/database/migrator.ts` (if needed)
-3. Restart server to apply
+1. For new tables/columns on fresh DB: update `initTables()` in `src/database/database.service.ts`
+2. For existing DB compatibility: add migration in `src/database/migrator.ts`
+3. Restart server — both run automatically
 
-### Testing
-No dedicated test framework. Development is manual:
-1. Run `pnpm dev` for backend
-2. Run `pnpm dev` in `client/` for frontend
-3. Test via browser/Postman
-4. Check database directly with SQLite
+**Migration Pattern:**
+```typescript
+// src/database/migrator.ts — add to migrations array
+{
+  name: '001_add_column',
+  up: (dbService: DatabaseService) => {
+    const columns = dbService.getTableColumns('TableName');
+    if (!columns.some(col => col.name === 'newCol')) {
+      dbService.run("ALTER TABLE TableName ADD COLUMN newCol TEXT");
+    }
+  }
+}
+```
+
+**Reset:** Delete `dev.db`, `dev.db-shm`, `dev.db-wal` and restart.
 
 ## Project-Specific Conventions
 
 ### Backend Module Pattern
-Each module follows this structure:
+
 ```
-modules/{feature}/
-├── {feature}.module.ts      # Module definition
-├── {feature}.controller.ts  # API endpoints (with @UseGuards(JwtAuthGuard))
-├── {feature}.service.ts     # Business logic
-├── dto/                     # Request/response DTOs with validation
-└── entities/                # Type definitions
+src/modules/{feature}/
+├── {feature}.module.ts      # @Module({ imports: [DatabaseModule], ... })
+├── {feature}.controller.ts  # @Controller('{feature}s') @UseGuards(JwtAuthGuard)
+├── {feature}.service.ts     # Business logic, throws NestJS exceptions
+├── dto/                     # class-validator decorated DTOs
+└── entities/                # TypeScript interfaces
 ```
 
-**Example: Page Module**
-- Controller: `POST /pages`, `GET /pages`, `PUT /pages/:id`
-- Service: Handles hierarchy (parentId, libraryId), versioning, references
-- Database: `Page` table stores both libraries and pages (`type: 'library' | 'page'`)
+**Controller conventions:**
+- `@UseGuards(JwtAuthGuard)` on the class (all routes protected)
+- `@CurrentUser('id')` to get user ID, `@CurrentUser()` for full user object
+- DTOs validated automatically (global ValidationPipe with `whitelist: true`, `forbidNonWhitelisted: true`)
 
-### Frontend API Pattern
+**DTO conventions (class-validator):**
 ```typescript
-// api/{feature}.ts
-export const pageApi = {
-  get: (id: string) => api.get<PageResponse>(`/pages/${id}`),
-  create: (data: CreatePageRequest) => api.post<PageResponse>('/pages', data),
-  // ...
+export class CreatePageDto {
+  @IsString() title: string;
+  @IsOptional() @IsString() description?: string;
+  @IsOptional() @IsBoolean() isPublic?: boolean;
+  @IsOptional() @IsObject() content?: Record<string, unknown>; // Tiptap JSON
 }
+```
 
-// stores/{feature}.ts
+**Service conventions — error handling:**
+```typescript
+throw new NotFoundException('Library not found');
+throw new ConflictException('User with this email already exists');
+throw new BadRequestException('Invalid input');
+throw new UnauthorizedException('Not authorized');
+```
+
+**Database query methods:**
+```typescript
+this.database.queryOne('SELECT * FROM Page WHERE id = ?', [id]);    // Single row or null
+this.database.query('SELECT * FROM Page WHERE userId = ?', [userId]); // Array
+this.database.run('INSERT INTO Page (...) VALUES (...)', [values]);   // Insert/Update/Delete
+this.database.transaction(() => { /* multiple operations */ });       // Transaction
+```
+
+### API Response Format & Error Codes
+
+**Success** (via `ResponseInterceptor`):
+```json
+{ "code": 0, "data": { ... } }
+```
+
+**Errors** (via `HttpExceptionFilter`):
+
+| HTTP Status | Error Code | Meaning |
+|-------------|-----------|---------|
+| 400 | 1001 | Validation error |
+| 404 | 1002 | Not found |
+| 409 | 1003 | Conflict |
+| 401 | 2001 | Unauthorized |
+| 403 | 2003 | Forbidden |
+| 500 | 5001 | Internal server error |
+
+### Frontend Patterns
+
+**API layer** (`client/src/api/`):
+```typescript
+// http.ts — Axios instance, baseURL '/api/v1', timeout 10s
+// Interceptor adds Bearer token from localStorage 'schema_token'
+// 401 on non-public routes → logout + redirect to /login
+
+// api/{feature}.ts — method objects
+export const pageApi = {
+  getPages: (params?) => api.get<ApiResponse<PaginatedResponse<Page>>>('/pages', { params }),
+  getPage: (id: string) => api.get<ApiResponse<Page>>(`/pages/${id}`),
+  createPage: (data) => api.post<ApiResponse<Page>>('/pages', data),
+}
+```
+
+**Pinia stores** (Composition API style):
+```typescript
 export const usePageStore = defineStore('page', () => {
-  // State, getters, actions
+  const pages = ref<Page[]>([])
+  const loading = ref(false)
+
+  const fetchPages = async (libraryId?: string) => {
+    loading.value = true
+    try {
+      const response = await pageApi.getPages({ libraryId })
+      if (response.code === 0) pages.value = response.data.items
+    } finally { loading.value = false }
+  }
+
+  return { pages, loading, fetchPages }
 })
 ```
 
-### Authentication Flow
-1. Login/Register → JWT token stored in localStorage (`schema_token`)
-2. Token injected into API requests via Axios interceptor
-3. 401 responses trigger logout and redirect to login
-4. Router guards check `requiresAuth` / `requiresGuest` meta
+**Stores available:** `user`, `page`, `library`, `admin`, `system`, `public`
+
+**Shared types** in `client/src/types/index.ts`:
+- `ApiResponse<T>`, `PaginatedResponse<T>`, `User`, `Page`, `Library`, `PageVersion`, `Tag`, `Task`, `SearchParams`
+
+**Router guards:** `requiresAuth` and `requiresGuest` meta flags; public routes (`/public/*`) skip auth.
 
 ### Rich Text Editor (Tiptap)
-Custom extensions in `client/src/components/editor/extensions/`:
-- **Admonition**: Info/Warning/Success/Danger callout blocks
-- **Slash Command**: `/` menu for inserting headings, lists, tables, code blocks, etc.
-- **Image Block**: Custom image handling with upload
-- **Page Reference**: Link to other pages
-- **Table**: Full table support
 
-**Editor Events:**
-- `open-image-uploader`: Opens image uploader popover
-- `open-markdown-importer`: Opens markdown importer
+Custom extensions in `client/src/components/editor/extensions/`:
+- `slash-command.ts` — `/` menu (headings, lists, tables, code, admonitions, images, references)
+- `admonition.ts` — Callout blocks (info, warning, success, danger)
+- `image-block.ts` — Custom image handling with upload
+- `page-reference.ts` — Bidirectional page linking
+
+**Editor events:** `open-image-uploader`, `open-markdown-importer`
 
 ### File Uploads
-- **Location**: `./uploads` directory (configurable via `UPLOAD_DIR`)
-- **Served at**: `/uploads` prefix
-- **Priority**: Uploads served before frontend assets (see `src/main.ts`)
-- **Metadata**: Stored in `UploadedImage` table
 
-### API Response Format
-All responses follow this format:
-```json
-{
-  "code": 0,  // 0 = success, non-zero = error
-  "data": {}  // Response data
-}
-```
+- Directory: `./uploads` (env `UPLOAD_DIR`)
+- Served at `/uploads` prefix, **priority over frontend assets**
+- Metadata in `UploadedImage` table
 
-### Error Codes
-- `5001`: Internal server error
-- `401`: Unauthorized (JWT validation failed)
-- `404`: Not found
-- `409`: Conflict (e.g., user already exists)
-- See `src/common/filters/http-exception.filter.ts`
+## Server Bootstrap Sequence (`src/main.ts`)
 
-### Public Sharing
-- Pages and libraries can be marked as `isPublic`
-- Public pages have `publicSlug` for URL sharing
-- Public access is read-only
-- Child pages follow parent's public status
-- Public pages are served at `/public/:slug`
+1. Create NestJS app (Express)
+2. Body parser limit: 50MB
+3. CORS enabled
+4. API prefix: `/api/v1`
+5. Static files: `/uploads` first, then frontend build
+6. Global: ValidationPipe → HttpExceptionFilter → ResponseInterceptor
+7. SPA fallback: non-API routes without file extensions → `index.html`
+8. Listen on `PORT` (default 3000)
 
-### Versioning
-- Every page save creates a `PageVersion` entry
-- Version history accessible via UI
-- Cleanup options: keep versions for day/week/month
+## Environment Variables
 
-## Key Files to Reference
-
-### Backend
-- `src/main.ts`: Server setup, static assets, SPA fallback
-- `src/app.module.ts`: All module imports
-- `src/database/database.service.ts`: Database initialization, queries
-- `src/common/interceptors/response.interceptor.ts`: Response format
-- `src/common/filters/http-exception.filter.ts`: Error handling
-- `src/modules/auth/jwt-auth.guard.ts`: Authentication guard
-
-### Frontend
-- `client/src/main.ts`: Vue app setup
-- `client/src/api/http.ts`: Axios instance with interceptors
-- `client/src/router/index.ts`: Route definitions with guards
-- `client/src/stores/user.ts`: Auth state management
-- `client/src/components/editor/TiptapEditor.vue`: Rich text editor
-- `client/src/components/editor/extensions/`: Custom Tiptap extensions
-
-### Configuration
-- `.env`: Environment variables (PORT, JWT_SECRET, etc.)
-- `client/vite.config.ts`: Proxy settings, port 5173 → 3003
-- `nest-cli.json`: NestJS CLI config
-- `tsconfig.json`: TypeScript config with path aliases (`@/*`)
-
-## Integration Points
-
-### SMTP Configuration
-- Stored in database (`SystemConfig` table, key `smtpConfig`)
-- Configured via Settings → SMTP Configuration in UI
-- Used for email verification and password reset
-- Falls back to console logging in development mode
-
-### External Dependencies
-- **better-sqlite3**: Database (no external server needed)
-- **nodemailer**: Email sending
-- **bcrypt**: Password hashing
-- **passport-jwt**: JWT authentication
-- **axios**: HTTP client (frontend)
-- **naive-ui**: UI components
-- **tiptap**: Rich text editor
-
-### Cross-Component Communication
-- **Custom Events**: `open-image-uploader`, `open-markdown-importer`
-- **Pinia Stores**: Shared state across components
-- **Vue Router**: Navigation with auth guards
-- **Query Parameters**: Used for filtering/sorting (e.g., `?libraryId=...&page=1`)
-
-## Important Notes
-
-### Development Mode
-- SMTP emails log to console if not configured
-- Hot reload enabled for both backend and frontend
-- CORS enabled on backend
-- Body parser limit increased to 50MB for large page content
-
-### Production Considerations
-- **JWT Secret**: Change `JWT_SECRET` in production
-- **SMTP**: Configure real SMTP server for email features
-- **Uploads**: Ensure `UPLOAD_DIR` is writable and persistent
-- **Database**: SQLite file should be backed up regularly
-- **CORS**: Adjust for production domain
-
-### Admin Users
-- No UI for making users admin
-- Set `isAdmin = 1` in User table manually if needed
-- Use SQLite CLI or browser
-
-### SPA Routing
-- Non-API, non-file routes serve `index.html` (see `src/main.ts`)
-- Vue Router handles client-side routing
-- Uploads have priority over frontend assets
-
-### Common Pitfalls
-1. **Database locked**: WAL mode enabled, but concurrent writes may block reads
-2. **Token expired**: 401 triggers logout automatically
-3. **Large content**: Body parser limit is 50MB, adjust if needed
-4. **CORS issues**: Ensure frontend proxy matches backend port
-
-## Quick Reference
-
-### Adding a New Module
-1. `nest g module modules/{name}`
-2. Add to `app.module.ts`
-3. Define controller/service
-4. Add frontend API and store if needed
-
-### Adding a New Frontend Component
-1. Create in `client/src/components/` or `client/src/views/`
-2. Import in router or parent component
-3. Use Pinia store for state management
-4. Add TypeScript types in `client/src/types/index.ts`
-
-### Debugging
-- Backend: Check NestJS console output
-- Frontend: Check browser console (Vite dev server logs)
-- Database: Use SQLite CLI or DB browser
-- API: Use browser DevTools Network tab or Postman
-
-### Environment Variables
 ```env
 NODE_ENV=development
 PORT=3000
-DATABASE_URL="file:./dev.db"
 JWT_SECRET=your-super-secret-key-change-in-production
 JWT_EXPIRES_IN=7d
 UPLOAD_DIR=./uploads
@@ -295,88 +213,64 @@ MAX_FILE_SIZE=10485760
 
 ## Key Architecture Decisions
 
-1. **Merged Library/Page**: Libraries are stored in Page table with `type: 'library'` for simplicity
-2. **No Migration Framework**: Schema changes via `initTables()` for simplicity
-3. **JWT in localStorage**: Simple but requires XSS protection
-4. **Single SQLite File**: Easy deployment, no external database server
-5. **Server-Side SPA**: NestJS serves both API and frontend for simplicity
-6. **Custom Tiptap Extensions**: For advanced features like admonitions and page references
+1. **Merged Library/Page** — Libraries stored in Page table (`type: 'library'`)
+2. **Migration via migrator.ts** — Transaction-wrapped, idempotent, tracked in `_migrations`
+3. **JWT in localStorage** — Simple; XSS protection required
+4. **Single SQLite file** — No external DB server; WAL mode for concurrent reads
+5. **NestJS serves SPA** — API + frontend from one process
+6. **Custom Tiptap extensions** — Admonitions, page references, slash commands
 
-## Testing Checklist
+## Common Pitfalls
 
-When making changes, verify:
-- [ ] Backend starts without errors (`pnpm dev`)
-- [ ] Frontend builds without errors (`pnpm build` in `client/`)
-- [ ] API endpoints work (use Postman or browser)
-- [ ] Database schema is compatible (check `dev.db`)
-- [ ] JWT auth still works (login/logout flow)
-- [ ] File uploads work (images, documents)
-- [ ] Rich text editor functions (tables, task lists, admonitions)
-- [ ] Public sharing works (toggle public status)
-- [ ] Version history tracks changes
-- [ ] Search functionality works
+1. **Page tree rebuilding** — After any page mutation in store, call `buildPageTree(pages.value)` to rebuild hierarchy
+2. **Public route exception** — `/public/*` and `/system/site-info` bypass 401 interceptor; don't add auth checks there
+3. **Home page hides sidebar** — Route name `'Home'` triggers sidebar-less layout
+4. **API response unwrapping** — `api.get()` returns the `ApiResponse` envelope (Axios `.data` already unwrapped); check `code === 0`
+5. **Responsive breakpoint** — Desktop ≥1024px (`breakpointsTailwind.lg`); sidebar state: `collapsed` on desktop, `mobileSidebarOpen` on mobile
+6. **Settings placeholders** — Many settings routes render `SettingsPlaceholder.vue`; only profile, assets, site-info, SMTP, users are implemented
+7. **SMTP fallback** — If no SMTP configured, emails log to console (dev mode)
+8. **Body parser limit** — 50MB for large page content; adjust in `src/main.ts` if needed
 
-## Common Patterns
+## Quick Reference
 
-### Database Queries
-```typescript
-// Use DatabaseService for all queries
-const result = this.database.queryOne('SELECT * FROM Page WHERE id = ?', [id]);
-const results = this.database.queryAll('SELECT * FROM Page WHERE userId = ?', [userId]);
-this.database.run('INSERT INTO Page (...) VALUES (...)', [values]);
-```
+### Adding a New Backend Module
+1. Create files in `src/modules/{name}/` (module, controller, service, dto/)
+2. Import in `src/app.module.ts`
+3. Add `@UseGuards(JwtAuthGuard)` to controller
+4. Use `@CurrentUser('id')` for user context
+5. Inject `DatabaseService` for queries
 
-### API Response Handling
-```typescript
-// Frontend API calls
-const response = await pageApi.getPage(id);
-if (response.code === 0) {
-  // Success - response.data contains the page
-} else {
-  // Error - handle accordingly
-}
-```
+### Adding a New Frontend Feature
+1. Add API methods in `client/src/api/{feature}.ts`
+2. Create Pinia store in `client/src/stores/{feature}.ts`
+3. Add types in `client/src/types/index.ts`
+4. Create views/components in `client/src/views/` or `client/src/components/`
+5. Add routes in `client/src/router/index.ts`
 
-### Pinia Store Actions
-```typescript
-export const usePageStore = defineStore('page', () => {
-  const pages = ref<Page[]>([])
-  
-  async function fetchPage(id: string) {
-    const response = await pageApi.getPage(id)
-    if (response.code === 0) {
-      pages.value.push(response.data)
-    }
-  }
-  
-  return { pages, fetchPage }
-})
-```
+### Key Files
 
-## Getting Started
+| Purpose | File |
+|---------|------|
+| Server setup | `src/main.ts` |
+| DB schema & queries | `src/database/database.service.ts` |
+| DB migrations | `src/database/migrator.ts` |
+| Response format | `src/common/interceptors/response.interceptor.ts` |
+| Error handling | `src/common/filters/http-exception.filter.ts` |
+| Auth guard | `src/modules/auth/jwt-auth.guard.ts` |
+| Axios + interceptors | `client/src/api/http.ts` |
+| Route definitions | `client/src/router/index.ts` |
+| Auth state | `client/src/stores/user.ts` |
+| Rich text editor | `client/src/components/editor/TiptapEditor.vue` |
+| Editor extensions | `client/src/components/editor/extensions/` |
+| Shared types | `client/src/types/index.ts` |
+| Vite config + proxy | `client/vite.config.ts` |
 
-### First Time Setup
-1. Install dependencies: `pnpm install`
-2. Create `.env` file (copy from `.env.example` if exists)
-3. Initialize database: `pnpm dev` (auto-initializes)
-4. Start backend: `pnpm dev`
-5. Start frontend: `pnpm dev` in `client/`
-6. Open browser: `http://localhost:5173`
+### Verification Checklist
 
-### Common Tasks
-- **Reset everything**: Delete `dev.db*`, `uploads/`, restart server
-- **View database**: Use SQLite browser or CLI
-- **Add admin user**: Set `isAdmin = 1` in User table
-- **Test SMTP**: Configure in Settings → SMTP, emails log to console
-
-## Summary
-
-Schema is a monorepo-style project with:
-- Backend: NestJS + SQLite (root directory)
-- Frontend: Vue 3 + Vite (client/ directory)
-- Authentication: JWT with localStorage
-- Rich Editor: Tiptap with custom extensions
-- No tests, manual development
-- Simple deployment: single SQLite file
-
-**Key Files**: `src/main.ts`, `src/database/database.service.ts`, `client/src/api/http.ts`, `client/src/stores/user.ts`, `client/src/components/editor/TiptapEditor.vue`
+After changes, verify:
+- [ ] `pnpm dev` starts backend without errors
+- [ ] `cd client && pnpm build` succeeds
+- [ ] `pnpm lint` (root) and `cd client && pnpm lint` pass
+- [ ] Affected API endpoints respond correctly
+- [ ] Auth flow works (login/logout)
+- [ ] UI renders correctly in browser
