@@ -65,7 +65,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'security',
         name: 'SettingsSecurity',
-        component: () => import('@/views/settings/SettingsPlaceholder.vue'),
+        component: () => import('@/views/settings/SecuritySettings.vue'),
         meta: { title: 'Password & Security' }
       },
       {

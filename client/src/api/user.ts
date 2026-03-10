@@ -36,9 +36,20 @@ export interface UserListResponse {
   data: UserListData
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
+}
+
 export const userApi = {
   updateProfile: (data: UpdateProfileRequest) =>
     api.patch<UserResponse>('/user/profile', data),
+
+  changePassword: (data: ChangePasswordRequest) =>
+    api.patch<{ code: number; data: { success: boolean } }>('/user/password', data),
+
+  deleteAccount: (password: string) =>
+    api.delete<{ code: number; data: { success: boolean } }>('/user/account', { data: { password } }),
 
   // Get list of users (admin only)
   getUsers: (query: UserListQuery = {}) =>
