@@ -9,7 +9,7 @@ import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table
 import { ImageBlock } from './extensions/image-block'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+import { CodeBlockWithCopy } from './extensions/code-block'
 import BubbleMenuExtension from '@tiptap/extension-bubble-menu'
 import SlashCommand from './extensions/slash-command'
 import PageReference from './extensions/page-reference'
@@ -185,7 +185,7 @@ const editor = useEditor({
     TaskItem.configure({
       nested: true,
     }),
-    CodeBlockLowlight.configure({
+    CodeBlockWithCopy.configure({
       lowlight,
     }),
     BubbleMenuExtension,
@@ -535,24 +535,7 @@ watch(() => props.content, (newContent) => {
         color: #eb5757;
       }
 
-      /* Code Block */
-      pre {
-        background: #F5F7FA;
-        border-radius: 6px;
-        padding: 1em;
-        font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
-        overflow-x: auto;
-        margin: 1.2em 0;
-        
-        code {
-          background: none;
-          padding: 0;
-          margin: 0;
-          font-size: 0.9em;
-          color: inherit;
-          border-radius: 0;
-        }
-      }
+      /* Code Block styles moved to CodeBlockView.vue */
       
       /* Blockquote */
       blockquote {
