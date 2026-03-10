@@ -71,13 +71,13 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'libraries',
         name: 'SettingsLibraries',
-        component: () => import('@/views/settings/SettingsPlaceholder.vue'),
+        component: () => import('@/views/settings/LibrarySettings.vue'),
         meta: { title: 'Libraries' }
       },
       {
         path: 'pages',
         name: 'SettingsPages',
-        component: () => import('@/views/settings/SettingsPlaceholder.vue'),
+        component: () => import('@/views/settings/PageSettings.vue'),
         meta: { title: 'Pages' }
       },
       {
