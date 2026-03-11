@@ -22,10 +22,10 @@ defineProps<{
 
 <style lang="scss" scoped>
 .floating-panel {
-  background-color: #fff;
-  border: 1px solid #e2e8f0;
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-float);
   display: flex;
   flex-direction: column;
 }

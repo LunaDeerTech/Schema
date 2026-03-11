@@ -107,12 +107,12 @@ usePageTitle()
 }
 
 .sidebar {
-  background-color: #f8f9fa; 
+  background-color: var(--color-bg-sidebar); 
 }
 
 .main-content {
   padding: 20px;
-  background-color: #fafafa;
+  background-color: var(--color-bg-tertiary);
   
   &.is-home {
     padding: 0;

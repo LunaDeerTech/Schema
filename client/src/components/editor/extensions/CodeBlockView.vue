@@ -180,23 +180,23 @@ const handleCopy = async (text: string) => {
   position: relative;
   margin: 1.2em 0;
   border-radius: 8px;
-  border: 1px solid #E2E6ED;
+  border: 1px solid var(--color-border-code);
 }
 
 .code-block-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #F0F3F7;
+  background: var(--color-bg-code-header);
   padding: 6px 12px 6px 16px;
   min-height: 34px;
-  border-bottom: 1px solid #E2E6ED;
+  border-bottom: 1px solid var(--color-border-code);
   border-radius: 7px 7px 0 0;
 }
 
 .code-block-language {
   font-size: 12px;
-  color: #6B7280;
+  color: var(--color-code-lang-text);
   font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
   user-select: none;
 }
@@ -211,7 +211,7 @@ const handleCopy = async (text: string) => {
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #6B7280;
+  color: var(--color-code-lang-text);
   font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
   padding: 2px 6px;
   border: 1px solid transparent;
@@ -221,9 +221,9 @@ const handleCopy = async (text: string) => {
   user-select: none;
 
   &:hover {
-    border-color: #D1D5DB;
-    background: rgba(255, 255, 255, 0.5);
-    color: #374151;
+    border-color: var(--color-code-lang-hover-border);
+    background: var(--color-code-lang-hover-bg);
+    color: var(--color-code-lang-hover-text);
   }
 }
 
@@ -242,10 +242,10 @@ const handleCopy = async (text: string) => {
   left: 0;
   z-index: 100;
   width: 180px;
-  background: #fff;
-  border: 1px solid #E2E6ED;
+  background: var(--color-code-dropdown-bg);
+  border: 1px solid var(--color-border-code);
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-popup);
   overflow: hidden;
 }
 
@@ -253,16 +253,16 @@ const handleCopy = async (text: string) => {
   width: 100%;
   padding: 8px 12px;
   border: none;
-  border-bottom: 1px solid #E2E6ED;
+  border-bottom: 1px solid var(--color-border-code);
   outline: none;
   font-size: 12px;
   font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
-  color: #374151;
-  background: #FAFBFC;
+  color: var(--color-code-search-text);
+  background: var(--color-code-search-bg);
   box-sizing: border-box;
 
   &::placeholder {
-    color: #9CA3AF;
+    color: var(--color-code-search-placeholder);
   }
 }
 
@@ -276,18 +276,18 @@ const handleCopy = async (text: string) => {
   padding: 5px 10px;
   font-size: 12px;
   font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
-  color: #374151;
+  color: var(--color-code-option-text);
   border-radius: 4px;
   cursor: pointer;
   transition: background 0.1s ease;
 
   &:hover {
-    background: #F3F4F6;
+    background: var(--color-code-option-hover);
   }
 
   &.active {
-    background: #EEF2FF;
-    color: #4F46E5;
+    background: var(--color-code-option-active-bg);
+    color: var(--color-code-option-active-text);
     font-weight: 500;
   }
 }
@@ -295,7 +295,7 @@ const handleCopy = async (text: string) => {
 .language-empty {
   padding: 12px;
   font-size: 12px;
-  color: #9CA3AF;
+  color: var(--color-code-search-placeholder);
   text-align: center;
 }
 
@@ -306,7 +306,7 @@ const handleCopy = async (text: string) => {
   padding: 2px 8px;
   border: none;
   background: transparent;
-  color: #6B7280;
+  color: var(--color-code-lang-text);
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
@@ -315,12 +315,12 @@ const handleCopy = async (text: string) => {
   user-select: none;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.06);
-    color: #374151;
+    background: var(--color-code-copy-hover-bg);
+    color: var(--color-code-copy-hover-text);
   }
 
   &.copied {
-    color: #16a34a;
+    color: var(--color-code-copy-success);
   }
 }
 
@@ -329,7 +329,7 @@ const handleCopy = async (text: string) => {
 }
 
 .code-block-wrapper :deep(pre) {
-  background: #FAFBFC;
+  background: var(--color-bg-code);
   padding: 16px 20px;
   font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
   overflow-x: auto;
@@ -343,7 +343,7 @@ const handleCopy = async (text: string) => {
   margin: 0;
   font-size: 13.5px;
   line-height: 1.7;
-  color: #24292e;
+  color: var(--color-hljs-text);
   border-radius: 0;
   font-family: inherit;
 }
@@ -351,82 +351,82 @@ const handleCopy = async (text: string) => {
 /* Syntax highlighting theme (GitHub-inspired) */
 .code-block-wrapper :deep(.hljs-comment),
 .code-block-wrapper :deep(.hljs-quote) {
-  color: #6a737d;
+  color: var(--color-hljs-comment);
   font-style: italic;
 }
 
 .code-block-wrapper :deep(.hljs-keyword),
 .code-block-wrapper :deep(.hljs-selector-tag),
 .code-block-wrapper :deep(.hljs-type) {
-  color: #d73a49;
+  color: var(--color-hljs-keyword);
 }
 
 .code-block-wrapper :deep(.hljs-string),
 .code-block-wrapper :deep(.hljs-addition),
 .code-block-wrapper :deep(.hljs-attr) {
-  color: #032f62;
+  color: var(--color-hljs-string);
 }
 
 .code-block-wrapper :deep(.hljs-literal),
 .code-block-wrapper :deep(.hljs-number),
 .code-block-wrapper :deep(.hljs-symbol) {
-  color: #005cc5;
+  color: var(--color-hljs-number);
 }
 
 .code-block-wrapper :deep(.hljs-built_in),
 .code-block-wrapper :deep(.hljs-builtin-name) {
-  color: #e36209;
+  color: var(--color-hljs-builtin);
 }
 
 .code-block-wrapper :deep(.hljs-function),
 .code-block-wrapper :deep(.hljs-title),
 .code-block-wrapper :deep(.hljs-section) {
-  color: #6f42c1;
+  color: var(--color-hljs-function);
 }
 
 .code-block-wrapper :deep(.hljs-variable),
 .code-block-wrapper :deep(.hljs-template-variable) {
-  color: #e36209;
+  color: var(--color-hljs-builtin);
 }
 
 .code-block-wrapper :deep(.hljs-deletion) {
-  color: #b31d28;
-  background-color: #ffeef0;
+  color: var(--color-hljs-deletion-text);
+  background-color: var(--color-hljs-deletion-bg);
 }
 
 .code-block-wrapper :deep(.hljs-addition) {
-  background-color: #f0fff4;
+  background-color: var(--color-hljs-addition-bg);
 }
 
 .code-block-wrapper :deep(.hljs-meta) {
-  color: #005cc5;
+  color: var(--color-hljs-meta);
 }
 
 .code-block-wrapper :deep(.hljs-tag) {
-  color: #22863a;
+  color: var(--color-hljs-tag);
 }
 
 .code-block-wrapper :deep(.hljs-name),
 .code-block-wrapper :deep(.hljs-attribute) {
-  color: #22863a;
+  color: var(--color-hljs-attribute);
 }
 
 .code-block-wrapper :deep(.hljs-selector-id),
 .code-block-wrapper :deep(.hljs-selector-class) {
-  color: #6f42c1;
+  color: var(--color-hljs-selector);
 }
 
 .code-block-wrapper :deep(.hljs-regexp),
 .code-block-wrapper :deep(.hljs-link) {
-  color: #032f62;
+  color: var(--color-hljs-string);
 }
 
 .code-block-wrapper :deep(.hljs-doctag) {
-  color: #d73a49;
+  color: var(--color-hljs-keyword);
 }
 
 .code-block-wrapper :deep(.hljs-params) {
-  color: #24292e;
+  color: var(--color-hljs-params);
 }
 
 .code-block-wrapper :deep(.hljs-emphasis) {
@@ -438,6 +438,6 @@ const handleCopy = async (text: string) => {
 }
 
 .code-block-wrapper :deep(.hljs-subst) {
-  color: #24292e;
+  color: var(--color-hljs-params);
 }
 </style>

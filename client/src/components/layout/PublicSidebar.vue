@@ -2,12 +2,14 @@
 import { h, computed, ref } from 'vue'
 import { NLayoutSider, NTree, NText, NIcon, NButton } from 'naive-ui'
 import { useRouter } from 'vue-router'
-import { BookOutline, ChevronBackOutline, ChevronForwardOutline } from '@vicons/ionicons5'
+import { BookOutline, ChevronBackOutline, ChevronForwardOutline, SunnyOutline, MoonOutline } from '@vicons/ionicons5'
 import { useSystemStore } from '@/stores/system'
+import { useTheme } from '@/composables/useTheme'
 import type { Page as RawPage, Library } from '@/types'
 import type { TreeOption } from 'naive-ui'
 
 const systemStore = useSystemStore()
+const { isDark, toggleTheme } = useTheme()
 const collapsed = ref(false)
 
 // Extend Page type to include optional children for tree rendering
@@ -170,9 +172,16 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
     <!-- Footer Section (Fixed at absolute bottom) -->
     <div class="sidebar-footer" v-if="!collapsed || isMobile">
       <div class="footer-content">
-        <NText depth="3" style="font-size: 12px">
-          {{ systemStore.siteTitle }}
-        </NText>
+        <div class="footer-top">
+          <NText depth="3" style="font-size: 12px">
+            {{ systemStore.siteTitle }}
+          </NText>
+          <NButton quaternary circle size="small" @click="toggleTheme">
+            <template #icon>
+              <NIcon :size="16"><MoonOutline v-if="!isDark" /><SunnyOutline v-else /></NIcon>
+            </template>
+          </NButton>
+        </div>
         <NText depth="3" style="font-size: 11px; margin-top: 4px">
           Powered by 
           <a 
@@ -191,7 +200,7 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
 
 <style scoped lang="scss">
 .public-sidebar {
-  background-color: #fcfcfc;
+  background-color: var(--color-bg-sidebar);
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -217,9 +226,9 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  background-color: white;
-  border: 1px solid rgba(0,0,0,0.05);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-card);
   position: relative;
   
   &.collapsed {
@@ -237,9 +246,9 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
     .collapse-btn {
       opacity: 1;
     }
-    background-color: white;
+    background-color: var(--color-bg-secondary);
     border-color: var(--n-primary-color);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    box-shadow: var(--shadow-card);
     transform: translateY(-1px);
   }
 
@@ -262,9 +271,9 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f3f4f6;
+  background-color: var(--color-bg-hover);
   border-radius: 8px;
-  color: #4b5563;
+  color: var(--color-text-muted);
   
   .emoji-icon {
     font-size: 20px;
@@ -311,7 +320,7 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: #fcfcfc;
+  background-color: var(--color-bg-sidebar);
   padding: 0 16px 16px;
   border-top: 1px solid var(--n-border-color);
   
@@ -321,6 +330,12 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
     flex-direction: column;
     align-items: center;
     text-align: center;
+
+    .footer-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
   }
 }
 
@@ -331,7 +346,7 @@ const renderPrefix = ({ option }: { option: TreeOption }) => {
     padding: 4px 0;
     
     &:hover {
-      background-color: rgba(0, 0, 0, 0.04);
+      background-color: var(--color-bg-hover);
     }
     
     &.n-tree-node--selected {

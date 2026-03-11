@@ -714,7 +714,7 @@ onUnmounted(() => {
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-card-hover);
   }
 
   .lib-header {
@@ -764,7 +764,7 @@ onUnmounted(() => {
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-card);
   }
 
   .compact-content {
@@ -812,11 +812,11 @@ onUnmounted(() => {
     transition: background-color 0.2s;
 
     &:hover {
-      background-color: rgba(0, 0, 0, 0.03);
+      background-color: var(--color-bg-hover);
     }
 
     & + .library-list-item {
-      border-top: 1px solid rgba(0, 0, 0, 0.06);
+      border-top: 1px solid var(--color-border-light);
     }
   }
 
@@ -857,7 +857,7 @@ onUnmounted(() => {
 
 .empty-card {
   padding: 40px 0;
-  background-color: #f9f9f9;
+  background-color: var(--color-bg-empty);
 }
 
 .right-drawer-content {
@@ -881,11 +881,11 @@ onUnmounted(() => {
   border-radius: 8px;
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.03);
+    background-color: var(--color-bg-hover);
     
     .action-btn {
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow-card-hover);
     }
   }
 

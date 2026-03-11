@@ -260,10 +260,10 @@ defineExpose({ show, hide, visible })
 
 <style lang="scss" scoped>
 .link-popover {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-popup);
   min-width: 300px;
   max-width: 420px;
   overflow: hidden;
@@ -281,7 +281,7 @@ defineExpose({ show, hide, visible })
     
     .link-url {
       font-size: 13px;
-      color: #1A73E8;
+      color: var(--color-link-url);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -306,18 +306,18 @@ defineExpose({ show, hide, visible })
   border: none;
   background: none;
   border-radius: 6px;
-  color: #64748b;
+  color: var(--color-cmd-btn-text);
   cursor: pointer;
   transition: all 0.15s;
 
   &:hover {
-    background-color: #f1f5f9;
-    color: #0f172a;
+    background-color: var(--color-cmd-btn-hover-bg);
+    color: var(--color-cmd-btn-hover-text);
   }
 
   &.danger:hover {
-    background-color: #fef2f2;
-    color: #dc2626;
+    background-color: var(--color-link-danger-bg);
+    color: var(--color-link-danger-text);
   }
 }
 
@@ -332,7 +332,7 @@ defineExpose({ show, hide, visible })
 
     .link-edit-label {
       font-size: 12px;
-      color: #64748b;
+      color: var(--color-link-edit-label);
       width: 32px;
       flex-shrink: 0;
       text-align: right;
@@ -342,20 +342,21 @@ defineExpose({ show, hide, visible })
       flex: 1;
       height: 32px;
       padding: 0 10px;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-border);
       border-radius: 6px;
       font-size: 13px;
-      color: #1f2937;
+      color: var(--color-link-edit-text);
       outline: none;
       transition: border-color 0.15s;
+      background: transparent;
 
       &:focus {
-        border-color: #1A73E8;
+        border-color: var(--color-text-link);
         box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
       }
 
       &::placeholder {
-        color: #9ca3af;
+        color: var(--color-link-edit-placeholder);
       }
     }
   }
@@ -382,21 +383,21 @@ defineExpose({ show, hide, visible })
   transition: all 0.15s;
 
   &.cancel {
-    background: #f1f5f9;
-    color: #64748b;
+    background: var(--color-link-btn-cancel-bg);
+    color: var(--color-link-btn-cancel-text);
 
     &:hover {
-      background: #e2e8f0;
-      color: #0f172a;
+      background: var(--color-link-btn-cancel-hover-bg);
+      color: var(--color-link-btn-cancel-hover-text);
     }
   }
 
   &.save {
-    background: #1A73E8;
+    background: var(--color-link-btn-save-bg);
     color: #fff;
 
     &:hover {
-      background: #1557b0;
+      background: var(--color-link-btn-save-hover);
     }
 
     &:disabled {

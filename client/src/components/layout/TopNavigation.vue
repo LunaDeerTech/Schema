@@ -23,10 +23,13 @@ import {
   HelpCircleOutline as HelpIcon,
   SettingsOutline as SettingsIcon,
   LogOutOutline as LogOutIcon,
-  PersonOutline as PersonIcon
+  PersonOutline as PersonIcon,
+  SunnyOutline as SunnyIcon,
+  MoonOutline as MoonIcon
 } from '@vicons/ionicons5'
 import { useUserStore } from '@/stores/user'
 import { useSystemStore } from '@/stores/system'
+import { useTheme } from '@/composables/useTheme'
 
 const props = defineProps<{
   collapsed: boolean
@@ -41,6 +44,7 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const systemStore = useSystemStore()
+const { isDark, toggleTheme } = useTheme()
 
 const showSearch = ref(false)
 const searchText = ref('')
@@ -167,6 +171,11 @@ const searchResults = [
     </div>
 
     <div class="nav-right">
+      <n-button quaternary circle class="icon-btn" @click="toggleTheme" :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
+        <template #icon>
+          <n-icon :component="isDark ? SunnyIcon : MoonIcon" />
+        </template>
+      </n-button>
       <n-button quaternary circle class="icon-btn" @click="openHelp">
         <template #icon>
           <n-icon :component="HelpIcon" />
@@ -185,7 +194,7 @@ const searchResults = [
             v-else
             round
             size="small"
-            :style="{ backgroundColor: '#1A73E8' }"
+            :style="{ backgroundColor: isDark ? '#0A84FF' : '#1A73E8' }"
           >
             {{ userStore.userName?.[0]?.toUpperCase() || 'U' }}
           </n-avatar>
@@ -312,7 +321,7 @@ const searchResults = [
   padding: 0 16px;
   box-sizing: border-box;
   z-index: 100;
-  background-color: #fff;
+  background-color: var(--color-bg-secondary);
 }
 
 .nav-left {
@@ -325,7 +334,7 @@ const searchResults = [
     font-size: 18px;
     font-weight: 700;
     cursor: pointer;
-    color: #1A73E8;
+    color: var(--color-text-link);
     user-select: none;
   }
 }
@@ -336,7 +345,7 @@ const searchResults = [
   margin: 0 20px;
   
   .search-trigger {
-    background-color: #f1f3f4;
+    background-color: var(--color-bg-input);
     border-radius: 8px;
     height: 36px;
     display: flex;
@@ -346,28 +355,28 @@ const searchResults = [
     transition: background-color 0.2s;
     
     &:hover {
-      background-color: #e8eaed;
+      background-color: var(--color-bg-input-hover);
     }
     
     .search-icon {
-      color: #5f6368;
+      color: var(--color-text-icon);
       margin-right: 8px;
       font-size: 16px;
     }
     
     .search-placeholder {
       flex: 1;
-      color: #5f6368;
+      color: var(--color-text-icon);
       font-size: 14px;
     }
     
     .search-shortcut {
-      color: #9aa0a6;
+      color: var(--color-text-placeholder);
       font-size: 12px;
-      background: #fff;
+      background: var(--color-bg-kbd);
       padding: 2px 6px;
       border-radius: 4px;
-      border: 1px solid #dadce0;
+      border: 1px solid var(--color-border-input);
     }
   }
 }
@@ -402,11 +411,11 @@ const searchResults = [
 .result-item {
   .result-title {
     font-weight: 500;
-    color: #1A73E8;
+    color: var(--color-text-link);
   }
   .result-path {
     font-size: 12px;
-    color: #5f6368;
+    color: var(--color-text-icon);
   }
 }
 </style>

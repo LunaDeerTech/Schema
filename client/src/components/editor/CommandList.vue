@@ -94,7 +94,7 @@ defineExpose({ onKeyDown })
 .group-label {
   font-size: 0.7rem;
   font-weight: 600;
-  color: #a0aec0;
+  color: var(--color-cmd-desc);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 0.4rem 0.5rem 0.15rem;
@@ -102,7 +102,7 @@ defineExpose({ onKeyDown })
 
   &:not(:first-child) {
     margin-top: 0.25rem;
-    border-top: 1px solid #edf2f7;
+    border-top: 1px solid var(--color-cmd-border);
     padding-top: 0.5rem;
   }
 }
@@ -112,7 +112,7 @@ defineExpose({ onKeyDown })
   background-color: transparent;
   border: none;
   border-radius: 0.25rem;
-  color: #1a202c;
+  color: var(--color-cmd-text);
   cursor: pointer;
   display: flex;
   font-size: 0.875rem;
@@ -123,12 +123,12 @@ defineExpose({ onKeyDown })
 
   &.is-selected,
   &:hover {
-    background-color: #edf2f7;
-    color: #2d3748;
+    background-color: var(--color-cmd-bg-hover);
+    color: var(--color-cmd-text-hover);
   }
 
   &.no-result {
-    color: #718096;
+    color: var(--color-cmd-icon);
     cursor: default;
     &:hover {
       background-color: transparent;
@@ -144,7 +144,7 @@ defineExpose({ onKeyDown })
   width: 1.25rem;
   height: 1.25rem;
   font-size: 1.1rem;
-  color: #718096;
+  color: var(--color-cmd-icon);
 }
 
 .text {
@@ -159,7 +159,7 @@ defineExpose({ onKeyDown })
 
 .desc {
   font-size: 0.75rem;
-  color: #a0aec0;
+  color: var(--color-cmd-desc);
   line-height: 1.2;
 }
 </style>

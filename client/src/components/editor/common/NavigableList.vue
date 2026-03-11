@@ -94,7 +94,7 @@ defineExpose({
     background-color: transparent;
     border: none;
     border-radius: 0.25rem;
-    color: #1a202c;
+    color: var(--color-cmd-text);
     cursor: pointer;
     display: flex;
     font-size: 0.875rem;
@@ -105,12 +105,12 @@ defineExpose({
 
     &.is-selected,
     &:hover {
-      background-color: #edf2f7;
-      color: #2d3748;
+      background-color: var(--color-cmd-bg-hover);
+      color: var(--color-cmd-text-hover);
     }
     
     &.no-result {
-      color: #718096;
+      color: var(--color-cmd-icon);
       cursor: default;
       &:hover {
         background-color: transparent;

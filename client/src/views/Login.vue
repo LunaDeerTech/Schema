@@ -123,7 +123,7 @@ const handleSubmit = async () => {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-color: $ios-background-primary;
+  background-color: var(--color-bg-primary);
   padding: 20px;
   
   @media (max-width: 480px) {
@@ -136,14 +136,14 @@ const handleSubmit = async () => {
   max-width: 400px;
   box-shadow: $ios-shadow-2;
   border-radius: $ios-border-radius-xl;
-  background-color: $ios-background-secondary;
+  background-color: var(--color-bg-secondary);
   border: none;
   
   :deep(.n-card-header) {
     text-align: center;
     font-weight: 600;
     font-size: 20px;
-    color: $ios-text-primary;
+    color: var(--color-text-primary);
   }
   
   :deep(.n-card__content) {

@@ -204,8 +204,8 @@ const toggle = () => {
     z-index: 100;
     width: 40px;
     height: 40px;
-    background-color: #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background-color: var(--color-bg-elevated);
+    box-shadow: var(--shadow-toc-btn);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -215,7 +215,7 @@ const toggle = () => {
     
     &:hover {
         transform: scale(1.1);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        box-shadow: var(--shadow-toc-btn-hover);
     }
 }
 
@@ -225,15 +225,15 @@ const toggle = () => {
     right: 20px;
     width: 240px;
     max-height: calc(100vh - 140px);
-    background-color: #fff;
+    background-color: var(--color-bg-elevated);
     border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-toc);
     z-index: 90;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     padding: 12px 0;
-    border: 1px solid rgba(0,0,0,0.05);
+    border: 1px solid var(--color-border-light);
 }
 
 .toc-header {
@@ -241,13 +241,13 @@ const toggle = () => {
     justify-content: space-between;
     align-items: center;
     padding: 0 16px 8px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--color-border-separator);
     margin-bottom: 8px;
     
     .toc-title {
         font-weight: 600;
         font-size: 14px;
-        color: #333;
+        color: var(--color-toc-heading);
     }
 }
 
@@ -260,7 +260,7 @@ const toggle = () => {
     }
     
     &::-webkit-scrollbar-thumb {
-        background-color: rgba(0,0,0,0.2);
+        background-color: var(--color-scrollbar);
         border-radius: 2px;
     }
 }
@@ -268,7 +268,7 @@ const toggle = () => {
 .toc-item {
     padding: 8px 12px;
     font-size: 13px;
-    color: #666;
+    color: var(--color-toc-text);
     cursor: pointer;
     border-radius: 6px;
     white-space: nowrap;
@@ -278,8 +278,8 @@ const toggle = () => {
     margin-bottom: 2px;
     
     &:hover {
-        background-color: #f0f0f0;
-        color: #333;
+        background-color: var(--color-toc-hover);
+        color: var(--color-toc-heading);
     }
 
     &.toc-indent {
@@ -288,7 +288,7 @@ const toggle = () => {
         border-left: 2px solid transparent; 
         
         &:hover {
-           border-left-color: #ddd;
+           border-left-color: var(--color-toc-indent-border);
         }
     }
 }
@@ -296,7 +296,7 @@ const toggle = () => {
 .toc-empty {
     padding: 20px;
     text-align: center;
-    color: #999;
+    color: var(--color-toc-empty);
     font-size: 13px;
 }
 

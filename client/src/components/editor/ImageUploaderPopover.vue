@@ -175,7 +175,7 @@ onUnmounted(() => {
     .divider {
       text-align: center;
       font-size: 0.8rem;
-      color: #94a3b8;
+      color: var(--color-uploader-divider);
       position: relative;
 
       &::before,
@@ -185,7 +185,7 @@ onUnmounted(() => {
         top: 50%;
         width: 40%;
         height: 1px;
-        background-color: #e2e8f0;
+        background-color: var(--color-uploader-line);
       }
 
       &::before {

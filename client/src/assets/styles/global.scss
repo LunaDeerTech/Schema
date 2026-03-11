@@ -1,4 +1,5 @@
 @use 'variables' as *;
+@use 'theme';
 
 // Reset and base styles
 * {
@@ -12,10 +13,11 @@
 html, body {
   height: 100%;
   font-family: $ios-font-family;
-  background-color: $ios-background-primary;
-  color: $ios-text-primary;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
   font-size: 14px;
   line-height: 1.5;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 #app {
@@ -36,12 +38,12 @@ html, body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-scrollbar);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--color-scrollbar-hover);
 }
 
 // Utility classes
@@ -50,22 +52,22 @@ html, body {
 }
 
 .ios-card {
-  background-color: $ios-background-secondary;
+  background-color: var(--color-bg-secondary);
   border-radius: $ios-border-radius-m;
-  box-shadow: $ios-shadow-1;
+  box-shadow: var(--shadow-card);
   padding: 16px;
 }
 
 .ios-blur {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: var(--color-bg-blur);
 }
 
 // Typography Utilities
-.text-primary { color: $ios-text-primary; }
-.text-secondary { color: $ios-text-secondary; }
-.text-tertiary { color: $ios-text-tertiary; }
+.text-primary { color: var(--color-text-primary); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-tertiary { color: var(--color-text-tertiary); }
 
 .font-bold { font-weight: 600; }
 .font-semibold { font-weight: 500; }

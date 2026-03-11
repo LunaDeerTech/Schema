@@ -482,16 +482,16 @@ watch(() => props.content, (newContent) => {
   
   .bubble-menu {
     display: flex;
-    background-color: #fff;
+    background-color: var(--color-bg-elevated);
     padding: 0.2rem;
     border-radius: 0.5rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e2e8f0;
+    box-shadow: var(--shadow-float);
+    border: 1px solid var(--color-border);
 
     button {
       border: none;
       background: none;
-      color: #64748b;
+      color: var(--color-cmd-btn-text);
       font-size: 0.85rem;
       font-weight: 500;
       padding: 0.4rem 0.6rem;
@@ -502,19 +502,19 @@ watch(() => props.content, (newContent) => {
       justify-content: center;
 
       &:hover {
-        background-color: #f1f5f9;
-        color: #0f172a;
+        background-color: var(--color-cmd-btn-hover-bg);
+        color: var(--color-cmd-btn-hover-text);
       }
 
       &.is-active {
-        background-color: #e2e8f0; // Active state background
-        color: #0f172a; // Active state text color
+        background-color: var(--color-cmd-btn-active-bg);
+        color: var(--color-cmd-btn-hover-text);
       }
     }
     
     .divider {
       width: 1px;
-      background-color: #e2e8f0;
+      background-color: var(--color-border);
       margin: 0 0.2rem;
     }
   }
@@ -531,7 +531,7 @@ watch(() => props.content, (newContent) => {
       /* Typography based on InterfaceDesign.md */
       font-size: 14px;
       line-height: 1.6;
-      color: #1F2937; // Main text color
+      color: var(--color-text-body);
       
       p {
         margin-bottom: 1em;
@@ -542,7 +542,7 @@ watch(() => props.content, (newContent) => {
         line-height: 1.3;
         margin-top: 1.5em;
         margin-bottom: 0.5em;
-        color: #111827;
+        color: var(--color-text-heading);
       }
       
       h1 { font-size: 32px; }
@@ -586,21 +586,21 @@ watch(() => props.content, (newContent) => {
       code:not(pre code) {
         font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
         font-size: 0.9em;
-        background-color: rgba(135, 131, 120, 0.15);
+        background-color: var(--color-bg-inline-code);
         border-radius: 4px;
         padding: 0.15em 0.4em;
         margin: 0 0.1em;
-        color: #eb5757;
+        color: var(--color-text-code);
       }
 
       /* Code Block styles moved to CodeBlockView.vue */
       
       /* Blockquote */
       blockquote {
-        border-left: 3px solid #E4E7ED;
+        border-left: 3px solid var(--color-blockquote-border);
         margin-left: 0;
         padding-left: 1em;
-        color: #6B7280;
+        color: var(--color-blockquote-text);
       }
 
       /* Admonitions */
@@ -629,7 +629,7 @@ watch(() => props.content, (newContent) => {
           .admonition-body {
             font-size: 14px;
             line-height: 1.6;
-            color: #374151;
+            color: var(--color-admonition-body);
 
             p {
               margin: 0;
@@ -648,7 +648,7 @@ watch(() => props.content, (newContent) => {
       
       /* Placeholder */
       p.is-editor-empty:first-child::before {
-        color: #9CA3AF;
+        color: var(--color-text-faint);
         content: attr(data-placeholder);
         float: left;
         height: 0;
@@ -657,23 +657,23 @@ watch(() => props.content, (newContent) => {
       
       /* Links — rendered as <span> to prevent browser default link behavior */
       span.editor-link {
-        color: #1A73E8;
+        color: var(--color-text-link);
         text-decoration: none;
-        border-bottom: 1px solid rgba(26, 115, 232, 0.3);
+        border-bottom: 1px solid var(--color-link-underline);
         cursor: pointer;
         transition: background-color 0.15s, border-color 0.15s;
         padding-bottom: 1px;
         
         &:hover {
-          background-color: rgba(26, 115, 232, 0.08);
-          border-bottom-color: #1A73E8;
+          background-color: var(--color-link-hover-bg);
+          border-bottom-color: var(--color-text-link);
         }
       }
 
       /* Page References */
       a.page-reference {
-        color: #1A73E8;
-        background-color: rgba(26, 115, 232, 0.08);
+        color: var(--color-text-link);
+        background-color: var(--color-page-ref-bg);
         border-radius: 4px;
         padding: 1px 4px;
         text-decoration: none;
@@ -682,7 +682,7 @@ watch(() => props.content, (newContent) => {
         transition: background-color 0.15s ease;
         
         &:hover {
-          background-color: rgba(26, 115, 232, 0.16);
+          background-color: var(--color-page-ref-hover);
           text-decoration: none;
         }
       }
@@ -705,7 +705,7 @@ watch(() => props.content, (newContent) => {
         td,
         th {
           min-width: 1em;
-          border: 2px solid #ced4da;
+          border: 2px solid var(--color-border-table);
           padding: 3px 5px;
           vertical-align: top;
           box-sizing: border-box;
@@ -719,7 +719,7 @@ watch(() => props.content, (newContent) => {
         th {
           font-weight: bold;
           text-align: left;
-          background-color: #f1f3f5;
+          background-color: var(--color-bg-table-th);
         }
 
         .selectedCell:after {
@@ -730,7 +730,7 @@ watch(() => props.content, (newContent) => {
           right: 0;
           top: 0;
           bottom: 0;
-          background: rgba(200, 200, 255, 0.4);
+          background: var(--color-bg-table-selected);
           pointer-events: none;
         }
 
@@ -740,7 +740,7 @@ watch(() => props.content, (newContent) => {
           top: 0;
           bottom: 0;
           width: 4px;
-          background-color: #adf;
+          background-color: var(--color-bg-table-resize);
           pointer-events: none;
         }
       }

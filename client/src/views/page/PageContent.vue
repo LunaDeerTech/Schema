@@ -432,7 +432,7 @@ const handleMobileActionSelect = (key: string) => {
 
           <div class="info-section">
             <h4>Version History Settings</h4>
-            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">
+            <p style="font-size: 12px; color: var(--color-toc-text); margin-bottom: 8px;">
               Set the maximum number of versions to keep for this page.
             </p>
             <n-input-number
@@ -555,13 +555,13 @@ const handleMobileActionSelect = (key: string) => {
         }
         
         &:hover {
-          background: rgba(0, 0, 0, 0.02);
+          background: var(--color-bg-hover);
         }
       }
 
       .description-input {
         font-size: 14px;
-        color: #4B5563;
+        color: var(--color-text-muted);
         border: none;
         background: transparent;
         padding: 0;
@@ -576,7 +576,7 @@ const handleMobileActionSelect = (key: string) => {
         }
         
         &:hover, &:focus-within {
-          background: rgba(0, 0, 0, 0.02);
+          background: var(--color-bg-hover);
         }
       }
     }
@@ -604,20 +604,20 @@ const handleMobileActionSelect = (key: string) => {
 
 .content-area {
   min-height: 400px;
-  background: #fff;
+  background: var(--color-bg-secondary);
   border-radius: 8px;
   $content-padding: 24px;
   padding: $content-padding;
   padding-left: calc(#{$content-padding} * 2.5);
   padding-right: calc(#{$content-padding} * 2.5);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-card);
   
   pre {
     white-space: pre-wrap;
     word-wrap: break-word;
     font-family: monospace;
     font-size: 12px;
-    color: #666;
+    color: var(--color-toc-text);
   }
 }
 
@@ -626,7 +626,7 @@ const handleMobileActionSelect = (key: string) => {
   justify-content: center;
   align-items: center;
   height: 100%;
-  color: #999;
+  color: var(--color-toc-empty);
 }
 
 .page-info-content {
@@ -635,24 +635,24 @@ const handleMobileActionSelect = (key: string) => {
   .info-section {
     margin-bottom: 24px;
     padding: 12px;
-    background: #f8f9fa;
+    background: var(--color-bg-info-section);
     border-radius: 8px;
-    border: 1px solid #e9ecef;
+    border: 1px solid var(--color-border-info);
 
     h4 {
       margin: 0 0 12px 0;
       font-size: 14px;
       font-weight: 600;
-      color: #333;
+      color: var(--color-toc-heading);
     }
 
     p {
       margin: 4px 0;
       font-size: 13px;
-      color: #555;
+      color: var(--color-text-muted);
 
       strong {
-        color: #333;
+        color: var(--color-toc-heading);
         margin-right: 4px;
       }
     }

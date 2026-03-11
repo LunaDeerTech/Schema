@@ -129,7 +129,7 @@ onMounted(() => {
   margin: 1em 0;
 
   &.is-selected .math-block-display {
-    outline: 2px solid #3b82f6;
+    outline: 2px solid var(--color-math-border);
     outline-offset: 2px;
     border-radius: 6px;
   }
@@ -138,8 +138,8 @@ onMounted(() => {
 .math-block-display {
   padding: 16px 20px;
   border-radius: 6px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--color-math-bg);
+  border: 1px solid var(--color-border);
   cursor: pointer;
   text-align: center;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -149,8 +149,8 @@ onMounted(() => {
   justify-content: center;
 
   &:hover {
-    border-color: #94a3b8;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    border-color: var(--color-math-placeholder);
+    box-shadow: var(--shadow-card);
   }
 }
 
@@ -168,15 +168,15 @@ onMounted(() => {
 }
 
 .math-block-placeholder {
-  color: #94a3b8;
+  color: var(--color-math-placeholder);
   font-style: italic;
   font-size: 14px;
 }
 
 .math-block-editor {
-  border: 1px solid #3b82f6;
+  border: 1px solid var(--color-math-border);
   border-radius: 6px;
-  background: #f8fafc;
+  background: var(--color-math-bg);
   overflow: hidden;
 }
 
@@ -185,19 +185,19 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 6px 12px;
-  background: #eff6ff;
-  border-bottom: 1px solid #dbeafe;
+  background: var(--color-math-header-bg);
+  border-bottom: 1px solid var(--color-math-header-border);
 }
 
 .math-block-label {
   font-size: 12px;
   font-weight: 600;
-  color: #3b82f6;
+  color: var(--color-math-label);
 }
 
 .math-block-hint {
   font-size: 11px;
-  color: #93c5fd;
+  color: var(--color-math-hint);
 }
 
 .math-block-textarea {
@@ -210,13 +210,13 @@ onMounted(() => {
   line-height: 1.6;
   padding: 10px 12px;
   background: transparent;
-  color: #1e293b;
+  color: var(--color-math-text);
   box-sizing: border-box;
 }
 
 .math-block-preview {
   padding: 12px 16px;
-  border-top: 1px dashed #e2e8f0;
+  border-top: 1px dashed var(--color-border);
   text-align: center;
   min-height: 40px;
   display: flex;
@@ -239,7 +239,7 @@ onMounted(() => {
 }
 
 .math-block-preview-empty {
-  color: #cbd5e1;
+  color: var(--color-math-preview-empty);
   font-size: 13px;
   font-style: italic;
 }

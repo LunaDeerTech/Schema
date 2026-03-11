@@ -21,26 +21,26 @@ const props = defineProps<{
 const typeConfig = {
   info: {
     icon: InformationCircleOutline,
-    bgColor: '#e0f2fe',
-    textColor: '#0369a1',
+    bgColor: 'var(--color-adm-info-bg)',
+    textColor: 'var(--color-adm-info-text)',
     title: 'Info',
   },
   warning: {
     icon: WarningOutline,
-    bgColor: '#fef3c7',
-    textColor: '#92400e',
+    bgColor: 'var(--color-adm-warning-bg)',
+    textColor: 'var(--color-adm-warning-text)',
     title: 'Warning',
   },
   success: {
     icon: CheckmarkCircleOutline,
-    bgColor: '#dcfce7',
-    textColor: '#166534',
+    bgColor: 'var(--color-adm-success-bg)',
+    textColor: 'var(--color-adm-success-text)',
     title: 'Success',
   },
   danger: {
     icon: CloseCircleOutline,
-    bgColor: '#fee2e2',
-    textColor: '#991b1b',
+    bgColor: 'var(--color-adm-danger-bg)',
+    textColor: 'var(--color-adm-danger-text)',
     title: 'Danger',
   },
 }

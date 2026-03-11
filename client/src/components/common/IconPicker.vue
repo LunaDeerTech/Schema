@@ -276,8 +276,8 @@ const emojiPreview = computed(() => {
   flex-shrink: 0;
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-    border-color: rgba(0, 0, 0, 0.1);
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-border-light);
   }
 
   .emoji-icon {
@@ -288,12 +288,12 @@ const emojiPreview = computed(() => {
   .placeholder-icon {
     width: 32px;
     height: 32px;
-    border: 1px dashed #ccc;
+    border: 1px dashed var(--color-picker-border);
     border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #999;
+    color: var(--color-picker-placeholder);
 
     &:hover {
       border-color: var(--primary-color);
@@ -312,7 +312,7 @@ const emojiPreview = computed(() => {
 
   .picker-header {
     padding: 10px 12px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--color-picker-separator);
     display: flex;
     gap: 8px;
     align-items: center;
@@ -333,7 +333,7 @@ const emojiPreview = computed(() => {
 
   .manual-input-section {
     padding: 10px 12px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--color-picker-separator);
     flex-shrink: 0;
   }
 
@@ -342,7 +342,7 @@ const emojiPreview = computed(() => {
     display: flex;
     align-items: center;
     gap: 12px;
-    background: #f8f9fa;
+    background: var(--color-picker-preview-bg);
     border-radius: 6px;
     margin: 8px 12px;
     min-height: 48px;
@@ -356,7 +356,7 @@ const emojiPreview = computed(() => {
 
     .preview-name {
       font-size: 12px;
-      color: #666;
+      color: var(--color-picker-preview-text);
       flex: 1;
       word-break: break-word;
     }
@@ -387,7 +387,7 @@ const emojiPreview = computed(() => {
       min-width: 0;
 
       &:hover {
-        background-color: rgba(0, 0, 0, 0.08);
+        background-color: var(--color-picker-hover);
         transform: scale(1.1);
       }
 
@@ -400,7 +400,7 @@ const emojiPreview = computed(() => {
   .empty-state {
     padding: 24px;
     text-align: center;
-    color: #999;
+    color: var(--color-picker-empty);
     font-size: 14px;
     flex-shrink: 0;
   }

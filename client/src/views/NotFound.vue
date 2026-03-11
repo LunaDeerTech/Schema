@@ -33,7 +33,7 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-color: $ios-background-primary;
+  background-color: var(--color-bg-primary);
   padding: 20px;
 }
 
@@ -42,7 +42,7 @@
   max-width: 500px;
   box-shadow: $ios-shadow-2;
   border-radius: $ios-border-radius-xl;
-  background-color: $ios-background-secondary;
+  background-color: var(--color-bg-secondary);
   border: none;
   padding: 40px 20px;
 }

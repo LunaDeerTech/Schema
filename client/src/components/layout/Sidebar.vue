@@ -590,7 +590,7 @@ watch(() => pageStore.currentPage, async (page) => {
 
 <style scoped lang="scss">
 .sidebar {
-  background-color: #fcfcfc;
+  background-color: var(--color-bg-sidebar);
 }
 
 .sidebar-content {
@@ -615,7 +615,7 @@ watch(() => pageStore.currentPage, async (page) => {
   margin-top: 8px;
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: var(--color-bg-hover);
   }
 
   &.active {

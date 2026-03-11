@@ -9,17 +9,19 @@ import {
   NButton,
   NIcon
 } from 'naive-ui'
-import { MenuOutline } from '@vicons/ionicons5'
+import { MenuOutline, SunnyOutline, MoonOutline } from '@vicons/ionicons5'
 import { useBreakpoints, breakpointsTailwind } from '@vueuse/core'
 import { useRoute } from 'vue-router'
 import PublicSidebar from '@/components/layout/PublicSidebar.vue'
 import { usePublicStore } from '@/stores/public'
 import { storeToRefs } from 'pinia'
 import { usePageTitle } from '@/composables/usePageTitle'
+import { useTheme } from '@/composables/useTheme'
 
 const route = useRoute()
 const publicStore = usePublicStore()
 const { tree, currentPageId, currentLibrary } = storeToRefs(publicStore)
+const { isDark, toggleTheme } = useTheme()
 
 const breakpoints = useBreakpoints(breakpointsTailwind)
 const isMobile = breakpoints.smaller('lg')
@@ -47,6 +49,11 @@ usePageTitle()
         </template>
       </n-button>
       <span class="mobile-title">{{ currentLibrary?.title || 'Schema Public' }}</span>
+      <n-button quaternary circle class="mobile-theme-toggle" @click="toggleTheme">
+        <template #icon>
+          <n-icon><MoonOutline v-if="!isDark" /><SunnyOutline v-else /></n-icon>
+        </template>
+      </n-button>
     </n-layout-header>
 
     <NLayout :has-sider="!isMobile" class="main-layout" :style="{ height: isMobile ? 'calc(100vh - 50px)' : '100vh' }">
@@ -75,7 +82,7 @@ usePageTitle()
         </n-drawer-content>
       </n-drawer>
 
-      <NLayoutContent class="content-area" :content-style="{ padding: isMobile ? '16px' : '24px', backgroundColor: '#fff', minHeight: '100%' }">
+      <NLayoutContent class="content-area" :content-style="{ padding: isMobile ? '16px' : '24px', minHeight: '100%' }">
         <router-view />
       </NLayoutContent>
     </NLayout>
@@ -94,7 +101,7 @@ usePageTitle()
   display: flex;
   align-items: center;
   padding: 0 12px;
-  background-color: #fff;
+  background-color: var(--color-bg-secondary);
   z-index: 10;
 }
 
@@ -105,6 +112,11 @@ usePageTitle()
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
+}
+
+.mobile-theme-toggle {
+  flex-shrink: 0;
 }
 
 .main-layout {
@@ -112,7 +124,7 @@ usePageTitle()
 }
 
 .content-area {
-  background-color: #fff;
+  background-color: var(--color-bg-secondary);
   overflow-y: auto;
 }
 </style>

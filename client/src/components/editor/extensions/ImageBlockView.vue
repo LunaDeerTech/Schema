@@ -106,7 +106,7 @@ const onMouseUp = () => {
                 content: '';
                 width: 4px;
                 height: 32px;
-                background-color: rgba(0, 0, 0, 0.5);
+                background-color: var(--color-image-overlay);
                 border-radius: 2px;
                 opacity: 0;
                 transition: opacity 0.2s;

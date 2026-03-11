@@ -162,13 +162,13 @@ watch(() => route.params.slug, fetchPage, { immediate: true })
           font-size: 32px;
           font-weight: bold;
           line-height: 1.2;
-          color: #111827;
+          color: var(--color-text-heading);
         }
 
         .page-description {
           margin: 0;
           font-size: 16px;
-          color: #4B5563;
+          color: var(--color-text-muted);
         }
       }
     }

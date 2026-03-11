@@ -1,0 +1,354 @@
+// Theme CSS Custom Properties — Light & Dark Mode
+// These variables are used throughout the app to support theme switching.
+
+:root {
+  // Backgrounds
+  --color-bg-primary: #F2F2F7;
+  --color-bg-secondary: #FFFFFF;
+  --color-bg-tertiary: #fafafa;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-hover: rgba(0, 0, 0, 0.04);
+  --color-bg-active: rgba(0, 0, 0, 0.08);
+  --color-bg-sidebar: #fcfcfc;
+  --color-bg-code: #FAFBFC;
+  --color-bg-code-header: #F0F3F7;
+  --color-bg-input: #f1f3f4;
+  --color-bg-input-hover: #e8eaed;
+  --color-bg-kbd: #fff;
+  --color-bg-table-th: #f1f3f5;
+  --color-bg-table-selected: rgba(200, 200, 255, 0.4);
+  --color-bg-table-resize: #adf;
+  --color-bg-empty: #f9f9f9;
+  --color-bg-info-section: #f8f9fa;
+  --color-bg-inline-code: rgba(135, 131, 120, 0.15);
+  --color-bg-blur: rgba(255, 255, 255, 0.8);
+
+  // Text
+  --color-text-primary: #000000;
+  --color-text-body: #1F2937;
+  --color-text-heading: #111827;
+  --color-text-secondary: #8E8E93;
+  --color-text-tertiary: #C7C7CC;
+  --color-text-muted: #6B7280;
+  --color-text-faint: #9CA3AF;
+  --color-text-icon: #5f6368;
+  --color-text-placeholder: #9aa0a6;
+  --color-text-code: #eb5757;
+  --color-text-link: #1A73E8;
+  --color-text-link-hover: #1557b0;
+
+  // Borders
+  --color-border: #e2e8f0;
+  --color-border-light: rgba(0, 0, 0, 0.06);
+  --color-border-table: #ced4da;
+  --color-border-code: #E2E6ED;
+  --color-border-input: #dadce0;
+  --color-border-separator: #eee;
+  --color-border-info: #e9ecef;
+
+  // Shadows
+  --shadow-float: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-popup: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-toc-btn: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-toc-btn-hover: 0 6px 16px rgba(0, 0, 0, 0.2);
+  --shadow-toc: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  // Scrollbar
+  --color-scrollbar: rgba(0, 0, 0, 0.2);
+  --color-scrollbar-hover: rgba(0, 0, 0, 0.3);
+
+  // Editor - Bubble menu / Command list
+  --color-cmd-text: #1a202c;
+  --color-cmd-text-hover: #2d3748;
+  --color-cmd-bg-hover: #edf2f7;
+  --color-cmd-icon: #718096;
+  --color-cmd-desc: #a0aec0;
+  --color-cmd-border: #edf2f7;
+  --color-cmd-btn-text: #64748b;
+  --color-cmd-btn-hover-bg: #f1f5f9;
+  --color-cmd-btn-hover-text: #0f172a;
+  --color-cmd-btn-active-bg: #e2e8f0;
+
+  // Math editor
+  --color-math-border: #3b82f6;
+  --color-math-bg: #f8fafc;
+  --color-math-header-bg: #eff6ff;
+  --color-math-header-border: #dbeafe;
+  --color-math-label: #3b82f6;
+  --color-math-hint: #93c5fd;
+  --color-math-text: #1e293b;
+  --color-math-placeholder: #94a3b8;
+  --color-math-preview-empty: #cbd5e1;
+  --color-math-inline-hover: #eff6ff;
+  --color-math-inline-selected: #dbeafe;
+  --color-math-inline-outline: #93c5fd;
+
+  // Code block syntax highlighting (GitHub Light)
+  --color-hljs-text: #24292e;
+  --color-hljs-comment: #6a737d;
+  --color-hljs-keyword: #d73a49;
+  --color-hljs-string: #032f62;
+  --color-hljs-number: #005cc5;
+  --color-hljs-literal: #e36209;
+  --color-hljs-function: #6f42c1;
+  --color-hljs-builtin: #e36209;
+  --color-hljs-deletion-text: #b31d28;
+  --color-hljs-deletion-bg: #ffeef0;
+  --color-hljs-addition-bg: #f0fff4;
+  --color-hljs-meta: #005cc5;
+  --color-hljs-tag: #22863a;
+  --color-hljs-attribute: #22863a;
+  --color-hljs-selector: #6f42c1;
+  --color-hljs-params: #24292e;
+
+  // Code block UI
+  --color-code-lang-text: #6B7280;
+  --color-code-lang-hover-border: #D1D5DB;
+  --color-code-lang-hover-bg: rgba(255, 255, 255, 0.5);
+  --color-code-lang-hover-text: #374151;
+  --color-code-dropdown-bg: #fff;
+  --color-code-search-bg: #FAFBFC;
+  --color-code-search-text: #374151;
+  --color-code-search-placeholder: #9CA3AF;
+  --color-code-option-text: #374151;
+  --color-code-option-hover: #F3F4F6;
+  --color-code-option-active-bg: #EEF2FF;
+  --color-code-option-active-text: #4F46E5;
+  --color-code-copy-hover-bg: rgba(0, 0, 0, 0.06);
+  --color-code-copy-hover-text: #374151;
+  --color-code-copy-success: #16a34a;
+
+  // Link bubble menu
+  --color-link-url: #1A73E8;
+  --color-link-edit-label: #64748b;
+  --color-link-edit-text: #1f2937;
+  --color-link-edit-placeholder: #9ca3af;
+  --color-link-btn-cancel-bg: #f1f5f9;
+  --color-link-btn-cancel-text: #64748b;
+  --color-link-btn-cancel-hover-bg: #e2e8f0;
+  --color-link-btn-cancel-hover-text: #0f172a;
+  --color-link-btn-save-bg: #1A73E8;
+  --color-link-btn-save-hover: #1557b0;
+  --color-link-danger-bg: #fef2f2;
+  --color-link-danger-text: #dc2626;
+
+  // Admonition
+  --color-adm-info-bg: #e0f2fe;
+  --color-adm-info-text: #0369a1;
+  --color-adm-warning-bg: #fef3c7;
+  --color-adm-warning-text: #92400e;
+  --color-adm-success-bg: #dcfce7;
+  --color-adm-success-text: #166534;
+  --color-adm-danger-bg: #fee2e2;
+  --color-adm-danger-text: #991b1b;
+
+  // Page content
+  --color-blockquote-border: #E4E7ED;
+  --color-blockquote-text: #6B7280;
+  --color-admonition-body: #374151;
+  --color-page-ref-bg: rgba(26, 115, 232, 0.08);
+  --color-page-ref-hover: rgba(26, 115, 232, 0.16);
+  --color-link-underline: rgba(26, 115, 232, 0.3);
+  --color-link-hover-bg: rgba(26, 115, 232, 0.08);
+
+  // Image overlay
+  --color-image-overlay: rgba(0, 0, 0, 0.5);
+
+  // Icon picker
+  --color-picker-border: #ccc;
+  --color-picker-placeholder: #999;
+  --color-picker-separator: #eee;
+  --color-picker-preview-bg: #f8f9fa;
+  --color-picker-preview-text: #666;
+  --color-picker-hover: rgba(0, 0, 0, 0.08);
+  --color-picker-empty: #999;
+
+  // TOC
+  --color-toc-text: #666;
+  --color-toc-heading: #333;
+  --color-toc-hover: #f0f0f0;
+  --color-toc-indent-border: #ddd;
+  --color-toc-empty: #999;
+
+  // Image uploader
+  --color-uploader-divider: #94a3b8;
+  --color-uploader-line: #e2e8f0;
+}
+
+html.dark {
+  // Backgrounds
+  --color-bg-primary: #1C1C1E;
+  --color-bg-secondary: #2C2C2E;
+  --color-bg-tertiary: #3A3A3C;
+  --color-bg-elevated: #3A3A3C;
+  --color-bg-hover: rgba(255, 255, 255, 0.08);
+  --color-bg-active: rgba(255, 255, 255, 0.12);
+  --color-bg-sidebar: #252528;
+  --color-bg-code: #2D2D30;
+  --color-bg-code-header: #333336;
+  --color-bg-input: #3A3A3C;
+  --color-bg-input-hover: #48484A;
+  --color-bg-kbd: #48484A;
+  --color-bg-table-th: #3A3A3C;
+  --color-bg-table-selected: rgba(100, 100, 200, 0.3);
+  --color-bg-table-resize: #4a8;
+  --color-bg-empty: #2C2C2E;
+  --color-bg-info-section: #2C2C2E;
+  --color-bg-inline-code: rgba(200, 200, 200, 0.15);
+  --color-bg-blur: rgba(44, 44, 46, 0.85);
+
+  // Text
+  --color-text-primary: #F5F5F7;
+  --color-text-body: #E5E5E7;
+  --color-text-heading: #F5F5F7;
+  --color-text-secondary: #98989D;
+  --color-text-tertiary: #636366;
+  --color-text-muted: #A1A1A6;
+  --color-text-faint: #8E8E93;
+  --color-text-icon: #A1A1A6;
+  --color-text-placeholder: #636366;
+  --color-text-code: #ff7b72;
+  --color-text-link: #64B5F6;
+  --color-text-link-hover: #90CAF9;
+
+  // Borders
+  --color-border: #48484A;
+  --color-border-light: rgba(255, 255, 255, 0.08);
+  --color-border-table: #48484A;
+  --color-border-code: #48484A;
+  --color-border-input: #636366;
+  --color-border-separator: #3A3A3C;
+  --color-border-info: #48484A;
+
+  // Shadows
+  --shadow-float: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-popup: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-toc-btn: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-toc-btn-hover: 0 6px 16px rgba(0, 0, 0, 0.5);
+  --shadow-toc: 0 4px 16px rgba(0, 0, 0, 0.3);
+
+  // Scrollbar
+  --color-scrollbar: rgba(255, 255, 255, 0.2);
+  --color-scrollbar-hover: rgba(255, 255, 255, 0.3);
+
+  // Editor - Bubble menu / Command list
+  --color-cmd-text: #E5E5E7;
+  --color-cmd-text-hover: #F5F5F7;
+  --color-cmd-bg-hover: #3A3A3C;
+  --color-cmd-icon: #A1A1A6;
+  --color-cmd-desc: #636366;
+  --color-cmd-border: #48484A;
+  --color-cmd-btn-text: #A1A1A6;
+  --color-cmd-btn-hover-bg: #3A3A3C;
+  --color-cmd-btn-hover-text: #F5F5F7;
+  --color-cmd-btn-active-bg: #48484A;
+
+  // Math editor
+  --color-math-border: #60A5FA;
+  --color-math-bg: #2C2C2E;
+  --color-math-header-bg: #1E3A5F;
+  --color-math-header-border: #2563EB;
+  --color-math-label: #60A5FA;
+  --color-math-hint: #3B82F6;
+  --color-math-text: #E5E5E7;
+  --color-math-placeholder: #636366;
+  --color-math-preview-empty: #48484A;
+  --color-math-inline-hover: #1E3A5F;
+  --color-math-inline-selected: #1E40AF;
+  --color-math-inline-outline: #3B82F6;
+
+  // Code block syntax highlighting (GitHub Dark)
+  --color-hljs-text: #c9d1d9;
+  --color-hljs-comment: #8b949e;
+  --color-hljs-keyword: #ff7b72;
+  --color-hljs-string: #a5d6ff;
+  --color-hljs-number: #79c0ff;
+  --color-hljs-literal: #ffa657;
+  --color-hljs-function: #d2a8ff;
+  --color-hljs-builtin: #ffa657;
+  --color-hljs-deletion-text: #ffdcd7;
+  --color-hljs-deletion-bg: #67060c;
+  --color-hljs-addition-bg: #033a16;
+  --color-hljs-meta: #79c0ff;
+  --color-hljs-tag: #7ee787;
+  --color-hljs-attribute: #7ee787;
+  --color-hljs-selector: #d2a8ff;
+  --color-hljs-params: #c9d1d9;
+
+  // Code block UI
+  --color-code-lang-text: #A1A1A6;
+  --color-code-lang-hover-border: #636366;
+  --color-code-lang-hover-bg: rgba(255, 255, 255, 0.08);
+  --color-code-lang-hover-text: #E5E5E7;
+  --color-code-dropdown-bg: #2C2C2E;
+  --color-code-search-bg: #3A3A3C;
+  --color-code-search-text: #E5E5E7;
+  --color-code-search-placeholder: #636366;
+  --color-code-option-text: #E5E5E7;
+  --color-code-option-hover: #3A3A3C;
+  --color-code-option-active-bg: #1E3A5F;
+  --color-code-option-active-text: #93C5FD;
+  --color-code-copy-hover-bg: rgba(255, 255, 255, 0.08);
+  --color-code-copy-hover-text: #E5E5E7;
+  --color-code-copy-success: #4ade80;
+
+  // Link bubble menu
+  --color-link-url: #64B5F6;
+  --color-link-edit-label: #A1A1A6;
+  --color-link-edit-text: #E5E5E7;
+  --color-link-edit-placeholder: #636366;
+  --color-link-btn-cancel-bg: #3A3A3C;
+  --color-link-btn-cancel-text: #A1A1A6;
+  --color-link-btn-cancel-hover-bg: #48484A;
+  --color-link-btn-cancel-hover-text: #F5F5F7;
+  --color-link-btn-save-bg: #2563EB;
+  --color-link-btn-save-hover: #1D4ED8;
+  --color-link-danger-bg: rgba(220, 38, 38, 0.15);
+  --color-link-danger-text: #FCA5A5;
+
+  // Admonition
+  --color-adm-info-bg: rgba(14, 165, 233, 0.15);
+  --color-adm-info-text: #7DD3FC;
+  --color-adm-warning-bg: rgba(245, 158, 11, 0.15);
+  --color-adm-warning-text: #FCD34D;
+  --color-adm-success-bg: rgba(34, 197, 94, 0.15);
+  --color-adm-success-text: #86EFAC;
+  --color-adm-danger-bg: rgba(239, 68, 68, 0.15);
+  --color-adm-danger-text: #FCA5A5;
+
+  // Page content
+  --color-blockquote-border: #48484A;
+  --color-blockquote-text: #A1A1A6;
+  --color-admonition-body: #E5E5E7;
+  --color-page-ref-bg: rgba(100, 181, 246, 0.12);
+  --color-page-ref-hover: rgba(100, 181, 246, 0.2);
+  --color-link-underline: rgba(100, 181, 246, 0.3);
+  --color-link-hover-bg: rgba(100, 181, 246, 0.12);
+
+  // Image overlay
+  --color-image-overlay: rgba(0, 0, 0, 0.7);
+
+  // Icon picker
+  --color-picker-border: #48484A;
+  --color-picker-placeholder: #636366;
+  --color-picker-separator: #3A3A3C;
+  --color-picker-preview-bg: #3A3A3C;
+  --color-picker-preview-text: #A1A1A6;
+  --color-picker-hover: rgba(255, 255, 255, 0.08);
+  --color-picker-empty: #636366;
+
+  // TOC
+  --color-toc-text: #A1A1A6;
+  --color-toc-heading: #E5E5E7;
+  --color-toc-hover: #3A3A3C;
+  --color-toc-indent-border: #48484A;
+  --color-toc-empty: #636366;
+
+  // Image uploader
+  --color-uploader-divider: #636366;
+  --color-uploader-line: #48484A;
+}

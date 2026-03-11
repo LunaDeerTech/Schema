@@ -102,19 +102,19 @@ onMounted(() => {
   }
 
   &:hover {
-    background: #eff6ff;
+    background: var(--color-math-inline-hover);
   }
 
   &.is-selected {
-    background: #dbeafe;
-    outline: 1px solid #93c5fd;
+    background: var(--color-math-inline-selected);
+    outline: 1px solid var(--color-math-inline-outline);
     outline-offset: 1px;
     border-radius: 3px;
   }
 }
 
 .math-inline-placeholder {
-  color: #94a3b8;
+  color: var(--color-math-placeholder);
   font-style: italic;
   font-size: 0.9em;
 }
@@ -125,17 +125,17 @@ onMounted(() => {
 }
 
 .math-inline-input {
-  border: 1px solid #3b82f6;
+  border: 1px solid var(--color-math-border);
   border-radius: 3px;
   padding: 1px 6px;
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
   font-size: 0.85em;
   line-height: 1.4;
-  background: #eff6ff;
+  background: var(--color-math-header-bg);
   outline: none;
   min-width: 60px;
   max-width: 300px;
-  color: #1e293b;
+  color: var(--color-math-text);
 }
 
 :deep(.math-error) {
