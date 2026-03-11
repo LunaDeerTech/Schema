@@ -17,6 +17,7 @@ import {
   WarningOutline,
   CheckmarkCircleOutline,
   CloseCircleOutline,
+  CalculatorOutline,
 } from '@vicons/ionicons5'
 
 const getSuggestionItems = ({ query }: { query: string }) => {
@@ -144,6 +145,20 @@ const getSuggestionItems = ({ query }: { query: string }) => {
           .deleteRange(range)
           .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
           .run()
+      },
+    },
+    {
+      title: 'Block Formula',
+      icon: CalculatorOutline,
+      command: ({ editor, range }: any) => {
+        editor.chain().focus().deleteRange(range).insertMathBlock().run()
+      },
+    },
+    {
+      title: 'Inline Formula',
+      icon: CalculatorOutline,
+      command: ({ editor, range }: any) => {
+        editor.chain().focus().deleteRange(range).insertMathInline().run()
       },
     },
     {

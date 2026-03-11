@@ -14,7 +14,9 @@ import BubbleMenuExtension from '@tiptap/extension-bubble-menu'
 import SlashCommand from './extensions/slash-command'
 import PageReference from './extensions/page-reference'
 import { Admonition } from './extensions/admonition'
+import { MathBlock, MathInline } from './extensions/math-block'
 import { common, createLowlight } from 'lowlight'
+import 'katex/dist/katex.min.css'
 import { ref, onBeforeUnmount, onMounted, toRaw, watch } from 'vue'
 import { NIcon, useMessage } from 'naive-ui'
 import { useRouter, useRoute } from 'vue-router'
@@ -192,6 +194,8 @@ const editor = useEditor({
     SlashCommand,
     PageReference,
     Admonition,
+    MathBlock,
+    MathInline,
   ],
   onUpdate: ({ editor }: { editor: any }) => {
     emit('update', editor.getJSON())
