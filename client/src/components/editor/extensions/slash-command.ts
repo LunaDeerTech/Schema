@@ -20,164 +20,208 @@ import {
   CalculatorOutline,
 } from '@vicons/ionicons5'
 
+export interface CommandItem {
+  title: string
+  description?: string
+  icon: any
+  group: string
+  keywords?: string[]
+  command: (params: { editor: any; range: any }) => void
+}
+
+const allItems: CommandItem[] = [
+  {
+    title: 'Heading 1',
+    description: 'Large section heading',
+    icon: TextOutline,
+    group: 'Headings',
+    keywords: ['h1', 'title', 'big'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).setNode('heading', { level: 1 }).run()
+    },
+  },
+  {
+    title: 'Heading 2',
+    description: 'Medium section heading',
+    icon: TextOutline,
+    group: 'Headings',
+    keywords: ['h2', 'subtitle'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).setNode('heading', { level: 2 }).run()
+    },
+  },
+  {
+    title: 'Heading 3',
+    description: 'Small section heading',
+    icon: TextOutline,
+    group: 'Headings',
+    keywords: ['h3', 'subheading'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run()
+    },
+  },
+  {
+    title: 'Bullet List',
+    description: 'Unordered list',
+    icon: ListOutline,
+    group: 'Lists',
+    keywords: ['ul', 'unordered', 'bullet'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).toggleBulletList().run()
+    },
+  },
+  {
+    title: 'Ordered List',
+    description: 'Numbered list',
+    icon: ListCircleOutline,
+    group: 'Lists',
+    keywords: ['ol', 'numbered', 'number'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).toggleOrderedList().run()
+    },
+  },
+  {
+    title: 'Task List',
+    description: 'Checklist with toggles',
+    icon: CheckboxOutline,
+    group: 'Lists',
+    keywords: ['todo', 'checkbox', 'check'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).toggleTaskList().run()
+    },
+  },
+  {
+    title: 'Code Block',
+    description: 'Syntax highlighted code',
+    icon: CodeSlashOutline,
+    group: 'Blocks',
+    keywords: ['code', 'pre', 'syntax', 'snippet'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).toggleCodeBlock().run()
+    },
+  },
+  {
+    title: 'Blockquote',
+    description: 'Quoted text block',
+    icon: ChatboxEllipsesOutline,
+    group: 'Blocks',
+    keywords: ['quote', 'cite'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).toggleBlockquote().run()
+    },
+  },
+  {
+    title: 'Info',
+    description: 'Informational callout',
+    icon: InformationCircleOutline,
+    group: 'Callouts',
+    keywords: ['admonition', 'info', 'note', 'tip'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).insertAdmonition({ type: 'info' }).run()
+    },
+  },
+  {
+    title: 'Warning',
+    description: 'Warning callout',
+    icon: WarningOutline,
+    group: 'Callouts',
+    keywords: ['admonition', 'warning', 'caution', 'alert'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).insertAdmonition({ type: 'warning' }).run()
+    },
+  },
+  {
+    title: 'Success',
+    description: 'Success callout',
+    icon: CheckmarkCircleOutline,
+    group: 'Callouts',
+    keywords: ['admonition', 'success', 'done', 'complete'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).insertAdmonition({ type: 'success' }).run()
+    },
+  },
+  {
+    title: 'Danger',
+    description: 'Danger callout',
+    icon: CloseCircleOutline,
+    group: 'Callouts',
+    keywords: ['admonition', 'danger', 'error', 'critical'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).insertAdmonition({ type: 'danger' }).run()
+    },
+  },
+  {
+    title: 'Image',
+    description: 'Upload or embed image',
+    icon: ImageOutline,
+    group: 'Insert',
+    keywords: ['image', 'picture', 'photo', 'img'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).run()
+      const event = new CustomEvent('open-image-uploader', {
+        detail: { pos: editor.view.coordsAtPos(editor.state.selection.from) },
+      })
+      window.dispatchEvent(event)
+    },
+  },
+  {
+    title: 'Table',
+    description: '3×3 table with header',
+    icon: GridOutline,
+    group: 'Insert',
+    keywords: ['table', 'grid', 'spreadsheet'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+    },
+  },
+  {
+    title: 'Block Formula',
+    description: 'Display math equation',
+    icon: CalculatorOutline,
+    group: 'Insert',
+    keywords: ['math', 'formula', 'equation', 'latex', 'katex', 'block'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).insertMathBlock().run()
+    },
+  },
+  {
+    title: 'Inline Formula',
+    description: 'Inline math expression',
+    icon: CalculatorOutline,
+    group: 'Insert',
+    keywords: ['math', 'formula', 'inline', 'latex', 'katex'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).insertMathInline().run()
+    },
+  },
+  {
+    title: 'Import Markdown',
+    description: 'Import from Markdown file',
+    icon: DocumentTextOutline,
+    group: 'Insert',
+    keywords: ['markdown', 'md', 'import', 'paste'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).run()
+      const event = new CustomEvent('open-markdown-importer', {
+        detail: { pos: editor.view.coordsAtPos(editor.state.selection.from) },
+      })
+      window.dispatchEvent(event)
+    },
+  },
+]
+
+function matchesQuery(item: CommandItem, query: string): boolean {
+  if (!query) return true
+  const q = query.toLowerCase()
+  if (item.title.toLowerCase().includes(q)) return true
+  if (item.group.toLowerCase().includes(q)) return true
+  if (item.keywords?.some((k) => k.includes(q))) return true
+  if (item.description?.toLowerCase().includes(q)) return true
+  return false
+}
+
 const getSuggestionItems = ({ query }: { query: string }) => {
-  return [
-    {
-      title: 'Heading 1',
-      icon: TextOutline,
-      command: ({ editor, range }: any) => {
-        editor
-          .chain()
-          .focus()
-          .deleteRange(range)
-          .setNode('heading', { level: 1 })
-          .run()
-      },
-    },
-    {
-      title: 'Heading 2',
-      icon: TextOutline,
-      command: ({ editor, range }: any) => {
-        editor
-          .chain()
-          .focus()
-          .deleteRange(range)
-          .setNode('heading', { level: 2 })
-          .run()
-      },
-    },
-    {
-      title: 'Heading 3',
-      icon: TextOutline,
-      command: ({ editor, range }: any) => {
-        editor
-          .chain()
-          .focus()
-          .deleteRange(range)
-          .setNode('heading', { level: 3 })
-          .run()
-      },
-    },
-    {
-      title: 'Bullet List',
-      icon: ListOutline,
-      command: ({ editor, range }: any) => {
-        editor.chain().focus().deleteRange(range).toggleBulletList().run()
-      },
-    },
-    {
-      title: 'Ordered List',
-      icon: ListCircleOutline,
-      command: ({ editor, range }: any) => {
-        editor.chain().focus().deleteRange(range).toggleOrderedList().run()
-      },
-    },
-    {
-      title: 'Task List',
-      icon: CheckboxOutline,
-      command: ({ editor, range }: any) => {
-        editor.chain().focus().deleteRange(range).toggleTaskList().run()
-      },
-    },
-    {
-      title: 'Code Block',
-      icon: CodeSlashOutline,
-      command: ({ editor, range }: any) => {
-        editor.chain().focus().deleteRange(range).toggleCodeBlock().run()
-      },
-    },
-    {
-      title: 'Blockquote',
-      icon: ChatboxEllipsesOutline,
-      command: ({ editor, range }: any) => {
-        editor.chain().focus().deleteRange(range).toggleBlockquote().run()
-      },
-    },
-    {
-      title: 'Admonition - Info',
-      icon: InformationCircleOutline,
-      command: ({ editor, range }: any) => {
-        editor.chain().focus().deleteRange(range).insertAdmonition({ type: 'info' }).run()
-      },
-    },
-    {
-      title: 'Admonition - Warning',
-      icon: WarningOutline,
-      command: ({ editor, range }: any) => {
-        editor.chain().focus().deleteRange(range).insertAdmonition({ type: 'warning' }).run()
-      },
-    },
-    {
-      title: 'Admonition - Success',
-      icon: CheckmarkCircleOutline,
-      command: ({ editor, range }: any) => {
-        editor.chain().focus().deleteRange(range).insertAdmonition({ type: 'success' }).run()
-      },
-    },
-    {
-      title: 'Admonition - Danger',
-      icon: CloseCircleOutline,
-      command: ({ editor, range }: any) => {
-        editor.chain().focus().deleteRange(range).insertAdmonition({ type: 'danger' }).run()
-      },
-    },
-    {
-      title: 'Image',
-      icon: ImageOutline,
-      command: ({ editor, range }: any) => {
-        editor.chain().focus().deleteRange(range).run()
-        // Dispatch custom event to open image uploader
-        const event = new CustomEvent('open-image-uploader', { 
-            detail: { 
-                pos: editor.view.coordsAtPos(editor.state.selection.from) 
-            } 
-        })
-        window.dispatchEvent(event)
-      },
-    },
-    {
-      title: 'Table',
-      icon: GridOutline,
-      command: ({ editor, range }: any) => {
-        editor
-          .chain()
-          .focus()
-          .deleteRange(range)
-          .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-          .run()
-      },
-    },
-    {
-      title: 'Block Formula',
-      icon: CalculatorOutline,
-      command: ({ editor, range }: any) => {
-        editor.chain().focus().deleteRange(range).insertMathBlock().run()
-      },
-    },
-    {
-      title: 'Inline Formula',
-      icon: CalculatorOutline,
-      command: ({ editor, range }: any) => {
-        editor.chain().focus().deleteRange(range).insertMathInline().run()
-      },
-    },
-    {
-      title: 'Import Markdown',
-      icon: DocumentTextOutline,
-      command: ({ editor, range }: any) => {
-        editor.chain().focus().deleteRange(range).run()
-        // Dispatch custom event to open markdown importer
-        const event = new CustomEvent('open-markdown-importer', {
-          detail: {
-            pos: editor.view.coordsAtPos(editor.state.selection.from)
-          }
-        })
-        window.dispatchEvent(event)
-      },
-    },
-  ].filter((item) =>
-    item.title.toLowerCase().startsWith(query.toLowerCase())
-  )
+  return allItems.filter((item) => matchesQuery(item, query))
 }
 
 const renderSuggestion = () => {
