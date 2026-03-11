@@ -95,6 +95,11 @@ onMounted(() => {
   padding: 1px 2px;
   border-radius: 3px;
   transition: background 0.15s;
+  overflow: hidden;
+
+  :deep(.katex) {
+    overflow: hidden;
+  }
 
   &:hover {
     background: #eff6ff;

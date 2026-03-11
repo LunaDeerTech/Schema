@@ -155,9 +155,15 @@ onMounted(() => {
 }
 
 .math-block-rendered {
-  overflow-x: auto;
+  overflow: hidden;
   :deep(.katex-display) {
     margin: 0;
+    padding: 2px 0;
+    overflow: hidden;
+
+    > .katex {
+      overflow: hidden;
+    }
   }
 }
 
@@ -219,10 +225,16 @@ onMounted(() => {
 }
 
 .math-block-preview-content {
-  overflow-x: auto;
+  overflow: hidden;
 
   :deep(.katex-display) {
     margin: 0;
+    padding: 2px 0;
+    overflow: hidden;
+
+    > .katex {
+      overflow: hidden;
+    }
   }
 }
 
