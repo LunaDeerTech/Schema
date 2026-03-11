@@ -35,7 +35,10 @@ import {
   LibraryOutline as LibraryIcon,
   CheckmarkCircleOutline as CheckIcon,
   TrashOutline as TrashIcon,
-  EllipsisHorizontal as MoreIcon
+  EllipsisHorizontal as MoreIcon,
+  GridOutline as GridIcon,
+  ListOutline as ListIcon,
+  AppsOutline as CompactIcon
 } from '@vicons/ionicons5'
 import { useBreakpoints, breakpointsTailwind } from '@vueuse/core'
 import { useUserStore } from '@/stores/user'
@@ -49,6 +52,16 @@ const message = useMessage()
 const breakpoints = useBreakpoints(breakpointsTailwind)
 const isMobile = breakpoints.smaller('sm')
 const isTablet = breakpoints.smaller('lg')
+
+// View Mode
+type ViewMode = 'card' | 'list' | 'compact'
+const STORAGE_KEY = 'schema_library_view_mode'
+const savedViewMode = localStorage.getItem(STORAGE_KEY) as ViewMode | null
+const viewMode = ref<ViewMode>((savedViewMode && ['card', 'list', 'compact'].includes(savedViewMode)) ? savedViewMode : 'card')
+const setViewMode = (mode: ViewMode) => {
+  viewMode.value = mode
+  localStorage.setItem(STORAGE_KEY, mode)
+}
 
 // Layout State
 const rightDrawerCollapsed = ref(false)
@@ -334,6 +347,17 @@ onUnmounted(() => {
         <!-- Libraries -->
         <div class="section-header">
           <n-h2>Knowledge Libraries</n-h2>
+          <n-space v-if="libraryStore.libraries.length > 0" :size="4">
+            <n-button :type="viewMode === 'card' ? 'primary' : 'default'" quaternary size="small" @click="setViewMode('card')" title="Card View">
+              <template #icon><n-icon :size="18"><GridIcon /></n-icon></template>
+            </n-button>
+            <n-button :type="viewMode === 'compact' ? 'primary' : 'default'" quaternary size="small" @click="setViewMode('compact')" title="Compact View">
+              <template #icon><n-icon :size="18"><CompactIcon /></n-icon></template>
+            </n-button>
+            <n-button :type="viewMode === 'list' ? 'primary' : 'default'" quaternary size="small" @click="setViewMode('list')" title="List View">
+              <template #icon><n-icon :size="18"><ListIcon /></n-icon></template>
+            </n-button>
+          </n-space>
         </div>
         
         <div v-if="libraryStore.loading" class="loading-state">
@@ -354,8 +378,8 @@ onUnmounted(() => {
           </n-card>
         </div>
 
-        <n-grid v-else :cols="24" :x-gap="16" :y-gap="16" responsive="screen" item-responsive>
-          <!-- Responsive columns: 1 on small, 2 on medium, 3 on large -->
+        <!-- Card View -->
+        <n-grid v-else-if="viewMode === 'card'" :cols="24" :x-gap="16" :y-gap="16" responsive="screen" item-responsive>
           <n-gi span="24 m:12 l:8" v-for="lib in libraryStore.libraries" :key="lib.id">
             <n-card hoverable class="library-card" @click="navigateToLibrary(lib.id)" @contextmenu="(e: MouseEvent) => handleContextMenu(e, lib.id)">
               <template #header>
@@ -401,6 +425,80 @@ onUnmounted(() => {
             </n-button>
           </n-gi>
         </n-grid>
+
+        <!-- Compact Card View -->
+        <n-grid v-else-if="viewMode === 'compact'" :cols="24" :x-gap="12" :y-gap="12" responsive="screen" item-responsive>
+          <n-gi span="24 s:12 m:8 l:6" v-for="lib in libraryStore.libraries" :key="lib.id">
+            <n-card hoverable class="library-card-compact" size="small" @click="navigateToLibrary(lib.id)" @contextmenu="(e: MouseEvent) => handleContextMenu(e, lib.id)">
+              <div class="compact-content">
+                <div class="compact-top">
+                  <div class="compact-title">
+                    <span v-if="lib.icon" class="compact-icon">{{ lib.icon }}</span>
+                    <n-text strong>{{ lib.title }}</n-text>
+                  </div>
+                  <n-dropdown trigger="click" :options="libraryOptions" @select="(key) => handleLibraryAction(key, lib.id)">
+                    <n-button quaternary circle size="tiny" @click.stop>
+                      <template #icon><n-icon :size="14"><MoreIcon /></n-icon></template>
+                    </n-button>
+                  </n-dropdown>
+                </div>
+                <div class="compact-bottom">
+                  <n-text depth="3" style="font-size: 12px;">{{ lib.pageCount || 0 }} pages</n-text>
+                  <n-text depth="3" style="font-size: 12px;">{{ new Date(lib.updatedAt || Date.now()).toLocaleDateString() }}</n-text>
+                </div>
+              </div>
+            </n-card>
+          </n-gi>
+          
+          <n-gi span="24 s:12 m:8 l:6">
+            <n-button dashed block class="new-lib-btn-compact" @click="handleCreateLibrary">
+              <template #icon><n-icon><AddIcon /></n-icon></template>
+              New Library
+            </n-button>
+          </n-gi>
+        </n-grid>
+
+        <!-- List View -->
+        <div v-else class="library-list-view">
+          <n-card size="small">
+            <div
+              v-for="lib in libraryStore.libraries"
+              :key="lib.id"
+              class="library-list-item"
+              @click="navigateToLibrary(lib.id)"
+              @contextmenu="(e: MouseEvent) => handleContextMenu(e, lib.id)"
+            >
+              <div class="list-item-left">
+                <span v-if="lib.icon" class="list-item-icon">{{ lib.icon }}</span>
+                <n-icon v-else :size="20" depth="3"><LibraryIcon /></n-icon>
+                <div class="list-item-info">
+                  <n-text strong>{{ lib.title }}</n-text>
+                  <n-text v-if="lib.description" depth="3" class="list-item-desc">{{ lib.description }}</n-text>
+                </div>
+              </div>
+              <div class="list-item-right">
+                <n-space align="center" :size="16">
+                  <n-space size="small" v-if="lib.tags && lib.tags.length > 0">
+                    <n-tag v-for="tag in lib.tags" :key="tag.id" size="tiny" :bordered="false" type="info">
+                      {{ tag.name }}
+                    </n-tag>
+                  </n-space>
+                  <n-tag size="small" :bordered="false">{{ lib.pageCount || 0 }} pages</n-tag>
+                  <n-text depth="3" style="font-size: 12px; white-space: nowrap;">{{ new Date(lib.updatedAt || Date.now()).toLocaleDateString() }}</n-text>
+                  <n-dropdown trigger="click" :options="libraryOptions" @select="(key) => handleLibraryAction(key, lib.id)">
+                    <n-button quaternary circle size="small" @click.stop>
+                      <template #icon><n-icon><MoreIcon /></n-icon></template>
+                    </n-button>
+                  </n-dropdown>
+                </n-space>
+              </div>
+            </div>
+          </n-card>
+          <n-button dashed block style="margin-top: 12px;" @click="handleCreateLibrary">
+            <template #icon><n-icon><AddIcon /></n-icon></template>
+            New Library
+          </n-button>
+        </div>
       </n-layout-content>
 
       <!-- Right Drawer -->
@@ -603,6 +701,9 @@ onUnmounted(() => {
 }
 
 .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 16px;
 }
 
@@ -648,6 +749,110 @@ onUnmounted(() => {
 .new-lib-btn {
   height: 100%;
   min-height: 160px;
+}
+
+.new-lib-btn-compact {
+  height: 100%;
+  min-height: 72px;
+}
+
+// Compact Card View
+.library-card-compact {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  height: 100%;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .compact-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .compact-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .compact-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .compact-icon {
+    font-size: 18px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .compact-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+// List View
+.library-list-view {
+  .library-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 8px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.03);
+    }
+
+    & + .library-list-item {
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+  }
+
+  .list-item-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .list-item-icon {
+    font-size: 20px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .list-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .list-item-desc {
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 400px;
+  }
+
+  .list-item-right {
+    flex-shrink: 0;
+    margin-left: 16px;
+  }
 }
 
 .empty-card {
