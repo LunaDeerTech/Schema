@@ -111,5 +111,15 @@ export const pageApi = {
   // Get page references (incoming and outgoing)
   getReferences: async (pageId: string): Promise<ApiResponse<{ incoming: Page[]; outgoing: Page[] }>> => {
     return api.get(`/pages/${pageId}/references`)
+  },
+
+  // Get pages created on this day in previous years
+  getOnThisDay: async (): Promise<ApiResponse<Array<{ id: string; title: string; icon: string | null; year: string; createdAt: string; libraryTitle: string | null }>>> => {
+    return api.get('/pages/on-this-day')
+  },
+
+  // Get pages that haven't been visited for a long time
+  getLongUnvisited: async (): Promise<ApiResponse<Array<{ id: string; title: string; icon: string | null; days: number; lastViewedAt: string | null; libraryTitle: string | null }>>> => {
+    return api.get('/pages/long-unvisited')
   }
 }

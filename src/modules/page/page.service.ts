@@ -1199,4 +1199,63 @@ export class PageService {
     // Create the version
     await this.createVersion(userId, pageId, { message: 'Auto-saved' });
   }
+
+  /**
+   * Get pages created on this day in previous years
+   */
+  async getOnThisDay(userId: string, limit = 10): Promise<Array<{ id: string; title: string; icon: string | null; year: string; createdAt: string; libraryTitle: string | null }>> {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const currentYear = now.getFullYear();
+    const pattern = `%-${month}-${day}%`;
+
+    const items = this.database.query(`
+      SELECT p.id, p.title, p.icon, p.createdAt, l.title as libraryTitle
+      FROM Page p
+      LEFT JOIN Page l ON p.libraryId = l.id
+      WHERE p.userId = ? AND p.type = 'page'
+        AND strftime('%m-%d', p.createdAt) = ?
+        AND CAST(strftime('%Y', p.createdAt) AS INTEGER) < ?
+      ORDER BY p.createdAt DESC
+      LIMIT ?
+    `, [userId, `${month}-${day}`, currentYear, limit]);
+
+    return items.map(item => ({
+      id: item.id,
+      title: item.title,
+      icon: item.icon || null,
+      year: new Date(item.createdAt).getFullYear().toString(),
+      createdAt: item.createdAt,
+      libraryTitle: item.libraryTitle || null,
+    }));
+  }
+
+  /**
+   * Get pages that haven't been visited for a long time
+   */
+  async getLongUnvisited(userId: string, limit = 10): Promise<Array<{ id: string; title: string; icon: string | null; days: number; lastViewedAt: string | null; libraryTitle: string | null }>> {
+    const items = this.database.query(`
+      SELECT p.id, p.title, p.icon, p.lastViewedAt, p.createdAt, l.title as libraryTitle
+      FROM Page p
+      LEFT JOIN Page l ON p.libraryId = l.id
+      WHERE p.userId = ? AND p.type = 'page'
+      ORDER BY COALESCE(p.lastViewedAt, p.createdAt) ASC
+      LIMIT ?
+    `, [userId, limit]);
+
+    const now = new Date();
+    return items.map(item => {
+      const refDate = new Date(item.lastViewedAt || item.createdAt);
+      const days = Math.floor((now.getTime() - refDate.getTime()) / (1000 * 60 * 60 * 24));
+      return {
+        id: item.id,
+        title: item.title,
+        icon: item.icon || null,
+        days,
+        lastViewedAt: item.lastViewedAt || null,
+        libraryTitle: item.libraryTitle || null,
+      };
+    });
+  }
 }

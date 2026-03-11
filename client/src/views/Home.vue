@@ -169,15 +169,31 @@ const pendingTasks = ref([
   { id: '3', content: 'Organize notes', page: 'Weekly Summary W51', done: false }
 ])
 
-const onThisDay = ref([
-  { id: '1', title: 'Year End Review', year: '2023' },
-  { id: '2', title: 'Project Beta Launch', year: '2022' }
-])
+const onThisDay = ref<Array<{ id: string; title: string; icon: string | null; year: string; createdAt: string; libraryTitle: string | null }>>([])
 
-const longUnvisited = ref([
-  { id: '1', title: 'API Design Principles', days: 45 },
-  { id: '2', title: 'Database Optimization', days: 60 }
-])
+const longUnvisited = ref<Array<{ id: string; title: string; icon: string | null; days: number; lastViewedAt: string | null; libraryTitle: string | null }>>([])
+
+const fetchOnThisDay = async () => {
+  try {
+    const res = await pageApi.getOnThisDay()
+    if (res.data) {
+      onThisDay.value = res.data
+    }
+  } catch (error) {
+    console.error('Failed to fetch on-this-day pages', error)
+  }
+}
+
+const fetchLongUnvisited = async () => {
+  try {
+    const res = await pageApi.getLongUnvisited()
+    if (res.data) {
+      longUnvisited.value = res.data
+    }
+  } catch (error) {
+    console.error('Failed to fetch long-unvisited pages', error)
+  }
+}
 
 // Actions
 const handleCreateLibrary = () => {
@@ -289,7 +305,9 @@ onMounted(async () => {
   updateGreeting()
   await Promise.all([
     libraryStore.fetchLibraries(),
-    fetchRecentPages()
+    fetchRecentPages(),
+    fetchOnThisDay(),
+    fetchLongUnvisited()
   ])
 })
 
@@ -464,28 +482,39 @@ onUnmounted(() => {
 
             <!-- On This Day -->
             <n-card size="small" title="On This Day">
-              <n-list hoverable clickable>
-                <n-list-item v-for="item in onThisDay" :key="item.id">
+              <n-list v-if="onThisDay.length > 0" hoverable clickable>
+                <n-list-item v-for="item in onThisDay" :key="item.id" @click="navigateToPage(item.id)">
                   <n-thing>
                     <template #avatar>
                       <n-tag type="info" size="small">{{ item.year }}</n-tag>
                     </template>
-                    <template #header>{{ item.title }}</template>
+                    <template #header>
+                      <n-ellipsis style="max-width: 200px">
+                        <span v-if="item.icon" style="margin-right: 4px;">{{ item.icon }}</span>{{ item.title }}
+                      </n-ellipsis>
+                    </template>
+                    <template #description v-if="item.libraryTitle">
+                      <n-text depth="3" style="font-size: 12px;">{{ item.libraryTitle }}</n-text>
+                    </template>
                   </n-thing>
                 </n-list-item>
               </n-list>
+              <n-text v-else depth="3" style="font-size: 13px;">No pages created on this day in previous years.</n-text>
             </n-card>
 
             <!-- Long Unvisited -->
             <n-card size="small" title="Long Unvisited">
-              <n-list hoverable clickable>
-                <n-list-item v-for="item in longUnvisited" :key="item.id">
-                  <n-space justify="space-between" align="center">
-                    <n-text>{{ item.title }}</n-text>
-                    <n-tag type="error" size="small" :bordered="false">{{ item.days }} days</n-tag>
+              <n-list v-if="longUnvisited.length > 0" hoverable clickable>
+                <n-list-item v-for="item in longUnvisited" :key="item.id" @click="navigateToPage(item.id)">
+                  <n-space justify="space-between" align="center" style="width: 100%;">
+                    <n-ellipsis style="max-width: 180px">
+                      <span v-if="item.icon" style="margin-right: 4px;">{{ item.icon }}</span>{{ item.title }}
+                    </n-ellipsis>
+                    <n-tag type="error" size="small" :bordered="false">{{ item.days }}d</n-tag>
                   </n-space>
                 </n-list-item>
               </n-list>
+              <n-text v-else depth="3" style="font-size: 13px;">No unvisited pages found.</n-text>
             </n-card>
 
           </n-space>

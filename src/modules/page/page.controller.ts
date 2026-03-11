@@ -42,6 +42,20 @@ export class PageController {
     return this.pageService.findAll(userId, query);
   }
 
+  @Get('on-this-day')
+  async getOnThisDay(
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.pageService.getOnThisDay(userId);
+  }
+
+  @Get('long-unvisited')
+  async getLongUnvisited(
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.pageService.getLongUnvisited(userId);
+  }
+
   @Get('tree/:libraryId')
   async getTree(
     @CurrentUser('id') userId: string,
