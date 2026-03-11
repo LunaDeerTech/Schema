@@ -4,7 +4,7 @@ import { BubbleMenu } from '@tiptap/vue-3/menus'
 import { TextSelection } from '@tiptap/pm/state'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
-import Link from '@tiptap/extension-link'
+import { CustomLink } from './extensions/custom-link'
 import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table'
 import { ImageBlock } from './extensions/image-block'
 import TaskList from '@tiptap/extension-task-list'
@@ -17,7 +17,7 @@ import { Admonition } from './extensions/admonition'
 import { MathBlock, MathInline } from './extensions/math-block'
 import { common, createLowlight } from 'lowlight'
 import 'katex/dist/katex.min.css'
-import { ref, onBeforeUnmount, onMounted, toRaw, watch } from 'vue'
+import { ref, nextTick, onBeforeUnmount, onMounted, toRaw, watch } from 'vue'
 import { NIcon, useMessage } from 'naive-ui'
 import { useRouter, useRoute } from 'vue-router'
 import { uploadApi } from '@/api/upload'
@@ -34,11 +34,13 @@ import {
   GitMergeOutline,
   GitNetworkOutline,
   RemoveCircleOutline,
+  LinkOutline,
 } from '@vicons/ionicons5'
 
 import ImageUploaderPopover from './ImageUploaderPopover.vue'
 import MarkdownImporter from './MarkdownImporter.vue'
 import TableOfContents from './TableOfContents.vue'
+import LinkBubbleMenu from './LinkBubbleMenu.vue'
 import { marked } from 'marked'
 
 const lowlight = createLowlight(common)
@@ -67,6 +69,7 @@ const showImageUploader = ref(false)
 const uploaderPosition = ref({ top: 0, bottom: 0, left: 0 })
 const wrapperRef = ref<HTMLElement | null>(null)
 const showMarkdownImporter = ref(false)
+const linkBubbleRef = ref<InstanceType<typeof LinkBubbleMenu> | null>(null)
 
 // Debug props
 console.debug('TiptapEditor props:', { pageId: props.pageId, libraryId: props.libraryId });
@@ -163,6 +166,36 @@ onBeforeUnmount(() => {
   // editor.value?.destroy() // useEditor handles destruction automatically
 })
 
+// Toggle link on selected text via bubble menu
+const toggleLink = () => {
+  if (!editor.value) return
+  if (editor.value.isActive('link')) {
+    editor.value.chain().focus().unsetLink().run()
+  } else {
+    const url = ''
+    // Set an empty link first, then show the edit popover
+    editor.value.chain().focus().setLink({ href: url }).run()
+    // After setting the link, find the link element and show the bubble menu for editing
+    nextTick(() => {
+      const { state } = editor.value!
+      const { from } = state.selection
+      const resolved = state.doc.resolve(from)
+      const marks = resolved.marks()
+      const linkMark = marks.find(m => m.type.name === 'link')
+      if (linkMark) {
+        // Find the DOM element for the current selection
+        const domAtPos = editor.value!.view.domAtPos(from)
+        const parentEl = domAtPos.node instanceof HTMLElement ? domAtPos.node : domAtPos.node.parentElement
+        const linkEl = parentEl?.closest('span.editor-link') || parentEl?.querySelector('span.editor-link')
+        if (linkEl) {
+          const text = linkEl.textContent || ''
+          linkBubbleRef.value?.show(url, text, linkEl as HTMLElement, true)
+        }
+      }
+    })
+  }
+}
+
 const editor = useEditor({
   content: props.content ? toRaw(props.content) : '',
   editable: props.editable,
@@ -173,7 +206,7 @@ const editor = useEditor({
     Placeholder.configure({
       placeholder: "Type '/' for commands...",
     }),
-    Link.configure({
+    CustomLink.configure({
       openOnClick: false,
     }),
     Table.configure({
@@ -209,6 +242,16 @@ const editor = useEditor({
         event.preventDefault()
         return true
       }
+      // Handle click on editor-link: show link bubble menu
+      const linkEl = target.closest('span.editor-link') as HTMLElement | null
+      if (linkEl && !event.ctrlKey && !event.metaKey) {
+        const href = linkEl.getAttribute('data-link-href') || ''
+        const text = linkEl.textContent || ''
+        linkBubbleRef.value?.show(href, text, linkEl)
+        return true
+      }
+      // Click outside a link — hide popover
+      linkBubbleRef.value?.hide()
       return false
     },
     handleDrop: (view, event, _ , moved) => {
@@ -368,6 +411,16 @@ watch(() => props.content, (newContent) => {
       >
         <n-icon><ChatboxEllipsesOutline /></n-icon>
       </button>
+      
+      <div class="divider"></div>
+      
+      <button
+        @click="toggleLink"
+        :class="{ 'is-active': editor.isActive('link') }"
+        title="Link"
+      >
+        <n-icon><LinkOutline /></n-icon>
+      </button>
     </bubble-menu>
 
     <bubble-menu
@@ -417,6 +470,7 @@ watch(() => props.content, (newContent) => {
     </bubble-menu>
 
     <editor-content :editor="editor" class="editor-content" />
+    <link-bubble-menu v-if="editor && editable" ref="linkBubbleRef" :editor="editor" />
   </div>
 </template>
 
@@ -601,12 +655,18 @@ watch(() => props.content, (newContent) => {
         pointer-events: none;
       }
       
-      /* Links */
-      a {
+      /* Links — rendered as <span> to prevent browser default link behavior */
+      span.editor-link {
         color: #1A73E8;
         text-decoration: none;
+        border-bottom: 1px solid rgba(26, 115, 232, 0.3);
+        cursor: pointer;
+        transition: background-color 0.15s, border-color 0.15s;
+        padding-bottom: 1px;
+        
         &:hover {
-          text-decoration: underline;
+          background-color: rgba(26, 115, 232, 0.08);
+          border-bottom-color: #1A73E8;
         }
       }
 
