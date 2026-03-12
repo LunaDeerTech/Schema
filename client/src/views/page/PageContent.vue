@@ -7,6 +7,7 @@ import { useLibraryStore } from '@/stores/library'
 import { tagApi } from '@/api/tag'
 import { pageApi } from '@/api/page'
 import type { Tag } from '@/types'
+import { tiptapToMarkdown } from '@/utils/tiptap-to-markdown'
 import {
   NBreadcrumb, NBreadcrumbItem,
   NInput, NTag, NButton, NIcon, NSpin, NDrawer, NDrawerContent,
@@ -14,7 +15,7 @@ import {
 } from 'naive-ui'
 import { 
   InformationCircleOutline, TimeOutline, ListOutline, GlobeOutline,
-  AddOutline, EllipsisHorizontalOutline
+  AddOutline, EllipsisHorizontalOutline, CopyOutline
 } from '@vicons/ionicons5'
 import { useBreakpoints, breakpointsTailwind } from '@vueuse/core'
 import TiptapEditor from '@/components/editor/TiptapEditor.vue'
@@ -296,6 +297,24 @@ const handleUpdateSettings = async () => {
   }
 }
 
+// Copy as Markdown
+const handleCopyMarkdown = async () => {
+  if (!pageStore.currentPage?.content) {
+    message.warning('No content to copy')
+    return
+  }
+  try {
+    const md = tiptapToMarkdown(pageStore.currentPage.content, {
+      title: pageStore.currentPage.title,
+      description: pageStore.currentPage.description || undefined,
+    })
+    await navigator.clipboard.writeText(md)
+    message.success('Copied as Markdown')
+  } catch {
+    message.error('Failed to copy to clipboard')
+  }
+}
+
 // Mobile Actions Menu
 const mobileActionOptions = [
   { label: 'Info', key: 'info', icon: () => h(NIcon, null, { default: () => h(InformationCircleOutline) }) },
@@ -452,6 +471,18 @@ const handleMobileActionSelect = (key: string) => {
               @click="handleUpdateSettings"
             >
               Save Settings
+            </n-button>
+          </div>
+
+          <div class="info-section">
+            <h4>Export</h4>
+            <n-button
+              size="small"
+              @click="handleCopyMarkdown"
+              style="width: 100%;"
+            >
+              <template #icon><n-icon><CopyOutline /></n-icon></template>
+              Copy as Markdown
             </n-button>
           </div>
 
