@@ -125,6 +125,11 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/public/users/:name',
+    name: 'PublicUserProfile',
+    component: () => import('@/views/public/PublicUserProfile.vue')
+  },
+  {
     path: '/public',
     component: () => import('@/layouts/PublicLayout.vue'),
     children: [

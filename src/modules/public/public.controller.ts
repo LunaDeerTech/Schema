@@ -10,6 +10,11 @@ export class PublicController {
     return this.publicService.searchPublic(q);
   }
 
+  @Get('users/:name')
+  async getUserProfile(@Param('name') name: string) {
+    return this.publicService.getUserProfile(decodeURIComponent(name));
+  }
+
   @Get('pages/:slug')
   async getPage(@Param('slug') slug: string) {
     return this.publicService.findPageBySlug(slug);

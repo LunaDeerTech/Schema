@@ -19,6 +19,7 @@ export interface User {
   email: string
   displayName?: string
   avatar?: string
+  isProfilePublic?: boolean
   createdAt?: string
   updatedAt?: string
 }

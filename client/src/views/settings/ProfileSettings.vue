@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, reactive, watch } from 'vue'
+import { ref, onMounted, reactive, watch, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { useMessage, NForm, NFormItem, NInput, NButton, NUpload, NAvatar, NCard, type UploadCustomRequestOptions } from 'naive-ui'
+import { useMessage, NForm, NFormItem, NInput, NButton, NUpload, NAvatar, NCard, NSwitch, NText, type UploadCustomRequestOptions } from 'naive-ui'
 import { uploadApi } from '@/api/upload'
 
 const userStore = useUserStore()
@@ -10,9 +10,16 @@ const message = useMessage()
 const model = reactive({
   displayName: '',
   email: '',
-  avatar: ''
+  avatar: '',
+  isProfilePublic: false
 })
 const loading = ref(false)
+
+const profileUrl = computed(() => {
+  if (!userStore.user) return ''
+  const name = userStore.user.displayName || userStore.user.id
+  return `${window.location.origin}/public/users/${encodeURIComponent(name)}`
+})
 
 // Function to populate model from userStore
 const populateModel = () => {
@@ -20,6 +27,7 @@ const populateModel = () => {
     model.displayName = userStore.user.displayName || ''
     model.email = userStore.user.email
     model.avatar = userStore.user.avatar || ''
+    model.isProfilePublic = !!userStore.user.isProfilePublic
   }
 }
 
@@ -45,6 +53,20 @@ async function handleSave() {
     message.error(result.error || 'Update failed')
   }
   loading.value = false
+}
+
+async function handleTogglePublic(value: boolean) {
+  model.isProfilePublic = value
+  const result = await userStore.updateProfile({
+    isProfilePublic: value
+  })
+  if (result.success) {
+    message.success(value ? 'Public profile enabled' : 'Public profile disabled')
+  } else {
+    // Revert on failure
+    model.isProfilePublic = !value
+    message.error(result.error || 'Update failed')
+  }
 }
 
 async function handleUpload({ file, onFinish, onError }: UploadCustomRequestOptions) {
@@ -109,6 +131,26 @@ async function handleUpload({ file, onFinish, onError }: UploadCustomRequestOpti
         </div>
       </n-form>
     </n-card>
+
+    <n-card style="margin-top: 16px">
+      <div class="profile-public-section">
+        <div class="section-title">
+          <h3>Public Profile</h3>
+        </div>
+        <div class="switch-row">
+          <n-switch v-model:value="model.isProfilePublic" @update:value="handleTogglePublic" />
+          <n-text v-if="model.isProfilePublic" type="success">Enabled</n-text>
+          <n-text v-else depth="3">Disabled</n-text>
+        </div>
+        <div class="profile-public-hint">
+          When enabled, your profile page will be publicly accessible and will list all your public libraries.
+        </div>
+        <div v-if="userStore.user?.isProfilePublic && profileUrl" class="profile-url">
+          <n-text depth="3">Profile URL: </n-text>
+          <a :href="profileUrl" target="_blank" class="profile-link">{{ profileUrl }}</a>
+        </div>
+      </div>
+    </n-card>
   </div>
 </template>
 
@@ -159,5 +201,43 @@ async function handleUpload({ file, onFinish, onError }: UploadCustomRequestOpti
   margin-top: 24px;
   display: flex;
   justify-content: flex-start;
+}
+
+.profile-public-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  
+  .section-title {
+    h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+  }
+  
+  .switch-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .profile-public-hint {
+    font-size: 13px;
+    color: var(--n-text-color-3);
+  }
+  
+  .profile-url {
+    font-size: 13px;
+    padding: 8px 12px;
+    background: var(--n-color-embedded);
+    border-radius: 4px;
+    
+    .profile-link {
+      color: var(--n-text-color);
+      text-decoration: underline;
+      word-break: break-all;
+    }
+  }
 }
 </style>

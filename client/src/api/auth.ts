@@ -48,6 +48,7 @@ export interface AuthResponse {
       avatar?: string
       isAdmin: boolean
       isBanned?: boolean
+      isProfilePublic?: boolean
     }
   }
 }
@@ -61,6 +62,7 @@ export interface UserResponse {
     avatar?: string
     isAdmin: boolean
     isBanned: boolean
+    isProfilePublic?: boolean
     createdAt: string
     updatedAt: string
   }

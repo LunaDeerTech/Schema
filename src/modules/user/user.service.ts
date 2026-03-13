@@ -23,7 +23,7 @@ export class UserService {
 
   async findByEmail(email: string): Promise<User | null> {
     const sql = `
-      SELECT id, email, passwordHash, displayName, avatar, settings, isAdmin, isBanned, createdAt, updatedAt
+      SELECT id, email, passwordHash, displayName, avatar, settings, isAdmin, isBanned, isProfilePublic, createdAt, updatedAt
       FROM User
       WHERE email = ?
     `;
@@ -32,7 +32,7 @@ export class UserService {
 
   async findById(id: string): Promise<User | null> {
     const sql = `
-      SELECT id, email, passwordHash, displayName, avatar, settings, isAdmin, isBanned, createdAt, updatedAt
+      SELECT id, email, passwordHash, displayName, avatar, settings, isAdmin, isBanned, isProfilePublic, createdAt, updatedAt
       FROM User
       WHERE id = ?
     `;
@@ -59,7 +59,7 @@ export class UserService {
 
     // Get users
     const sql = `
-      SELECT id, email, passwordHash, displayName, avatar, settings, isAdmin, isBanned, createdAt, updatedAt
+      SELECT id, email, passwordHash, displayName, avatar, settings, isAdmin, isBanned, isProfilePublic, createdAt, updatedAt
       FROM User
       ${whereClause}
       ORDER BY createdAt DESC
@@ -142,6 +142,7 @@ export class UserService {
       displayName: data.displayName,
       isAdmin: isFirstUser,
       isBanned: false,
+      isProfilePublic: false,
       createdAt: now,
       updatedAt: now,
     };
@@ -154,7 +155,7 @@ export class UserService {
     return bcrypt.compare(password, user.passwordHash);
   }
 
-  async update(id: string, data: { displayName?: string; avatar?: string }): Promise<User> {
+  async update(id: string, data: { displayName?: string; avatar?: string; isProfilePublic?: boolean }): Promise<User> {
     const user = await this.findById(id);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -171,6 +172,11 @@ export class UserService {
     if (data.avatar !== undefined) {
       updates.push('avatar = ?');
       params.push(data.avatar);
+    }
+
+    if (data.isProfilePublic !== undefined) {
+      updates.push('isProfilePublic = ?');
+      params.push(data.isProfilePublic ? 1 : 0);
     }
 
     if (updates.length === 0) {

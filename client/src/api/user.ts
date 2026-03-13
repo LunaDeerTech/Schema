@@ -1,9 +1,19 @@
 import { api } from './http'
 import type { UserResponse } from './auth'
+import type { ApiResponse, Library } from '@/types'
+
+export interface PublicUserProfile {
+  id: string
+  displayName: string
+  avatar?: string
+  createdAt: string
+  libraries: Library[]
+}
 
 export interface UpdateProfileRequest {
   displayName?: string
   avatar?: string
+  isProfilePublic?: boolean
 }
 
 export interface UserListQuery {
@@ -19,6 +29,7 @@ export interface UserData {
   avatar?: string
   isAdmin: boolean
   isBanned: boolean
+  isProfilePublic: boolean
   createdAt: string
   updatedAt: string
 }
@@ -61,5 +72,9 @@ export const userApi = {
 
   // Delete user (admin only)
   deleteUser: (userId: string) =>
-    api.delete(`/user/${userId}`)
+    api.delete(`/user/${userId}`),
+
+  // Get public user profile (no auth required)
+  getPublicProfile: (name: string) =>
+    api.get<ApiResponse<PublicUserProfile>>(`/public/users/${encodeURIComponent(name)}`)
 }

@@ -14,7 +14,7 @@ export class UserController {
   @Patch('profile')
   async updateProfile(
     @CurrentUser('id') userId: string,
-    @Body() body: { displayName?: string; avatar?: string }
+    @Body() body: { displayName?: string; avatar?: string; isProfilePublic?: boolean }
   ) {
     const user = await this.userService.update(userId, body);
     return UserResponseDto.fromUser(user);

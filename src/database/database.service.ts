@@ -55,6 +55,7 @@ export class DatabaseService implements OnModuleDestroy {
         settings TEXT DEFAULT '{}',
         isAdmin INTEGER DEFAULT 0,
         isBanned INTEGER DEFAULT 0,
+        isProfilePublic INTEGER DEFAULT 0,
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
         updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
       )

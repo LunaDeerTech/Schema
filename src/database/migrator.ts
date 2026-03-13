@@ -10,22 +10,15 @@ interface Migration {
  * 添加新迁移到此数组的末尾
  */
 const migrations: Migration[] = [
-  // example migration
-  // {
-  //   name: '000_example_migration',
-  //   up: (dbService: DatabaseService) => {
-  //     const libraryColumns = dbService.getTableColumns('Library');
-  //     const hasContent = libraryColumns.some(col => col.name === 'content');
-  //     if (!hasContent) {
-  //       console.log('Adding content column to Library table...');
-  //       dbService.run("ALTER TABLE Library ADD COLUMN content TEXT NOT NULL DEFAULT ''");
-  //       // Update existing libraries with empty content
-  //       const emptyContent = JSON.stringify({ type: 'doc', content: [] });
-  //       dbService.run("UPDATE Library SET content = ? WHERE content IS NULL OR content = ''", [emptyContent]);
-  //       console.log('Updated existing libraries with default content');
-  //     }
-  //   }
-  // },
+  {
+    name: '001_add_user_is_profile_public',
+    up: (dbService: DatabaseService) => {
+      const columns = dbService.getTableColumns('User');
+      if (!columns.some(col => col.name === 'isProfilePublic')) {
+        dbService.run("ALTER TABLE User ADD COLUMN isProfilePublic INTEGER DEFAULT 0");
+      }
+    }
+  },
 ];
 
 /**

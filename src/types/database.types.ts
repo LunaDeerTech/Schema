@@ -9,6 +9,7 @@ export interface User {
   settings?: string;
   isAdmin: boolean;
   isBanned: boolean;
+  isProfilePublic: boolean;
   createdAt: string;
   updatedAt: string;
 }

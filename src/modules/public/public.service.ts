@@ -3,6 +3,14 @@ import { DatabaseService } from '@/database/database.service';
 import { PageResponseDto } from '../page/dto/page-response.dto';
 import { LibraryResponseDto } from '../library/dto/library-response.dto';
 
+export interface PublicUserProfile {
+  id: string;
+  displayName: string;
+  avatar?: string;
+  createdAt: string;
+  libraries: LibraryResponseDto[];
+}
+
 @Injectable()
 export class PublicService {
   constructor(private readonly database: DatabaseService) {}
@@ -162,6 +170,52 @@ export class PublicService {
     };
 
     return effectiveRoots.map(root => buildTreeFromNode(root));
+  }
+
+  async getUserProfile(name: string): Promise<PublicUserProfile> {
+    // Try to find by displayName first, then fallback to id
+    let user = this.database.queryOne(`
+      SELECT id, displayName, avatar, isProfilePublic, createdAt
+      FROM User
+      WHERE displayName = ? AND isProfilePublic = 1
+    `, [name]);
+
+    if (!user) {
+      user = this.database.queryOne(`
+        SELECT id, displayName, avatar, isProfilePublic, createdAt
+        FROM User
+        WHERE id = ? AND isProfilePublic = 1
+      `, [name]);
+    }
+
+    if (!user) {
+      throw new NotFoundException('User not found or profile is not public');
+    }
+
+    // Get user's public libraries
+    const libraries = this.database.query(`
+      SELECT 
+        l.*,
+        (SELECT COUNT(*) FROM Page p WHERE p.libraryId = l.id AND p.type = 'page' AND p.isPublic = 1) as pageCount
+      FROM Page l
+      WHERE l.userId = ? AND l.isPublic = 1 AND l.type = 'library'
+      ORDER BY l.updatedAt DESC
+    `, [user.id]);
+
+    const libraryList = libraries.map(lib => ({
+      ...lib,
+      content: lib.content ? JSON.parse(lib.content) : { type: 'doc', content: [] },
+      pageCount: lib.pageCount,
+      tags: [],
+    })) as LibraryResponseDto[];
+
+    return {
+      id: user.id,
+      displayName: user.displayName || 'Anonymous',
+      avatar: user.avatar,
+      createdAt: user.createdAt,
+      libraries: libraryList,
+    };
   }
 
   async searchPublic(query: string): Promise<PageResponseDto[]> {
