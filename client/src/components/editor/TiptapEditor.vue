@@ -42,6 +42,7 @@ import MarkdownImporter from './MarkdownImporter.vue'
 import TableOfContents from './TableOfContents.vue'
 import LinkBubbleMenu from './LinkBubbleMenu.vue'
 import { marked } from 'marked'
+import { processLatexInMarkdown, containsLatex } from '@/utils/latex-parser'
 
 const lowlight = createLowlight(common)
 const message = useMessage()
@@ -135,8 +136,14 @@ const handlePageReferenceClick = (event: MouseEvent) => {
 const handleImportMarkdown = async (content: string) => {
     if (editor.value) {
         try {
+            // 处理LaTeX公式，将其转换为HTML格式
+            let processedContent = content
+            if (containsLatex(content)) {
+                processedContent = processLatexInMarkdown(content)
+            }
+            
             // Convert markdown to HTML
-            const html = await marked(content)
+            const html = await marked(processedContent)
             
             // Get current position
             const { from } = editor.value.state.selection
