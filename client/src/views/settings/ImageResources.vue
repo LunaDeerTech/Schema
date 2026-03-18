@@ -28,6 +28,7 @@ import {
   CloudUploadOutline as UploadIcon
 } from '@vicons/ionicons5'
 import { uploadApi } from '@/api/upload'
+import { copyToClipboard } from '@/utils/clipboard'
 
 interface UploadedImage {
   id: string
@@ -147,13 +148,14 @@ function getLocationInfo(image: UploadedImage): { text: string; type: 'success' 
   return { text: 'Not associated', type: 'warning' }
 }
 
-function copyImageUrl(url: string) {
+async function copyImageUrl(url: string) {
   const fullUrl = window.location.origin + url
-  navigator.clipboard.writeText(fullUrl).then(() => {
+  const success = await copyToClipboard(fullUrl)
+  if (success) {
     message.success('Image URL copied to clipboard')
-  }).catch(() => {
+  } else {
     message.error('Failed to copy URL')
-  })
+  }
 }
 
 function handleReplaceImage(image: UploadedImage) {

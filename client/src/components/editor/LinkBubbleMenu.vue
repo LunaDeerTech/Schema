@@ -10,6 +10,7 @@ import {
   CheckmarkOutline,
   CloseOutline,
 } from '@vicons/ionicons5'
+import { copyToClipboard } from '@/utils/clipboard'
 
 const props = defineProps<{
   editor: Editor
@@ -127,7 +128,7 @@ function openLink() {
 
 function copyLink() {
   if (linkUrl.value) {
-    navigator.clipboard.writeText(linkUrl.value)
+    copyToClipboard(linkUrl.value)
   }
 }
 

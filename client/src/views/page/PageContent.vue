@@ -8,6 +8,7 @@ import { tagApi } from '@/api/tag'
 import { pageApi } from '@/api/page'
 import type { Tag } from '@/types'
 import { tiptapToMarkdown } from '@/utils/tiptap-to-markdown'
+import { copyToClipboard } from '@/utils/clipboard'
 import {
   NBreadcrumb, NBreadcrumbItem,
   NInput, NTag, NButton, NIcon, NSpin, NDrawer, NDrawerContent,
@@ -308,8 +309,12 @@ const handleCopyMarkdown = async () => {
       title: pageStore.currentPage.title,
       description: pageStore.currentPage.description || undefined,
     })
-    await navigator.clipboard.writeText(md)
-    message.success('Copied as Markdown')
+    const success = await copyToClipboard(md)
+    if (success) {
+      message.success('Copied as Markdown')
+    } else {
+      message.error('Failed to copy to clipboard')
+    }
   } catch {
     message.error('Failed to copy to clipboard')
   }

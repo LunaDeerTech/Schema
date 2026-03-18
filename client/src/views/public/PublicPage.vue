@@ -6,6 +6,7 @@ import { ShareSocialOutline } from '@vicons/ionicons5'
 import { api } from '@/api/http'
 import { usePublicStore } from '@/stores/public'
 import TiptapEditor from '@/components/editor/TiptapEditor.vue'
+import { copyToClipboard } from '@/utils/clipboard'
 import type { Page } from '@/types'
 
 interface PublicPageData extends Page {
@@ -21,10 +22,10 @@ const loading = ref(false)
 const error = ref('')
 
 async function copyLink() {
-  try {
-    await navigator.clipboard.writeText(window.location.href)
+  const success = await copyToClipboard(window.location.href)
+  if (success) {
     message.success('链接已复制到剪贴板')
-  } catch {
+  } else {
     message.error('复制失败，请手动复制地址栏链接')
   }
 }

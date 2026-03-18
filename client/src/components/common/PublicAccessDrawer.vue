@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { NDrawer, NDrawerContent, NSwitch, NInput, NButton, NSpace, NText, useMessage } from 'naive-ui'
 import { pageApi } from '@/api/page'
 import { libraryApi } from '@/api/library'
+import { copyToClipboard } from '@/utils/clipboard'
 import type { Page, Library } from '@/types'
 
 const props = defineProps<{
@@ -69,10 +70,14 @@ async function handlePublicChange(value: boolean) {
   }
 }
 
-function copyLink() {
+async function copyLink() {
   if (!publicLink.value) return
-  navigator.clipboard.writeText(publicLink.value)
-  message.success('Link copied to clipboard')
+  const success = await copyToClipboard(publicLink.value)
+  if (success) {
+    message.success('Link copied to clipboard')
+  } else {
+    message.error('Failed to copy link')
+  }
 }
 </script>
 
