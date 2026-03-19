@@ -4,7 +4,6 @@ import { darkTheme, type GlobalThemeOverrides } from 'naive-ui'
 
 const colorMode = useColorMode({
   storageKey: 'schema_color_mode',
-  emitAuto: true,
 })
 
 export function useTheme() {
