@@ -70,155 +70,100 @@
 
 ### Prerequisites
 
-- **Node.js** 18+ (LTS recommended)
-- **pnpm** (package manager)
-- **Git** (for cloning)
+- **Docker**
+- **Docker Compose** (`docker compose`)
 
-### Installation
+### Deploy with Docker Compose
 
-1. **Clone the repository:**
-```bash
-git clone https://github.com/LunaDeerTech/Schema.git
-cd Schema
+1. **Create a compose file** (`docker-compose.yml`) in the project root.
+
+```yaml
+version: '3.8'
+
+services:
+  schema:
+    image: ghcr.io/lunadeertech/schema:latest
+    container_name: schema-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_PATH=/app/db/schema-database.sqlite
+      - JWT_SECRET=!!!CHANGE_THIS!!!
+      - JWT_EXPIRES_IN=7d
+      - UPLOAD_DIR=/app/uploads
+      - MAX_FILE_SIZE=10485760
+    volumes:
+      - ./db:/app/db
+      - ./uploads:/app/uploads
 ```
 
-2. **Install dependencies:**
+2. **Configure environment variables:**
+- Edit the `JWT_SECRET` in the compose file to a secure random string before deployment.
+
+3. **Start the service:**
+```bash
+docker compose up -d
+```
+
+4. **Open the application:**
+- Application: `http://localhost:3000`
+- API: `http://localhost:3000/api/v1`
+
+5. **Persistent data:**
+- Database files are stored in `./db`
+- Uploaded files are stored in `./uploads`
+
+### Common Operations
+
+**View logs:**
+```bash
+docker compose logs -f schema
+```
+
+**Update to the latest image:**
+```bash
+docker compose pull
+docker compose up -d
+```
+
+**Stop the service:**
+```bash
+docker compose down
+```
+
+## 🛠️ Local Development
+
+Local source-code development is optional. If you want to run the backend and frontend separately:
+
 ```bash
 pnpm install
 cd client && pnpm install && cd ..
-```
-
-3. **Configure environment:**
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your configuration:
-```env
-NODE_ENV=development
-PORT=3000
-DATABASE_URL="file:./dev.db"
-JWT_SECRET=your-super-secret-key-change-in-production
-JWT_EXPIRES_IN=7d
-UPLOAD_DIR=./uploads
-MAX_FILE_SIZE=10485760
-```
-
-4. **Start development servers:**
-
-Backend (port 3000):
-```bash
 pnpm dev
-```
-
-Frontend (port 5173):
-```bash
 pnpm dev:client
 ```
 
-5. **Access the application:**
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:3000/api/v1
+Backend runs on port `3000`; the Vite dev server runs on port `5173`.
 
-## 🛠️ Development
+## ⚙️ Docker Compose Configuration
 
-### Available Scripts
+The deployment is configured through Compose variables in `.env`.
 
-#### Backend (Root Directory)
+| Variable | Default | Description |
+|--------|-------------|-------------|
+| `SCHEMA_IMAGE` | `ghcr.io/lunadeertech/schema:latest` | Container image to deploy |
+| `SCHEMA_CONTAINER_NAME` | `schema-app` | Container name |
+| `SCHEMA_NODE_ENV` | `production` | Runtime environment |
+| `SCHEMA_PORT` | `3000` | Host and container port |
+| `SCHEMA_DB_PATH` | `/app/db/schema-database.sqlite` | SQLite database path inside the container |
+| `SCHEMA_JWT_SECRET` | `!!!CHANGE_THIS!!!` | JWT signing secret; replace this before deployment |
+| `SCHEMA_JWT_EXPIRES_IN` | `7d` | JWT expiration time |
+| `SCHEMA_UPLOAD_DIR` | `/app/uploads` | Upload directory inside the container |
+| `SCHEMA_MAX_FILE_SIZE` | `10485760` | Upload size limit in bytes |
 
-| Script | Description |
-|--------|-------------|
-| `pnpm dev` | Start backend with hot reload (NestJS) |
-| `pnpm build` | Build backend for production |
-| `pnpm start` | Run built backend server |
-| `pnpm lint` | Lint TypeScript code |
-| `pnpm build:client` | Build frontend separately |
-| `pnpm pack` | Package both backend and frontend |
-
-#### Frontend (client/ Directory)
-
-| Script | Description |
-|--------|-------------|
-| `pnpm dev` | Start Vite dev server (HMR) |
-| `pnpm build` | Build for production |
-| `pnpm preview` | Preview production build |
-| `pnpm lint` | Lint TypeScript/Vue code |
-
-### Development Workflow
-
-**Option 1: Separate Terminals (Recommended)**
-```bash
-# Terminal 1 - Backend
-pnpm dev
-
-# Terminal 2 - Frontend
-pnpm dev:client
-```
-
-**Option 2: Single Terminal (using concurrently)**
-```bash
-# Install concurrently globally
-pnpm add -g concurrently
-
-# Run both
-concurrently "pnpm dev" "pnpm dev:client"
-```
-
-### Building for Production
-
-```bash
-# Build both backend and frontend
-pnpm pack
-
-# Output: dist/ directory with:
-# - dist/main.js (backend)
-# - dist/frontend/ (frontend assets)
-# - dist/ (config files)
-
-# Run production server
-pnpm start
-```
-
-### Code Quality
-
-**Backend Linting:**
-```bash
-pnpm lint
-```
-
-**Frontend Linting:**
-```bash
-cd client && pnpm lint
-```
-
-## ⚙️ Configuration
-
-### Environment Variables
-
-Create a `.env` file in the root directory:
-
-```env
-# Server
-NODE_ENV=development
-PORT=3000
-
-# Database
-DB_PATH="file:./dev.db"
-
-# JWT
-JWT_SECRET=your-super-secret-key-change-in-production
-JWT_EXPIRES_IN=7d
-
-# Uploads
-UPLOAD_DIR=./uploads
-MAX_FILE_SIZE=10485760  # 10MB
-
-# Optional: SMTP (for email features)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-```
+SMTP and other application-level settings can be configured from the application after the first login.
 
 ## 📁 Project Structure
 
