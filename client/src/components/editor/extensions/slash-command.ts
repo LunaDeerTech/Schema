@@ -165,6 +165,23 @@ const allItems: CommandItem[] = [
     },
   },
   {
+    title: 'Inline Image',
+    description: 'Insert image within text',
+    icon: ImageOutline,
+    group: 'Insert',
+    keywords: ['inline', 'image', 'picture', 'photo', 'img', 'icon'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).run()
+      const event = new CustomEvent('open-image-uploader', {
+        detail: {
+          pos: editor.view.coordsAtPos(editor.state.selection.from),
+          inline: true,
+        },
+      })
+      window.dispatchEvent(event)
+    },
+  },
+  {
     title: 'Table',
     description: '3×3 table with header',
     icon: GridOutline,

@@ -7,6 +7,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { CustomLink } from './extensions/custom-link'
 import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table'
 import { ImageBlock } from './extensions/image-block'
+import { InlineImage } from './extensions/inline-image'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import { CodeBlockWithCopy } from './extensions/code-block'
@@ -67,6 +68,7 @@ const router = useRouter()
 const route = useRoute()
 
 const showImageUploader = ref(false)
+const imageUploaderInline = ref(false)
 const uploaderPosition = ref({ top: 0, bottom: 0, left: 0 })
 const wrapperRef = ref<HTMLElement | null>(null)
 const showMarkdownImporter = ref(false)
@@ -80,6 +82,7 @@ console.debug('TiptapEditor content:', props.content);
 const handleOpenImageUploader = (e: Event) => {
     const customEvent = e as CustomEvent
     const { left, bottom, top } = customEvent.detail.pos
+    imageUploaderInline.value = !!customEvent.detail.inline
     
     console.debug('handleOpenImageUploader - props:', { pageId: props.pageId, libraryId: props.libraryId });
     
@@ -98,7 +101,11 @@ const handleOpenImageUploader = (e: Event) => {
 
 const handleInsertImage = (url: string) => {
     if (editor.value) {
-        editor.value.chain().focus().setImage({ src: url }).run()
+        if (imageUploaderInline.value) {
+            editor.value.chain().focus().setInlineImage({ src: url }).run()
+        } else {
+            editor.value.chain().focus().setImage({ src: url }).run()
+        }
     }
 }
 
@@ -223,6 +230,7 @@ const editor = useEditor({
     TableHeader,
     TableCell,
     ImageBlock,
+    InlineImage,
     TaskList,
     TaskItem.configure({
       nested: true,
@@ -259,6 +267,32 @@ const editor = useEditor({
       }
       // Click outside a link — hide popover
       linkBubbleRef.value?.hide()
+      return false
+    },
+    handlePaste: (view, event) => {
+      const items = event.clipboardData?.items
+      if (!items) return false
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i]
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile()
+          if (!file) continue
+          event.preventDefault()
+          uploadApi.uploadImage(file, props.pageId, props.libraryId).then(res => {
+            const url = res.url || (res.data && res.data.url)
+            if (url) {
+              const { schema } = view.state
+              const node = schema.nodes.image.create({ src: url })
+              const transaction = view.state.tr.replaceSelectionWith(node)
+              view.dispatch(transaction)
+            }
+          }).catch(err => {
+            console.error(err)
+            message.error('Image upload failed')
+          })
+          return true
+        }
+      }
       return false
     },
     handleDrop: (view, event, _ , moved) => {
