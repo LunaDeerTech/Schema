@@ -47,22 +47,41 @@ import { processLatexInMarkdown, containsLatex } from '@/utils/latex-parser'
 const lowlight = createLowlight(common)
 const message = useMessage()
 
-// Normalize saved content: wrap top-level image/inlineImage nodes in paragraphs
-// for backward compatibility after ImageBlock changed from block to inline
+// Normalize saved content recursively for backward compatibility after
+// images changed from block nodes to inline nodes.
 function normalizeContent(content: any): any {
-  if (!content || typeof content !== 'object' || content.type !== 'doc' || !Array.isArray(content.content)) {
-    return content
-  }
-  let changed = false
-  const normalized = content.content.map((node: any) => {
-    if (node.type === 'image' || node.type === 'inlineImage') {
-      changed = true
-      const imgNode = node.type === 'inlineImage' ? { ...node, type: 'image' } : node
-      return { type: 'paragraph', content: [imgNode] }
+  const blockContainers = new Set(['doc', 'blockquote'])
+
+  const normalizeNode = (node: any): any => {
+    if (!node || typeof node !== 'object') {
+      return node
     }
-    return node
-  })
-  return changed ? { ...content, content: normalized } : content
+
+    if (node.type === 'inlineImage') {
+      return normalizeNode({ ...node, type: 'image' })
+    }
+
+    if (!Array.isArray(node.content)) {
+      return node
+    }
+
+    const normalizedContent = node.content.flatMap((child: any) => {
+      const normalizedChild = normalizeNode(child)
+
+      if (normalizedChild?.type === 'image' && blockContainers.has(node.type)) {
+        return [{ type: 'paragraph', content: [normalizedChild] }]
+      }
+
+      return [normalizedChild]
+    })
+
+    return {
+      ...node,
+      content: normalizedContent,
+    }
+  }
+
+  return normalizeNode(content)
 }
 
 interface Props {
