@@ -7,6 +7,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { CustomLink } from './extensions/custom-link'
 import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table'
 import { ImageBlock } from './extensions/image-block'
+import { InlineImage } from './extensions/inline-image'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import { CodeBlockWithCopy } from './extensions/code-block'
@@ -259,6 +260,7 @@ const editor = useEditor({
     TableRow,
     TableHeader,
     TableCell,
+    InlineImage,
     ImageBlock,
     TaskList,
     TaskItem.configure({
