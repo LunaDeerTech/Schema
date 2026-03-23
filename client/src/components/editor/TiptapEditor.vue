@@ -7,7 +7,6 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { CustomLink } from './extensions/custom-link'
 import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table'
 import { ImageBlock } from './extensions/image-block'
-import { InlineImage } from './extensions/inline-image'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import { CodeBlockWithCopy } from './extensions/code-block'
@@ -48,6 +47,24 @@ import { processLatexInMarkdown, containsLatex } from '@/utils/latex-parser'
 const lowlight = createLowlight(common)
 const message = useMessage()
 
+// Normalize saved content: wrap top-level image/inlineImage nodes in paragraphs
+// for backward compatibility after ImageBlock changed from block to inline
+function normalizeContent(content: any): any {
+  if (!content || typeof content !== 'object' || content.type !== 'doc' || !Array.isArray(content.content)) {
+    return content
+  }
+  let changed = false
+  const normalized = content.content.map((node: any) => {
+    if (node.type === 'image' || node.type === 'inlineImage') {
+      changed = true
+      const imgNode = node.type === 'inlineImage' ? { ...node, type: 'image' } : node
+      return { type: 'paragraph', content: [imgNode] }
+    }
+    return node
+  })
+  return changed ? { ...content, content: normalized } : content
+}
+
 interface Props {
   content?: any
   editable?: boolean
@@ -68,7 +85,6 @@ const router = useRouter()
 const route = useRoute()
 
 const showImageUploader = ref(false)
-const imageUploaderInline = ref(false)
 const uploaderPosition = ref({ top: 0, bottom: 0, left: 0 })
 const wrapperRef = ref<HTMLElement | null>(null)
 const showMarkdownImporter = ref(false)
@@ -82,7 +98,6 @@ console.debug('TiptapEditor content:', props.content);
 const handleOpenImageUploader = (e: Event) => {
     const customEvent = e as CustomEvent
     const { left, bottom, top } = customEvent.detail.pos
-    imageUploaderInline.value = !!customEvent.detail.inline
     
     console.debug('handleOpenImageUploader - props:', { pageId: props.pageId, libraryId: props.libraryId });
     
@@ -101,11 +116,7 @@ const handleOpenImageUploader = (e: Event) => {
 
 const handleInsertImage = (url: string) => {
     if (editor.value) {
-        if (imageUploaderInline.value) {
-            editor.value.chain().focus().setInlineImage({ src: url }).run()
-        } else {
-            editor.value.chain().focus().setImage({ src: url }).run()
-        }
+        editor.value.chain().focus().setImage({ src: url }).run()
     }
 }
 
@@ -211,7 +222,7 @@ const toggleLink = () => {
 }
 
 const editor = useEditor({
-  content: props.content ? toRaw(props.content) : '',
+  content: props.content ? normalizeContent(toRaw(props.content)) : '',
   editable: props.editable,
   extensions: [
     StarterKit.configure({
@@ -230,7 +241,6 @@ const editor = useEditor({
     TableHeader,
     TableCell,
     ImageBlock,
-    InlineImage,
     TaskList,
     TaskItem.configure({
       nested: true,
@@ -269,7 +279,7 @@ const editor = useEditor({
       linkBubbleRef.value?.hide()
       return false
     },
-    handlePaste: (view, event) => {
+    handlePaste: (_view, event) => {
       const items = event.clipboardData?.items
       if (!items) return false
       for (let i = 0; i < items.length; i++) {
@@ -280,11 +290,8 @@ const editor = useEditor({
           event.preventDefault()
           uploadApi.uploadImage(file, props.pageId, props.libraryId).then(res => {
             const url = res.url || (res.data && res.data.url)
-            if (url) {
-              const { schema } = view.state
-              const node = schema.nodes.image.create({ src: url })
-              const transaction = view.state.tr.replaceSelectionWith(node)
-              view.dispatch(transaction)
+            if (url && editor.value) {
+              editor.value.chain().focus().setImage({ src: url }).run()
             }
           }).catch(err => {
             console.error(err)
@@ -299,17 +306,16 @@ const editor = useEditor({
       if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
         const file = event.dataTransfer.files[0]
         if (file.type.startsWith('image/')) {
-          event.preventDefault() // Prevent default browser behavior (download)
+          event.preventDefault()
           const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY })
           if (coordinates) {
              console.debug('handleDrop - uploading with pageId:', props.pageId, 'libraryId:', props.libraryId);
              uploadApi.uploadImage(file, props.pageId, props.libraryId).then(res => {
                  const url = res.url || (res.data && res.data.url)
-                 if (url) {
-                    const { schema } = view.state
-                    const node = schema.nodes.image.create({ src: url })
-                    const transaction = view.state.tr.insert(coordinates.pos, node)
-                    view.dispatch(transaction)
+                 if (url && editor.value) {
+                    editor.value.chain().focus()
+                      .insertContentAt(coordinates.pos, { type: 'image', attrs: { src: url } })
+                      .run()
                  }
              }).catch(err => {
                  console.error(err)
@@ -339,7 +345,7 @@ watch(() => props.content, (newContent) => {
     // Only update if content is different and not just a re-render
     if (contentString !== currentHash && contentString !== lastContentHash) {
       console.debug('Updating editor content (content actually changed)');
-      editor.value.commands.setContent(toRaw(newContent))
+      editor.value.commands.setContent(normalizeContent(toRaw(newContent)))
       lastContentHash = contentString
     } else {
       console.debug('Skipping editor update (content unchanged)');
