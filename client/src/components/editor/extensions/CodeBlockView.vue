@@ -333,11 +333,16 @@ const handleCopy = async (text: string) => {
   padding: 16px 20px;
   font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
   overflow-x: auto;
+  overflow-y: hidden;
+  white-space: pre;
   margin: 0;
   border-radius: 0 0 7px 7px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .code-block-wrapper :deep(pre code) {
+  display: block;
+  min-width: max-content;
   background: none;
   padding: 0;
   margin: 0;
@@ -346,6 +351,9 @@ const handleCopy = async (text: string) => {
   color: var(--color-hljs-text);
   border-radius: 0;
   font-family: inherit;
+  white-space: inherit;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 /* Syntax highlighting theme (GitHub-inspired) */
