@@ -58,10 +58,6 @@ function normalizeContent(content: any): any {
       return node
     }
 
-    if (node.type === 'inlineImage') {
-      return normalizeNode({ ...node, type: 'image' })
-    }
-
     if (!Array.isArray(node.content)) {
       return node
     }
